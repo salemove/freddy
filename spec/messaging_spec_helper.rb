@@ -15,7 +15,7 @@ def random_destination
 end
 
 def default_sleep
-  sleep 0.1
+  sleep 0.01
 end
 
 def default_consume(&block)
