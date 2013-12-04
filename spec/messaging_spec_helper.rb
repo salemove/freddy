@@ -48,5 +48,5 @@ def default_let
   let(:payload) { {pay: 'load'} }
 end
 
-logger = Logger.new(STDOUT).tap { |l| l.level = Logger::WARN }
+logger = Logger.new(STDOUT).tap { |l| l.level = Logger::ERROR }
 Salemove::Messaging.setup(logger, host: 'localhost', port: 5672, user: 'guest', pass: 'guest')

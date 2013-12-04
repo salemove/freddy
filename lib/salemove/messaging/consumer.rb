@@ -37,7 +37,7 @@ module Salemove
           rescue Exception => e
             @logger.error "Consuming with acknowledgement failed on destination #{destination} #{Messaging.format_exception(e)}"
           end
-          @logger.warn "Consumer failed to acknowledge message on #{destination}: #{error}" if acknowledger.error
+          @logger.warn "Consumer failed to acknowledge message on #{destination}: #{acknowledger.error}" if acknowledger.error
           {error: acknowledger.error}
         end
       end

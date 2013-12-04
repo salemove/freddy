@@ -33,7 +33,7 @@ module Salemove
       describe 'when consuming with ack' do 
         it 'allows the message to be acknowledged' do 
           consumer.consume_with_ack destination do |payload, acknowledger|
-            acknowledger.ackomono
+            acknowledger.ack
           end
           default_produce_with_ack
         end
