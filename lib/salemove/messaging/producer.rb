@@ -1,4 +1,5 @@
 require 'salemove/messaging/request'
+require 'json'
 
 module Salemove
   module Messaging
@@ -20,7 +21,7 @@ module Salemove
       def produce_with_ack(destination, payload, &block)
         raise EmptyAckHandler unless block
         req = Request.new(@channel)
-        producer = req.request destination, payload, mandatory: true do |payload|
+        producer = req.request destination, payload, mandatory: true, headers: {message_with_ack: true} do |payload|
           block.call payload[:error]
         end
 
