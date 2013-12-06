@@ -37,7 +37,7 @@
 
 * Request
 
-        request(destination, payload, options={}, &callback)
+        messenger.request(destination, payload, options={}, &callback)
 
   * Callback is called with 2 arguments
 
