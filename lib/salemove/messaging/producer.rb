@@ -18,10 +18,10 @@ module Salemove
         @exchange.publish payload.to_json, properties.merge(routing_key: destination, content_type: 'application/json')
       end
 
-      def produce_with_ack(destination, payload, &block)
+      def produce_with_ack(destination, payload, properties={}, &block)
         raise EmptyAckHandler unless block
         req = Request.new(@channel)
-        producer = req.request destination, payload, mandatory: true, headers: {message_with_ack: true} do |payload|
+        producer = req.request destination, payload, properties.merge(mandatory: true, headers: {message_with_ack: true}) do |payload|
           block.call payload[:error]
         end
 

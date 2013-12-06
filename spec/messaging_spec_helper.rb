@@ -1,7 +1,5 @@
 require 'spec_helper'
-require 'salemove/messaging/consumer'
-require 'salemove/messaging/producer'
-require 'salemove/messaging/message_handler'
+require 'salemove/messaging/messenger'
 require_relative '../lib/messaging'
 
 class Salemove::Messaging::Consumer
@@ -28,7 +26,7 @@ def default_sleep
 end
 
 def default_consume(&block)
-  consumer.consume destination do |payload, msg_handler|
+  messenger.consume destination do |payload, msg_handler|
     @message_received = true
     @received_payload = payload
     @messages_count ||= 0
@@ -38,12 +36,12 @@ def default_consume(&block)
 end
 
 def default_produce
-  producer.produce destination, payload
+  messenger.produce destination, payload
   default_sleep
 end
 
 def default_produce_with_ack(&block)
-  producer.produce_with_ack destination, payload do |error|
+  messenger.produce_with_ack destination, payload do |error|
     @ack_error = error
     block.call error if block
   end
@@ -51,9 +49,10 @@ def default_produce_with_ack(&block)
 end
 
 def default_let
+  let(:messenger) { Salemove::Messaging::Messenger.new }
   let(:consumer) { Salemove::Messaging::Consumer.new }
-  let(:destination) { random_destination }
   let(:producer) { Salemove::Messaging::Producer.new }
+  let(:destination) { random_destination }
   let(:payload) { {pay: 'load'} }
 end
 

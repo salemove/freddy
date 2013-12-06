@@ -1,6 +1,5 @@
 require 'salemove/messaging/producer'
 require 'salemove/messaging/consumer'
-require 'salemove/messaging/consumer_handler'
 require 'securerandom'
 
 module Salemove
@@ -33,11 +32,11 @@ module Salemove
         raise EmptyResponder unless block
         @response_queue = create_response_queue unless @response_queue
         @logger.debug "Listening for requests on #{destination}"
-        responder = @consumer.consume destination do |payload, message_handler|
+        consumer_handler = @consumer.consume destination do |payload, message_handler|
           @logger.debug "Got request on #{destination} with correlation_id #{message_handler.properties[:correlation_id]}"
           handle_request payload, message_handler, block
         end
-        ConsumerHandler.new responder
+        consumer_handler
       end
 
       private 
