@@ -22,7 +22,7 @@ module Salemove
         raise EmptyConsumer unless block
         consumer = queue.subscribe do |delivery_info, properties, payload|
           @logger.debug "Received message on #{queue.name}"
-          block.call Messaging.symbolize_keys(JSON(payload)), MessageHandler.new(@channel, delivery_info, properties)
+          block.call (parse_payload payload), MessageHandler.new(@channel, delivery_info, properties)
         end
         @logger.debug "Consuming messages on #{queue.name}"
         ConsumerHandler.new consumer
@@ -30,39 +30,21 @@ module Salemove
 
       def consume_with_ack(destination, &block)
         request = Request.new(@channel)
-        request.respond_to destination do |request|
-          acknowledger = Acknowledger.new
-          begin
-            block.call request, acknowledger
-          rescue Exception => e
-            @logger.error "Consuming with acknowledgement failed on destination #{destination} #{Messaging.format_exception(e)}"
-          end
-          @logger.warn "Consumer failed to acknowledge message on #{destination}: #{acknowledger.error}" if acknowledger.error
-          {error: acknowledger.error}
+        request.respond_to destination do |request, msg_handler|
+          block.call request, msg_handler
+          error = msg_handler.acknowledger.error
+          @logger.warn "Consumer failed to acknowledge message on #{destination}: #{error}" if error
+          {error: error}
         end
       end
 
       private
 
-      class Acknowledger 
-        @acked = false
-
-        def ack
-          @acked = true
-          @error = nil
-        end
-
-        def nack(error)
-          @acked = false
-          @error = error
-        end
-
-        def error
-          if @error
-            @error
-          elsif !@acked
-            "Consumer didn't manually acknowledge message"
-          end
+      def parse_payload(payload)
+        if payload == 'null'
+          {}
+        else
+          Messaging.symbolize_keys(JSON(payload))
         end
       end
 
