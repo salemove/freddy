@@ -10,6 +10,10 @@ module Salemove
       let(:destination2) { random_destination }
       let(:test_response) { {custom: 'response'}}
 
+      # after(:each) do 
+      #   @responder.cancel if @responder
+      # end
+
       def default_request(&block)
         req.request destination, payload do |response|
           @received_response = response
@@ -19,7 +23,7 @@ module Salemove
       end
 
       def default_respond_to(&block)
-        req.respond_to destination do |request_payload|
+        @responder = req.respond_to destination do |request_payload|
           @message_received = true
           @received_payload = request_payload
           block.call request_payload if block
@@ -31,7 +35,7 @@ module Salemove
       end
 
       it 'raises empty responder exception when responding without callback' do 
-        expect {req.respond_to destination }.to raise_error Request::EmptyResponder
+        expect {@responder = req.respond_to destination }.to raise_error Request::EmptyResponder
       end
 
       it 'sends the request to responder' do 
@@ -41,18 +45,21 @@ module Salemove
       end
 
       it 'sends the payload in request to the responder' do 
-        default_respond_to
+        default_respond_to do 
+
+        end
         payload = {a: 'ari'}
         req.request destination, payload do
           #NOP
         end
+        default_sleep
         default_sleep
 
         expect(@received_payload).to eq Messaging.symbolize_keys(payload)
       end
 
       it 'sends the response to requester' do 
-        default_respond_to do 
+        @responder = req.respond_to destination do |request_payload|
           test_response
         end
         default_request
@@ -60,7 +67,7 @@ module Salemove
       end
 
       it 'responds to the correct requester' do
-        req.respond_to destination do 
+        @responder = req.respond_to destination do 
           test_response
         end
 

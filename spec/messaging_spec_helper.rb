@@ -1,12 +1,21 @@
 require 'spec_helper'
 require 'salemove/messaging/consumer'
 require 'salemove/messaging/producer'
+require 'salemove/messaging/message_handler'
 require_relative '../lib/messaging'
 
 class Salemove::Messaging::Consumer
   def create_queue(queue_name)
-    #want to make the queues auto_delete
+    #want to auto_delete queues while testing
     @channel.queue(queue_name, auto_delete: true)
+  end
+end
+
+class Salemove::Messaging::Request
+  def create_response_queue
+    #exclusive queues are deleted when the consumer disconnects,
+    #auto_delete doesn't work when there are no requests
+    @channel.queue("", exclusive: true, auto_delete: true)
   end
 end
 
@@ -19,12 +28,12 @@ def default_sleep
 end
 
 def default_consume(&block)
-  consumer.consume destination do |payload, ops|
+  consumer.consume destination do |payload, msg_handler|
     @message_received = true
     @received_payload = payload
     @messages_count ||= 0
     @messages_count += 1
-    block.call payload, ops if block
+    block.call payload, msg_handler if block
   end
 end
 

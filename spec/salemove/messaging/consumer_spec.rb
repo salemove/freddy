@@ -32,18 +32,31 @@ module Salemove
 
       describe 'when consuming with ack' do 
         it 'allows the message to be acknowledged' do 
-          consumer.consume_with_ack destination do |payload, acknowledger|
-            acknowledger.ack
+          expect_any_instance_of(MessageHandler).to receive(:ack).exactly(:once).and_call_original
+          consumer.consume_with_ack destination do |payload, msg_handler|
+            msg_handler.ack
           end
           default_produce_with_ack
+          expect(@ack_error).to be_nil
         end
 
         it 'allows the message to be nacked' do 
-          consumer.consume_with_ack destination do |payload, acknowledger|
-            acknowledger.nack "this payload is very, very bad"
+          expect_any_instance_of(MessageHandler).to receive(:nack).exactly(:once).and_call_original
+          consumer.consume_with_ack destination do |payload, msg_handler|
+            msg_handler.nack "this payload is very, very bad"
           end
           default_produce_with_ack
+          expect(@ack_error).not_to be_nil
         end
+
+        it "reports error if message wasn't acknowledged" do 
+          consumer.consume_with_ack destination do |payload, msg_handler|
+            #NOP
+          end
+          default_produce_with_ack
+          expect(@ack_error).not_to be_nil
+        end
+
       end
     end
   end

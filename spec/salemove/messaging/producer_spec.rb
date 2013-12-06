@@ -24,14 +24,6 @@ module Salemove
           expect(@ack_error).not_to be_nil
         end
 
-        it 'return error when the message was nacked' do 
-          consumer.consume_with_ack destination do |payload, acknowledger|
-            acknowledger.nack "bad payload"
-          end
-          default_produce_with_ack
-          expect(@ack_error).not_to be_nil
-        end
-
       end
 
     end
