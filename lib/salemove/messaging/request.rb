@@ -1,5 +1,8 @@
 require 'salemove/messaging/producer'
 require 'salemove/messaging/consumer'
+require 'salemove/messaging/message_handlers/request_handler'
+require 'salemove/messaging/message_handlers/ack_message_handler'
+require 'salemove/messaging/message_handlers/standard_message_handler'
 require 'securerandom'
 
 module Salemove
@@ -30,32 +33,39 @@ module Salemove
 
       def respond_to(destination, &block)
         raise EmptyResponder unless block
-        @response_queue = create_response_queue unless @response_queue
-        @logger.debug "Listening for requests on #{destination}"
-        consumer_handler = @consumer.consume destination do |payload, message_handler|
-          @logger.debug "Got request on #{destination} with correlation_id #{message_handler.properties[:correlation_id]}"
-          handle_request payload, message_handler, block
-        end
-        consumer_handler
+        respond_to_with_handler destination, block
       end
 
-      private 
+      def respond_to_with_handler(destination, block)
+        @response_queue = create_response_queue unless @response_queue
+        @logger.debug "Listening for requests on #{destination}"
+        responder_handler = @consumer.basic_consume destination do |payload, msg_handler|
+          handler = get_message_handler(msg_handler.properties)
+          handle_request payload, msg_handler, handler.new(block, destination, @logger)
+        end
+        responder_handler
+      end
+
+
+      private
 
       def create_response_queue
         @channel.queue("", auto_delete: true)
       end
 
-      def handle_request(payload, msg_handler, block)
-        properties = msg_handler.properties
-        correlation_id = properties[:correlation_id]
-        if !correlation_id
-          @logger.error "Received request without correlation_id"
-          return 
-        end
-        response = block.call payload, msg_handler
-        @producer.produce properties[:reply_to], response, correlation_id: correlation_id
-      rescue Exception => e
-        @logger.error "Exception occured while handling the request with correlation_id #{correlation_id}: #{Messagging.format_backtrace(e.backtrace)}"
+      def get_message_handler(properties)
+        if properties[:headers] and properties[:headers]['message_with_ack']
+          handler = MessageHandlers::AckMessageHandler
+        elsif properties[:correlation_id]
+          handler = MessageHandlers::RequestHandler
+        else 
+          handler = MessageHandlers::StandardMessageHandler
+        end 
+      end
+
+      def handle_request(payload, msg_handler, handler)
+        handler.handle_message payload, msg_handler
+        handler.send_response @producer
       end
 
       def handle_response(payload, msg_handler)
@@ -74,7 +84,7 @@ module Salemove
 
       def listen_for_responses
         @response_queue = create_response_queue unless @response_queue
-        @consumer.consume_from_queue @response_queue do |payload, msg_handler|
+        @consumer.basic_consume_from_queue @response_queue do |payload, msg_handler|
           handle_response payload, msg_handler
         end
         @listening_for_responses = true

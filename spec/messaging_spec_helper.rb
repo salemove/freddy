@@ -26,7 +26,7 @@ def default_sleep
 end
 
 def default_consume(&block)
-  messenger.consume destination do |payload, msg_handler|
+  messenger.respond_to destination do |payload, msg_handler|
     @message_received = true
     @received_payload = payload
     @messages_count ||= 0

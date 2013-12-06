@@ -1,6 +1,6 @@
 module Salemove
   module Messaging
-    class ConsumerHandler
+    class ResponderHandler
 
       def initialize(consumer)
         @consumer = consumer

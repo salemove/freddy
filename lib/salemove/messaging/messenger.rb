@@ -12,12 +12,8 @@ module Salemove
         @consumer, @producer, @request = Consumer.new(@channel, @logger), Producer.new(@channel, @logger), Request.new(@channel, @logger)
       end
 
-      def consume(destination, &block)
-        @consumer.consume destination, &block
-      end
-
-      def consume_with_ack(destination, &block)
-        @consumer.consume_with_ack destination, &block
+      def respond_to(destination, &block)
+        @request.respond_to destination, &block
       end
 
       def produce(destination, payload, properties = {})
@@ -30,10 +26,6 @@ module Salemove
 
       def request(destination, payload, options={}, &block)
         @request.request destination, payload, options, &block
-      end
-
-      def respond_to(destination, &block)
-        @request.respond_to destination, &block
       end
 
       private 
