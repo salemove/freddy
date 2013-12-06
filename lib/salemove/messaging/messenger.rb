@@ -20,12 +20,12 @@ module Salemove
         @producer.produce destination, payload, properties
       end
 
-      def produce_with_ack(destination, payload, properties = {}, &block)
-        @producer.produce_with_ack destination, payload, properties, &block
+      def produce_with_ack(destination, payload, timeout_seconds = 3, properties = {}, &block)
+        @producer.produce_with_ack destination, payload, timeout_seconds, properties, &block
       end
 
-      def request(destination, payload, options={}, &block)
-        @request.request destination, payload, options, &block
+      def produce_with_response(destination, payload, timeout_seconds = 3, options={}, &block)
+        @request.request destination, payload, timeout_seconds, options, &block
       end
 
       private 

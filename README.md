@@ -25,7 +25,9 @@
 
 * Produce messages expecting explicit acknowledgement
 
-        messenger.produce_with_ack(destination, payload, properties = {}, &callback)
+        messenger.produce_with_ack(destination, payload, timeout_seconds = 3, properties = {}, &callback)
+
+    * If timeout_seconds pass without a response from the responder, then the callback is called with a timeout error.
 
     * callback is called with one argument: a string that contains an error message if 
          * the message couldn't be sent to any responders or 
@@ -35,9 +37,11 @@
     * callback is called with one argument that is nil if the responder positively acknowledged the message
     * note that the callback will not be called in the case that there is a responder who receives the message, but the responder doesn't finish processing the message or dies in the process.
 
-* Request
+* Produce with response
 
-        messenger.request(destination, payload, options={}, &callback)
+        messenger.produce_with_response(destination, payload, timeout_seconds = 3, options={}, &callback)
+
+  * If timeout_seconds pass without a response from the responder then the callback is called with the hash {error: 'Timed out waiting for response'}
 
   * Callback is called with 2 arguments
 
@@ -54,7 +58,7 @@
        * the parsed message (note that in the message all keys are symbolized)
        * the MessageHandler (described further down)
 
-    * The return value of the callback is used for response if the message was produced by a *request* 
+    * The return value of the callback is used for response if the message was produced by a *produce_with_response* 
 
 * When responding to messages the MessageHandler is given as the second argument. The following operations are supported:
 

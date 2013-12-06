@@ -19,8 +19,9 @@ module Salemove
           expect { producer.produce_with_ack destination, payload }.to raise_error Producer::EmptyAckHandler
         end
 
-        it 'returns error if there are no consumers' do 
+        it 'returns error if there are no responder' do 
           default_produce_with_ack
+
           expect(@ack_error).not_to be_nil
         end
 

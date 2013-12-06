@@ -10,10 +10,6 @@ module Salemove
       let(:destination2) { random_destination }
       let(:test_response) { {custom: 'response'}}
 
-      # after(:each) do 
-      #   @responder.cancel if @responder
-      # end
-
       def default_request(&block)
         req.request destination, payload do |response|
           @received_response = response
@@ -84,6 +80,14 @@ module Salemove
         expect(@dest2_response_received).to be_nil
       end
 
+      it 'times out when no response comes' do 
+        req.request destination, payload, 0.2 do |response|
+          @error = response[:error]
+        end
+        sleep 0.35
+        expect(@error).not_to be_nil
+      end
+
       describe 'when responding with ack' do 
         it 'allows the message to be acknowledged' do 
           expect_any_instance_of(MessageHandler).to receive(:ack).exactly(:once).and_call_original
@@ -99,6 +103,7 @@ module Salemove
           req.respond_to destination do |payload, msg_handler|
             msg_handler.nack "this payload is very, very bad"
           end
+
           default_produce_with_ack
           expect(@ack_error).not_to be_nil
         end
