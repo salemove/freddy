@@ -35,7 +35,7 @@ module Salemove
         @logger.debug "Listening for requests on #{destination}"
         responder = @consumer.consume destination do |payload, message_handler|
           @logger.debug "Got request on #{destination} with correlation_id #{message_handler.properties[:correlation_id]}"
-          handle_request payload, message_handler.properties, block
+          handle_request payload, message_handler, block
         end
         ConsumerHandler.new responder
       end
@@ -43,28 +43,29 @@ module Salemove
       private 
 
       def create_response_queue
-        @channel.queue("", exclusive: true)
+        @channel.queue("", auto_delete: true)
       end
 
-      def handle_request(payload, properties, block)
+      def handle_request(payload, msg_handler, block)
+        properties = msg_handler.properties
         correlation_id = properties[:correlation_id]
         if !correlation_id
           @logger.error "Received request without correlation_id"
           return 
         end
-        response = block.call payload
+        response = block.call payload, msg_handler
         @producer.produce properties[:reply_to], response, correlation_id: correlation_id
       rescue Exception => e
         @logger.error "Exception occured while handling the request with correlation_id #{correlation_id}: #{Messagging.format_backtrace(e.backtrace)}"
       end
 
-      def handle_response(payload, listen_ops)
-        correlation_id = listen_ops.properties[:correlation_id]
+      def handle_response(payload, msg_handler)
+        correlation_id = msg_handler.properties[:correlation_id]
         request = @request_map[correlation_id]
         if request
           @logger.debug "Got response for request to #{request[:destination]} with correlation_id #{correlation_id}"
           @request_map.delete correlation_id
-          request[:callback].call payload, listen_ops
+          request[:callback].call payload, msg_handler
         else
           @logger.warn "Got rpc response for correlation_id #{correlation_id} but there is no requester"
         end
@@ -74,8 +75,8 @@ module Salemove
 
       def listen_for_responses
         @response_queue = create_response_queue unless @response_queue
-        @consumer.consume_from_queue @response_queue do |payload, ops|
-          handle_response payload, ops
+        @consumer.consume_from_queue @response_queue do |payload, msg_handler|
+          handle_response payload, msg_handler
         end
         @listening_for_responses = true
       end
