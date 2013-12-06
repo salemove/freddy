@@ -14,12 +14,6 @@ module Salemove
         @channel, @logger = channel, logger
       end
 
-      def consume(destination, &block)
-        raise EmptyConsumer unless block
-        request = Request.new(@channel)
-        request.respond_to destination, &block
-      end
-
       def basic_consume(destination, &block)
         basic_consume_from_queue create_queue(destination), &block
       end

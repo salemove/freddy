@@ -1,9 +1,9 @@
 require 'messaging_spec_helper'
-require 'salemove/messaging/consumer_handler'
+require 'salemove/messaging/responder_handler'
 
 module Salemove
   module Messaging
-    describe ConsumerHandler do
+    describe ResponderHandler do
 
       default_let
 
