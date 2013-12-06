@@ -1,6 +1,8 @@
 # Messaging API for salemove services
-
 ----
+
+[![Code Climate](https://codeclimate.com/repos/52a1f75613d6374c030432d2/badges/f8f96e50aa9f57dfae00/gpa.png)](https://codeclimate.com/repos/52a1f75613d6374c030432d2/feed)
+
 ## Usage
 
 * Inject the appropriate default logger and set up connection parameters:  
