@@ -8,11 +8,17 @@ module Salemove
       @bunny = Bunny.new bunny_config
       @bunny.start
       @logger = logger
+      @channel = @bunny.create_channel
     end
 
     def self.channel
+      @channel
+    end
+
+    def self.new_channel
       @bunny.create_channel
     end
+
 
     def self.logger
       @logger
@@ -37,13 +43,10 @@ module Salemove
       backtrace.map{ |x|   
         x.match(/^(.+?):(\d+)(|:in `(.+)')$/); 
         [$1,$2,$4] 
-      }.take(5).join "\n"
+      }.join "\n"
     end
 
     def self.format_exception(exception)
-      # puts "here"
-      # puts exception.exception
-      # puts format_backtrace(exception.backtrace)
       "#{exception.exception}\n#{format_backtrace(exception.backtrace)}" 
     end
 
