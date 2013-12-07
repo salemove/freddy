@@ -8,7 +8,10 @@ module Salemove
       default_let
 
       it 'can cancel listening for messages' do 
-        consumer_handler = default_consume
+        consumer_handler = messenger.respond_to destination do
+          @messages_count ||= 0
+          @messages_count += 1
+        end
         default_produce
         consumer_handler.cancel
         default_produce

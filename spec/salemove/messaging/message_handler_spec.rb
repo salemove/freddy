@@ -6,12 +6,16 @@ module Salemove
 
       default_let
 
-      it 'cancels listening' do 
-        consumer_handler = default_consume 
-        default_produce
-        consumer_handler.cancel
-        default_produce #this will not be received 
-        expect(@messages_count).to eq 1
+      def default_consume(&block)
+        messenger.respond_to destination do |payload, msg_handler|
+          @msg_handler = msg_handler
+          block.call payload, msg_handler if block
+        end
+      end
+
+      def produce_with_ack
+        messenger.produce_with_ack destination, payload do end
+        default_sleep
       end
 
       it 'has properties about message' do 
@@ -21,6 +25,41 @@ module Salemove
         end
         default_produce
         expect(properties).not_to be_nil
+      end
+
+      it 'can ack message' do 
+        default_consume do |payload, msg_handler|
+          msg_handler.ack
+        end
+        produce_with_ack
+        expect(@msg_handler.error).to be_nil
+      end
+
+      it 'can nack message' do 
+        default_consume do |payload, msg_handler|
+          msg_handler.nack "bad message"
+        end
+        produce_with_ack
+        expect(@msg_handler.error).not_to be_nil
+      end
+
+      it 'can ack with response' do 
+        default_consume do |payload, msg_handler|
+          msg_handler.ack(ack: 'smack')
+        end
+        produce_with_ack
+
+        expect(@msg_handler.error).to be_nil
+        expect(@msg_handler.response).not_to be_nil
+      end
+
+      it 'clears response when nacked' do 
+        default_consume do |payload, msg_handler|
+          msg_handler.ack(ack: 'smack')
+          msg_handler.nack
+        end
+        produce_with_ack
+        expect(@msg_handler.response).to be_nil
       end
 
     end

@@ -7,14 +7,17 @@ module Salemove
       default_let
 
       it 'raises exception when no consumer is provided' do 
-        expect { consumer.basic_consume destination }.to raise_error Consumer::EmptyConsumer
+        expect { consumer.consume destination }.to raise_error Consumer::EmptyConsumer
       end
 
       it "doesn't call passed block without any messages" do
-        default_consume
+        consumer.consume destination do 
+          @message_received = true
+        end
         expect(@message_received).not_to be true
         default_produce
       end
+
     end
   end
 end

@@ -25,26 +25,8 @@ def default_sleep
   sleep 0.01
 end
 
-def default_consume(&block)
-  messenger.respond_to destination do |payload, msg_handler|
-    @message_received = true
-    @received_payload = payload
-    @messages_count ||= 0
-    @messages_count += 1
-    block.call payload, msg_handler if block
-  end
-end
-
 def default_produce
   messenger.produce destination, payload
-  default_sleep
-end
-
-def default_produce_with_ack(&block)
-  messenger.produce_with_ack destination, payload do |error|
-    @ack_error = error
-    block.call error if block
-  end
   default_sleep
 end
 
