@@ -11,7 +11,7 @@ module Salemove
           logger.debug "Received message on #{destination}"
           initialize_properties msg_handler
           callback.call payload, msg_handler
-          error = msg_handler.acknowledger.error
+          error = msg_handler.error
           logger.warn "Responder failed to acknowledge message on #{destination}: #{error}" if error
           @response = {error: error}
         rescue Exception => e

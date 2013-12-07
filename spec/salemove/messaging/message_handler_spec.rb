@@ -53,15 +53,6 @@ module Salemove
         expect(@msg_handler.response).not_to be_nil
       end
 
-      it 'clears response when nacked' do 
-        default_consume do |payload, msg_handler|
-          msg_handler.ack(ack: 'smack')
-          msg_handler.nack
-        end
-        produce_with_ack
-        expect(@msg_handler.response).to be_nil
-      end
-
     end
   end
 end
