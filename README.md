@@ -13,68 +13,74 @@
 
         Salemove::Messaging::Messenger.new(use_unique_channel = false, logger = Messaging.logger)
 
-    * if use\_unique\_channel is set to true, then this messenger instance will create and use a new tcp connection
+    * if *use\_unique\_channel* is set to true, then this messenger instance will create and use a new tcp connection
 
 * Produce messages:
 
-        messenger.produce(destination, payload, properties = {})
+        messenger.produce(destination, message)
 
     * destination is the recipient of the message  
-    * payload is the contents of the message
-    * additional properties can be passed (shouldn't be necessary under normal circumstances)
+    * message is the contents of the message
 
 * Produce messages expecting explicit acknowledgement
 
-        messenger.produce_with_ack(destination, payload, timeout_seconds = 3, properties = {}, &callback)
+        messenger.produce_with_ack(destination, message, timeout_seconds = 3) do |error|
 
-    * If timeout_seconds pass without a response from the responder, then the callback is called with a timeout error.
+  * If timeout_seconds pass without a response from the responder, then the callback is called with a timeout error.
 
-    * callback is called with one argument: a string that contains an error message if 
-         * the message couldn't be sent to any responders or 
-         * the responder negatively acknowledged(nacked) the message or
-         * the responder finished working but didn't positively acknowledge the message
+  * callback is called with one argument: a string that contains an error message if 
+    * the message couldn't be sent to any responders or 
+    * the responder negatively acknowledged(nacked) the message or 
+    * the responder finished working but didn't positively acknowledge the message
 
-    * callback is called with one argument that is nil if the responder positively acknowledged the message
-    * note that the callback will not be called in the case that there is a responder who receives the message, but the responder doesn't finish processing the message or dies in the process.
+  * callback is called with one argument that is nil if the responder positively acknowledged the message
+  * note that the callback will not be called in the case that there is a responder who receives the message, but the responder doesn't finish processing the message or dies in the process.
 
 * Produce with response
 
-        messenger.produce_with_response(destination, payload, timeout_seconds = 3, options={}, &callback)
+        messenger.produce_with_response(destination, message, timeout_seconds = 3) do |response, msg_handler|
 
-  * If timeout_seconds pass without a response from the responder then the callback is called with the hash {error: 'Timed out waiting for response'}
+  * If timeout_seconds pass without a response from the responder then the callback is called with the hash 
+
+            { error: 'Timed out waiting for response' }
 
   * Callback is called with 2 arguments
 
     * The parsed response
 
-    * The MessageHandler
+    * The MessageHandler(described further down)
 
 * Respond to messages:
 
-         messenger.respond_to(destination, &callback)
+         messenger.respond_to(destination) do |message, msg_handler|
 
-     * The callback is called with 2 arguments 
+  * The callback is called with 2 arguments 
 
-       * the parsed message (note that in the message all keys are symbolized)
-       * the MessageHandler (described further down)
-
-    * The return value of the callback is used for response if the message was produced by a *produce_with_response* 
+    * the parsed message (note that in the message all keys are symbolized)
+    * the MessageHandler (described further down)
 
 * When responding to messages the MessageHandler is given as the second argument. The following operations are supported:
 
-        messenger.respond_to destination do |payload, msg_handler|
-        ...
+        messenger.respond_to destination do |message, msg_handler|
 
 
   * acknowledging the message
 
-            msg_handler.ack
+            msg_handler.ack(response = nil)
+
+    * when the message was produced with *produce\_with\_response*, then the response is sent to the original producer
+
+    * when the message was produced with *produce\_with\_ack*, then only a positive acknowledgement is sent, the provided response is dicarded
 
   * negatively acknowledging the message
 
-            msg_handler.nack(error)
+            msg_handler.nack(error = "Couldn't process message")
 
-  * note that the previous two have effect only when *produce\_with\_ack* was used
+    * when the message was produced with *produce\_with\_response*, then the following hash is sent to the original producer
+
+                { error: error }
+
+    * when the message was produced with *produce\_with\_ack*, then the error (e.g negative acknowledgement) is sent to the original producer 
 
   * Getting additional properties of the message (shouldn't be necessary under normal circumstances)
 
