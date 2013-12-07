@@ -1,19 +1,21 @@
+require 'salemove/messaging/message_handlers/base_message_handler'
+
 module Salemove
   module Messaging
     module MessageHandlers
-      class AckMessageHandler < Struct.new(:callback, :destination, :logger)
+      class AckMessageHandler < BaseMessageHandler
+
+        attr_reader :response
 
         def handle_message(payload, msg_handler)
-          @properties = msg_handler.properties
-          @correlation_id = @properties[:correlation_id]
+          logger.debug "Received message on #{destination}"
+          initialize_properties msg_handler
           callback.call payload, msg_handler
           error = msg_handler.acknowledger.error
-          logger.warn "Consumer failed to acknowledge message on #{destination}: #{error}" if error
+          logger.warn "Responder failed to acknowledge message on #{destination}: #{error}" if error
           @response = {error: error}
-        end
-
-        def send_response(producer)
-          producer.produce @properties[:reply_to], @response, correlation_id: @correlation_id
+        rescue Exception => e
+          logger.error "Exception occured while processing a message that needs to acknowledge on #{destination} : e"
         end
 
       end
