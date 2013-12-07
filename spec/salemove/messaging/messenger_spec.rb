@@ -50,8 +50,8 @@ module Salemove
         end
 
         it 'sends the response to requester' do 
-          messenger.respond_to destination do
-            test_response
+          messenger.respond_to destination do |message, msg_handler|
+            msg_handler.ack test_response
           end
           default_produce_with_response
           expect(@received_response).to eq(Messaging.symbolize_keys(test_response))
@@ -80,6 +80,19 @@ module Salemove
           sleep 0.25
           expect(@error).not_to be_nil
         end
+
+        it 'responds with error if the message was nacked' do 
+          messenger.respond_to destination do |message, msg_handler|
+            msg_handler.nack
+          end
+          messenger.produce_with_response destination, payload do |response|
+            @error = response[:error]
+          end
+          default_sleep
+
+          expect(@error).not_to be_nil
+        end
+
       end
 
       describe 'when producing with ack' do 
