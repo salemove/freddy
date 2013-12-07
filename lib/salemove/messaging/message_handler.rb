@@ -1,7 +1,7 @@
 module Salemove
   module Messaging
     class MessageHandler
-      attr_reader :acknowledger, :properties
+      attr_reader :acknowledger, :properties, :response
 
       def initialize(channel, delivery_info, properties)
         @channel = channel
@@ -11,12 +11,18 @@ module Salemove
         @acknowledger = Acknowledger.new if @with_ack
       end
 
-      def nack(error)
+      def nack(error = "Couldn't process message")
         @acknowledger.nack error if @acknowledger
+        @response = nil
       end
 
-      def ack
+      def ack(response=nil)
         @acknowledger.ack if @acknowledger
+        @response = response
+      end
+
+      def error
+        @acknowledger.error
       end
 
       private

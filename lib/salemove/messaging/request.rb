@@ -36,7 +36,7 @@ module Salemove
         raise EmptyResponder unless block
         @response_queue = create_response_queue unless @response_queue
         @logger.debug "Listening for requests on #{destination}"
-        responder_handler = @consumer.basic_consume destination do |payload, msg_handler|
+        responder_handler = @consumer.consume destination do |payload, msg_handler|
           handler = get_message_handler(msg_handler.properties)
           handle_request payload, msg_handler, handler.new(block, destination, @logger)
         end
@@ -79,28 +79,31 @@ module Salemove
       end
 
       def listen_for_responses
-        @timeout_thread = Thread.new do
-          while true do 
-            now = Time.now
-            begin
-              @request_map.each do |key, value|
-                if now > value[:timeout]
-                  @logger.warn "Request #{key} timed out"
-                  value[:callback].call({error: 'Timed out waiting for response'}, nil)
-                  @request_map.delete key
-                end
-              end
-            rescue Exception => e 
-              puts e
-            end
-            sleep 0.1
-          end 
-        end
+        initialize_timeout_clearer unless @timeout_thread
         @response_queue = create_response_queue unless @response_queue
-        @consumer.basic_consume_from_queue @response_queue do |payload, msg_handler|
+        @consumer.consume_from_queue @response_queue do |payload, msg_handler|
           handle_response payload, msg_handler
         end
         @listening_for_responses = true
+      end
+
+      def initialize_timeout_clearer 
+        @timeout_thread = Thread.new do
+          while true do 
+            clear_timeouts Time.now
+            sleep 0.1
+          end 
+        end
+      end
+
+      def clear_timeouts(now)
+        @request_map.each do |key, value|
+          if now > value[:timeout]
+            @logger.warn "Request #{key} timed out"
+            value[:callback].call({error: 'Timed out waiting for response'}, nil)
+            @request_map.delete key
+          end
+        end
       end
 
     end

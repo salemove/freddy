@@ -14,11 +14,11 @@ module Salemove
         @channel, @logger = channel, logger
       end
 
-      def basic_consume(destination, &block)
-        basic_consume_from_queue create_queue(destination), &block
+      def consume(destination, &block)
+        consume_from_queue create_queue(destination), &block
       end
 
-      def basic_consume_from_queue(queue, &block)
+      def consume_from_queue(queue, &block)
         raise EmptyConsumer unless block
         consumer = queue.subscribe do |delivery_info, properties, payload|
           @logger.debug "Received message on #{queue.name}"
