@@ -14,7 +14,7 @@ module Messaging
         @message_received = true
       end
       expect(@message_received).not_to be true
-      default_produce
+      default_deliver
     end
 
   end

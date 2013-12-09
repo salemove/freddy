@@ -7,24 +7,24 @@
 
 * Inject the appropriate default logger and set up connection parameters:  
 
-        Salemove::Messaging.setup(Logger.new(STDOUT), host: 'localhost', port: 5672, user: 'guest', pass: 'guest')
+        Messaging.setup(Logger.new(STDOUT), host: 'localhost', port: 5672, user: 'guest', pass: 'guest')
 
-* Instantiate the messenger facade to produce and respond to messages:
+* Use Freddy to deliver and respond to messages:
 
-        Salemove::Messaging::Messenger.new(use_unique_channel = false, logger = Messaging.logger)
+        Messaging::Freddy.new(use_unique_channel = false, logger = Messaging.logger)
 
-    * if *use\_unique\_channel* is set to true, then this messenger instance will create and use a new tcp connection
+    * if *use\_unique\_channel* is set to true, then this Freddy instance will create and use a new tcp connection
 
-* Produce messages:
+* Deliver messages:
 
-        messenger.produce(destination, message)
+        freddy.deliver(destination, message)
 
     * destination is the recipient of the message  
     * message is the contents of the message
 
-* Produce messages expecting explicit acknowledgement
+* Deliver messages expecting explicit acknowledgement
 
-        messenger.produce_with_ack(destination, message, timeout_seconds = 3) do |error|
+        freddy.deliver_with_ack(destination, message, timeout_seconds = 3) do |error|
 
   * If timeout_seconds pass without a response from the responder, then the callback is called with a timeout error.
 
@@ -36,9 +36,9 @@
   * callback is called with one argument that is nil if the responder positively acknowledged the message
   * note that the callback will not be called in the case that there is a responder who receives the message, but the responder doesn't finish processing the message or dies in the process.
 
-* Produce with response
+* Deliver with response
 
-        messenger.produce_with_response(destination, message, timeout_seconds = 3) do |response, msg_handler|
+        freddy.deliver_with_response(destination, message, timeout_seconds = 3) do |response, msg_handler|
 
   * If timeout_seconds pass without a response from the responder then the callback is called with the hash 
 
@@ -52,7 +52,7 @@
 
 * Respond to messages:
 
-         messenger.respond_to(destination) do |message, msg_handler|
+         freddy.respond_to(destination) do |message, msg_handler|
 
   * The callback is called with 2 arguments 
 
@@ -61,7 +61,7 @@
 
 * When responding to messages the MessageHandler is given as the second argument. The following operations are supported:
 
-        messenger.respond_to destination do |message, msg_handler|
+        freddy.respond_to destination do |message, msg_handler|
 
 
   * acknowledging the message
@@ -88,7 +88,7 @@
 
 * When responding to a message a ResponderHandler is returned. The following operations are supported:
 
-        responder_handler = messenger.respond_to ....
+        responder_handler = freddy.respond_to ....
 
   * stop responding
 

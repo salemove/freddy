@@ -25,13 +25,13 @@ def default_sleep
   sleep 0.01
 end
 
-def default_produce
-  messenger.produce destination, payload
+def default_deliver
+  freddy.deliver destination, payload
   default_sleep
 end
 
 def default_let
-  let(:messenger) { Messaging::Freddy.new }
+  let(:freddy) { Messaging::Freddy.new }
   let(:consumer) { Messaging::Consumer.new }
   let(:producer) { Messaging::Producer.new }
   let(:destination) { random_destination }

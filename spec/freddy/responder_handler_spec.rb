@@ -7,13 +7,13 @@ module Messaging
     default_let
 
     it 'can cancel listening for messages' do 
-      consumer_handler = messenger.respond_to destination do
+      consumer_handler = freddy.respond_to destination do
         @messages_count ||= 0
         @messages_count += 1
       end
-      default_produce
+      default_deliver
       consumer_handler.cancel
-      default_produce
+      default_deliver
 
       expect(@messages_count).to eq 1
     end

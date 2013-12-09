@@ -6,14 +6,14 @@ module Messaging
     default_let
 
     def default_consume(&block)
-      messenger.respond_to destination do |payload, msg_handler|
+      freddy.respond_to destination do |payload, msg_handler|
         @msg_handler = msg_handler
         block.call payload, msg_handler if block
       end
     end
 
     def produce_with_ack
-      messenger.produce_with_ack destination, payload do end
+      freddy.deliver_with_ack destination, payload do end
       default_sleep
     end
 
@@ -22,7 +22,7 @@ module Messaging
       default_consume do |payload, msg_handler|
         properties = msg_handler.properties
       end
-      default_produce
+      default_deliver
       expect(properties).not_to be_nil
     end
 

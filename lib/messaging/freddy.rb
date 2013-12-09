@@ -15,15 +15,15 @@ module Messaging
       @request.respond_to destination, &block
     end
 
-    def produce(destination, payload)
+    def deliver(destination, payload)
       @producer.produce destination, payload
     end
 
-    def produce_with_ack(destination, payload, timeout_seconds = 3, &block)
+    def deliver_with_ack(destination, payload, timeout_seconds = 3, &block)
       @producer.produce_with_ack destination, payload, timeout_seconds, &block
     end
 
-    def produce_with_response(destination, payload, timeout_seconds = 3,&block)
+    def deliver_with_response(destination, payload, timeout_seconds = 3,&block)
       @request.request destination, payload, timeout_seconds, &block
     end
 
