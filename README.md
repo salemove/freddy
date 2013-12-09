@@ -1,4 +1,4 @@
-# Messaging API for salemove services
+# Messaging API supporting acknowledgements and request-response
 ----
 
 [![Code Climate](https://codeclimate.com/repos/52a1f75613d6374c030432d2/badges/f8f96e50aa9f57dfae00/gpa.png)](https://codeclimate.com/repos/52a1f75613d6374c030432d2/feed)
