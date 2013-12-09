@@ -46,7 +46,7 @@ module Salemove
       private
 
       def create_response_queue
-        @channel.queue("", auto_delete: true)
+        @channel.queue("", exclusive: true)
       end
 
       def get_message_handler(properties)

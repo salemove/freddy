@@ -1,3 +1,5 @@
+require 'messaging_spec_helper'
+
 module Salemove
   module Messaging
     describe Messenger do 
