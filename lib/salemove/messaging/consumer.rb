@@ -15,11 +15,11 @@ module Salemove
       end
 
       def consume(destination, &block)
+        raise EmptyConsumer unless block
         consume_from_queue create_queue(destination), &block
       end
 
       def consume_from_queue(queue, &block)
-        raise EmptyConsumer unless block
         consumer = queue.subscribe do |delivery_info, properties, payload|
           @logger.debug "Received message on #{queue.name}"
           block.call (parse_payload payload), MessageHandler.new(delivery_info, properties)
