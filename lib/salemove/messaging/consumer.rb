@@ -22,7 +22,7 @@ module Salemove
         raise EmptyConsumer unless block
         consumer = queue.subscribe do |delivery_info, properties, payload|
           @logger.debug "Received message on #{queue.name}"
-          block.call (parse_payload payload), MessageHandler.new(@channel, delivery_info, properties)
+          block.call (parse_payload payload), MessageHandler.new(delivery_info, properties)
         end
         @logger.debug "Consuming messages on #{queue.name}"
         ResponderHandler.new consumer
