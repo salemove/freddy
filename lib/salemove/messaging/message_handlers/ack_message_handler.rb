@@ -15,7 +15,7 @@ module Salemove
           logger.warn "Responder failed to acknowledge message on #{destination}: #{error}" if error
           @response = {error: error}
         rescue Exception => e
-          logger.error "Exception occured while processing a message that needs to acknowledge on #{destination} : e"
+          logger.error "Exception occured while processing a message that needs to acknowledge on #{destination} : #{e}"
         end
 
       end
