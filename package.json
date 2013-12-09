@@ -1,6 +1,6 @@
 {
   "name": "freddy",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": "Urmas Talimaa <urmas7@gmail.com>",
   "description": "Simple messaging API supporting acknowledgements and request-response",
   "reporistory" : {
@@ -8,6 +8,7 @@
     "url" : "https://github.com/salemove/freddy"
   },
   "dependencies" : {
+    "coffee-script": ">=1.4",
     "amqp" : "latest",
     "winston": "latest"
   },
