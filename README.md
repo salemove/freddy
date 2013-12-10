@@ -98,3 +98,7 @@
   * stop responding
 
             responder_handler.cancel
+
+  * join the current thread to the consumer thread
+
+            responder_handler.join

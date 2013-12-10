@@ -23,7 +23,7 @@ module Messaging
         block.call (parse_payload payload), MessageHandler.new(delivery_info, properties)
       end
       @logger.debug "Consuming messages on #{queue.name}"
-      ResponderHandler.new consumer
+      ResponderHandler.new consumer, @channel
     end
 
     private

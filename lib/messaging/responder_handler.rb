@@ -1,8 +1,9 @@
 module Messaging
   class ResponderHandler
 
-    def initialize(consumer)
+    def initialize(consumer, channel)
       @consumer = consumer
+      @channel = channel
     end
 
     def cancel
@@ -11,6 +12,10 @@ module Messaging
 
     def queue
       @consumer.queue
+    end
+
+    def join
+      @channel.work_pool.join
     end
 
   end

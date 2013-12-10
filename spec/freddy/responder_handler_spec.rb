@@ -18,5 +18,17 @@ module Messaging
       expect(@messages_count).to eq 1
     end
 
+    it 'can join the thread to the consumer' do 
+      consumer_handler = freddy.respond_to destination do 
+      end
+      unreachable = true
+      thread = Thread.new do 
+        consumer_handler.join
+        unreachable = false
+      end
+      default_sleep
+      expect(unreachable).to be_true
+    end
+
   end
 end
