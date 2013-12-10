@@ -7,10 +7,13 @@
     "type" : "git",
     "url" : "https://github.com/salemove/freddy"
   },
+  "main": "./lib/freddy",
   "dependencies" : {
     "coffee-script": ">=1.4",
     "amqp" : "latest",
-    "winston": "latest"
+    "winston": "latest",
+    "async": "latest"
+
   },
   "devDependencies" : {
     "mocha" : "latest",

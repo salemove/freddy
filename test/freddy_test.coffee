@@ -76,7 +76,7 @@ describe 'Freddy', ->
         @freddy.withTimeout(0.01).deliverWithAck @randomDest, TEST_MESSAGE, (error) =>
           error.should.be.ok
           done()
-      @ackCustomProduce producer
+      @ackCustomProduce producer, () =>
 
     it 'returns error if message was nacked', (done) ->
       producer = () =>
@@ -113,3 +113,18 @@ describe 'Freddy', ->
 
       @ackCustomProduce producer, (message, msgHandler) =>
         msgHandler.nack()
+
+    it 'can cancel listening for messages', (done) ->
+      messageCount = 0
+      producer = () =>
+        @freddy.deliver @randomDest, TEST_MESSAGE
+
+      consumerHandler = @customProduce producer, (message, msgHandler) =>
+        messageCount += 1
+
+      consumerHandler.cancel () =>
+        producer()
+        setTimeout () =>
+          messageCount.should.equal 1
+          done()
+        , 20
