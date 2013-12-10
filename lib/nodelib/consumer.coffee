@@ -1,44 +1,43 @@
 async   = require 'async'
 logger  = require 'winston'
+EventEmitter = require('events').EventEmitter
 
 class Consumer
   constructor: (@connection) ->
 
-  consume: (destination, queueReadyCallback, messageCallback) ->
-    consumerHandler = new ConsumerHandler
+  consume: (destination, messageCallback) ->
+    responderHandler = new ResponderHandler
     @connection.queue destination, {exclusive: true}, (queue) =>
-      queueReadyCallback(queue) if (typeof queueReadyCallback is 'function') 
-      @consumeFromQueue queue, messageCallback, consumerHandler
-    return consumerHandler
+      responderHandler.emit 'ready'
+      @consumeFromQueue queue, messageCallback, responderHandler
+    return responderHandler
 
-  consumeFromQueue: (queue, callback, consumerHandler = null) ->
-    consumerHandler ?= new ConsumerHandler
-    consumerHandler.setQueue queue
+  consumeFromQueue: (queue, callback, responderHandler = null) ->
+    responderHandler ?= new ResponderHandler
+    responderHandler.setQueue queue
     queue.subscribe( 
       (message, headers, deliveryInfo) =>
         callback message, new MessageHandler(headers, deliveryInfo) if message?
       ).addCallback (ok) =>
-        consumerHandler.setConsumer ok.consumerTag
-    return consumerHandler
+        responderHandler.setConsumer ok.consumerTag
+    return responderHandler
 
-  _parseMessage: (octetStream) ->
-    JSON.parse Buffer(octetStream).toString()
-
-  class ConsumerHandler
+  class ResponderHandler extends EventEmitter
     setConsumer: (@consumerTag) ->
 
     setQueue: (@queue) ->
 
-    cancel: (unsubCallback) ->
+    cancel: () ->
       tries = 0
       async.whilst () =>
           tries < 10
-        ,(callback) =>
+        , (callback) =>
           if @queue and @consumerTag
-            @queue.unsubscribe(@consumerTag).addCallback(unsubCallback)
-            tries = 10
-          tries += 1
-          setTimeout callback, 10
+            @queue.unsubscribe(@consumerTag).addCallback () =>
+              @emit('cancelled')
+          else 
+            tries += 1
+            setTimeout callback, 10
         , () =>
 
   class MessageHandler

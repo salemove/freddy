@@ -11,28 +11,33 @@
 
 * Inject the appropriate default logger and set up connection parameters:  
 
-        Freddy.setup(Logger.new(STDOUT), host: 'localhost', port: 5672, user: 'guest', pass: 'guest')
+```ruby
+Freddy.setup(Logger.new(STDOUT), host: 'localhost', port: 5672, user: 'guest', pass: 'guest')
+```
 
 * Use Freddy to deliver and respond to messages:
 
-        freddy = Freddy.new(logger = Freddy.logger)
-
+```ruby
+freddy = Freddy.new(logger = Freddy.logger)
+```
     * by default the Freddy instance will reuse connections and queues for messaging, if you want to use a distinct tcp connection, response queue and timeout checking thread, then use 
-
-            freddy.use_distinct_connection
+```ruby
+freddy.use_distinct_connection
+```
 
 #### Delivering messages
 
 * Simply deliver a message:
-
-        freddy.deliver(destination, message)
-
+```ruby 
+freddy.deliver(destination, message)
+```
     * destination is the recipient of the message  
     * message is the contents of the message
 
 * Deliver a message expecting explicit acknowledgement
-
-        freddy.deliver_with_ack(destination, message, timeout_seconds = 3) do |error|
+```ruby
+freddy.deliver_with_ack(destination, message, timeout_seconds = 3) do |error|
+```
 
   * If timeout_seconds pass without a response from the responder, then the callback is called with a timeout error.
 
@@ -45,76 +50,142 @@
   * note that the callback will not be called in the case that there is a responder who receives the message, but the responder doesn't finish processing the message or dies in the process.
 
 * Deliver expecting a response
+```ruby
+freddy.deliver_with_response(destination, message, timeout_seconds = 3) do |response, msg_handler|
+```
 
-        freddy.deliver_with_response(destination, message, timeout_seconds = 3) do |response, msg_handler|
-
-  * If timeout_seconds pass without a response from the responder then the callback is called with the hash 
-
-            { error: 'Timed out waiting for response' }
+  * If `timeout_seconds pass` without a response from the responder then the callback is called with the hash 
+```ruby
+{ error: 'Timed out waiting for response' }
+```
 
   * Callback is called with 2 arguments
 
     * The parsed response
 
-    * The MessageHandler(described further down)
+    * The `MessageHandler`(described further down)
 
 #### Responding to messages
 
-* Respond to messages while not blocking the current thread:
-
-         freddy.respond_to destination do |message, msg_handler|
-
+* Respond to messages while not blocking the current thread:  
+```ruby
+freddy.respond_to destination do |message, msg_handler|
+```
 * Respond to message and block the thread 
-
-         freddy.respond_to_and_block destination do |message, msg_handler| 
+```ruby
+freddy.respond_to_and_block destination do |message, msg_handler| 
+```
 
 * The callback is called with 2 arguments 
 
   * the parsed message (note that in the message all keys are symbolized)
-  * the MessageHandler (described further down)
+  * the `MessageHandler` (described further down)
 
 #### The MessageHandler
 
 When responding to messages the MessageHandler is given as the second argument. 
-
-        freddy.respond_to destination do |message, msg_handler|
+```ruby 
+freddy.respond_to destination do |message, msg_handler|
+```
 
 The following operations are supported:
 
   * acknowledging the message
+```ruby 
+msg_handler.ack(response = nil)
+```
 
-            msg_handler.ack(response = nil)
+    * when the message was produced with `produce_with_response`, then the response is sent to the original producer
 
-    * when the message was produced with *produce\_with\_response*, then the response is sent to the original producer
-
-    * when the message was produced with *produce\_with\_ack*, then only a positive acknowledgement is sent, the provided response is dicarded
+    * when the message was produced with `produce_with_ack`, then only a positive acknowledgement is sent, the provided response is dicarded
 
   * negatively acknowledging the message
+```ruby
+msg_handler.nack(error = "Couldn't process message")
+```
 
-            msg_handler.nack(error = "Couldn't process message")
+    * when the message was produced with `produce_with_response`, then the following hash is sent to the original producer
+```ruby
+{ error: error }
+```
 
-    * when the message was produced with *produce\_with\_response*, then the following hash is sent to the original producer
-
-                { error: error }
-
-    * when the message was produced with *produce\_with\_ack*, then the error (e.g negative acknowledgement) is sent to the original producer 
+    * when the message was produced with `produce_with_ack`, then the error (e.g negative acknowledgement) is sent to the original producer 
 
   * Getting additional properties of the message (shouldn't be necessary under normal circumstances)
-
-            msg_handler.properties  
+```ruby
+msg_handler.properties
+```
 
 #### The ResponderHandler
 
 When responding to a message a ResponderHandler is returned. 
-
-      responder_handler = freddy.respond_to ....
+```ruby
+responder_handler = freddy.respond_to ....
+```
 
 The following operations are supported:
 
   * stop responding
-
-            responder_handler.cancel
+```ruby
+responder_handler.cancel
+```
 
   * join the current thread to the responder thread
+```ruby
+responder_handler.join
+```
 
-            responder_handler.join
+***
+
+### Node.js
+
+#### Setup
+```coffee
+freddy = new Freddy amqpUrl, callback
+```
+
+* amqpUrl defines the connection e.g `'amqp://guest:guest@localhost:5672'`
+
+* callback is called when the connection is established succesfully
+
+#### Delivering messages  
+```coffee
+freddy.deliver destination, message
+
+freddy.deliverWithAck destination, message, callback
+
+freddy.deliverWithResponse destination, message, callback
+```
+
+* The default timeout is 3 seconds, to use a custom timeout use
+```coffee
+freddy.withTimeout(myTimeoutInSeconds).deliverWithAck...
+
+freddy.withTimeout(myTimeoutInSeconds).deliverWithResponse...
+```
+
+#### Responding to messages  
+```coffee
+freddy.respondTo destination, callback
+```
+
+* Sometimes it might be useful to know when the queue has been created for the responder. For that the 'ready' is emitted on the responderHandler.  
+```coffee
+responderHandler = freddy.respondTo destination, callback
+responderHandler.on 'ready', () =>
+  freddy.deliver destination, {easy: 'come'}
+```
+
+#### The MessageHandler  
+No differences to ruby spec
+
+#### The ResponderHandler  
+
+* When cancelling the responder `cancelled` is emitted on the responderHandler when the responder was successfully cancelled. After that the responder will not receive any new messages. 
+```coffee
+responderHandler = freddy.respondTo destination, () =>
+responderHandler.cancel()
+responderHandler.on 'cancelled', () =>
+  freddy.deliver destination, {easy: 'go'} #will not be received
+```
+* The join method is not provided for obvious reasons.

@@ -21,8 +21,8 @@ class Request
       @extend options, {correlationId: correlationId, replyTo: @responseQueue}
       @producer.produce destination, message, options
 
-  respondTo: (destination, queueReadyCallback, callback) ->
-    @consumer.consume destination, queueReadyCallback, (message, msgHandler) =>
+  respondTo: (destination, callback) ->
+    @consumer.consume destination, (message, msgHandler) =>
       properties = msgHandler.properties
       if properties.headers?['message_with_ack']
         callback(message, msgHandler)

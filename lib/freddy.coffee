@@ -36,10 +36,6 @@ class Freddy
         @producer.produceWithResponse destination, message, timeoutSeconds, callback
     customTimeoutProducer
 
-  onQueueReady: (queueReadyCallback) ->
-    respondTo: (destination, callback) =>
-      @request.respondTo destination, queueReadyCallback, callback
-
   deliverWithAck: (destination, message, callback) ->
     @producer.deliverWithAck destination, message, DEFAULT_TIMEOUT, callback
 
@@ -47,6 +43,6 @@ class Freddy
     @producer.produceWithResponse destination, message, DEFAULT_TIMEOUT, callback
 
   respondTo: (destination, callback) ->
-    @request.respondTo destination, null, callback
+    @request.respondTo destination, callback
 
 module.exports = Freddy
