@@ -41,17 +41,9 @@ class Freddy
   end
 
   def self.symbolize_keys(hash)
-    hash.inject({}) do |result, (key, value)|
-      new_key = case key
-                when String then key.to_sym
-                else key
-                end
-      new_value = case value
-                  when Hash then symbolize_keys(value)
-                  else value
-                  end
-      result[new_key] = new_value
-      result
+    hash.each_with_object({}) do |(key, value), normalized_hash|
+      normalized_value = value.is_a?(Hash) ? normalize_hash(value) : value
+      normalized_hash[key.to_sym] = normalized_value
     end
   end
 
