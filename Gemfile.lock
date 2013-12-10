@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    salemove-messaging (0.0.1)
+    freddy (0.0.1)
       bunny (~> 1.0)
 
 GEM
@@ -33,7 +33,7 @@ PLATFORMS
 
 DEPENDENCIES
   bundler (~> 1.3)
+  freddy!
   pry
   rake
   rspec
-  salemove-messaging!

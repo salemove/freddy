@@ -2,6 +2,7 @@
 .rspec
 .ruby*
 Gemfile*
-freddy.gemspec
+*.gemspec
 spec/
+*.rb
 lib/messaging
