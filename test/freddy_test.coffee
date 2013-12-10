@@ -9,18 +9,14 @@ describe 'Freddy', ->
 
   beforeEach (done) ->
     @freddy = new Freddy('amqp://guest:guest@localhost:5672', done)
-    @default_producer = =>
+    @respond = (callback) =>
+      @freddy.respondTo @randomDest, callback
+    @deliver = () =>
       @freddy.deliver @randomDest, TEST_MESSAGE
-    @default_ack_producer = (callback) =>
+    @deliverResponse = (callback) =>
+      @freddy.deliverWithResponse @randomDest, TEST_MESSAGE, callback
+    @deliverAck = (callback) =>
       @freddy.deliverWithAck @randomDest, TEST_MESSAGE, callback
-    @customProduce = (producer, callback) ->
-      @freddy.onQueueReady(producer).respondTo @randomDest, callback
-    @ackCustomProduce = (producer, callback) ->
-      @freddy.onQueueReady(producer).respondTo @randomDest, callback
-    @produceRespond = (callback) ->
-      @freddy.onQueueReady(@default_producer).respondTo @randomDest, callback
-    @ackProduceRespond = (callback) ->
-      @freddy.onQueueReady(@default_ack_producer).respondTo @randomDest, callback
 
   uniqueId = ->
     id = ""
@@ -34,16 +30,18 @@ describe 'Freddy', ->
     should.exist Freddy
 
   it 'can produce messages', ->
-    @freddy.deliver @randomDest, TEST_MESSAGE
+    @deliver()
 
   describe 'when responding to messages', ->
     it 'can respond', ->
-      @freddy.respondTo @randomDest, (message, msgHandler) =>
+      @respond (message, msgHandler) =>
 
     it 'receives sent messages', (done) ->
-      @produceRespond (message, msgHandler) =>
+      handler = @respond (message, msgHandler) =>
         message.should.have.property('test')
         done()
+      handler.on 'ready', () =>
+        @deliver()
 
   describe 'with messages that need acknowledgement', ->
     it 'can produce', ->
@@ -54,76 +52,73 @@ describe 'Freddy', ->
       @freddy.withTimeout(1).deliverWithAck @randomDest, TEST_MESSAGE
 
     it 'receives the message', (done) ->
-      @ackProduceRespond (message, msgHandler) =>
+      @respond (message, msgHandler) =>
         done()
+      @deliverAck () =>
 
     it 'can ack message', (done) ->
-      @ackProduceRespond (message, msgHandler) =>
+      @respond (message, msgHandler) =>
         msgHandler.ack
         done()
+      @deliverAck () =>
 
     it 'returns no error if message was acked', (done) ->
-      producer = () =>
-        @freddy.deliverWithAck @randomDest, TEST_MESSAGE, (error) =>
-          error.should.not.be.ok
-          done()
-
-      @ackCustomProduce producer, (message, msgHandler) =>
+      handler = @respond (message, msgHandler) =>
         msgHandler.ack()
+      @deliverAck (error) =>
+        error.should.not.be.ok
+        done()
+
 
     it 'returns error if message was not acked', (done) ->
-      producer = () =>
-        @freddy.withTimeout(0.01).deliverWithAck @randomDest, TEST_MESSAGE, (error) =>
-          error.should.be.ok
-          done()
-      @ackCustomProduce producer, () =>
+      @freddy.withTimeout(0.01).deliverWithAck @randomDest, TEST_MESSAGE, (error) =>
+        error.should.be.ok
+        done()
 
     it 'returns error if message was nacked', (done) ->
-      producer = () =>
-        @freddy.deliverWithAck @randomDest, TEST_MESSAGE, (error) =>
-          error.should.be.ok
-          done()
-      @ackCustomProduce producer, (message, msgHandler) =>
+      @respond (message, msgHandler) =>
         msgHandler.nack
+      @deliverAck (error) =>
+        error.should.be.ok
+        done()
+
 
   describe 'with messages that need response', ->
-    it 'can produce', ->
-      @freddy.deliverWithResponse @randomDest, TEST_MESSAGE
+    it 'can deliver', ->
+      @deliver()
 
-    it 'can produce with custom timeout', ->
+    it 'can deliver with custom timeout', ->
       @freddy.withTimeout(1).deliverWithResponse @randomDest, TEST_MESSAGE
 
     it 'receives the request', (done) ->
-      @ackProduceRespond () =>
+      responderHandler = @respond () =>
         done()
+      responderHandler.on 'ready', () =>
+        @deliver()
 
     it 'sends the response to the requester', (done) ->
-      producer = () =>
-        @freddy.deliverWithResponse @randomDest, TEST_MESSAGE, (message, msgHandler) =>
-          message.my.should.equal 'response'
-          done()
-      @ackCustomProduce producer, (message, msgHandler) =>
+      @respond (message, msgHandler) =>
         msgHandler.ack {my: 'response'}
+      @deliverResponse (message, msgHandler) =>
+        message.my.should.equal 'response'
+        done()
 
     it 'sends error the requester if message was nacked', (done) ->
-      producer = () =>
-        @freddy.deliverWithResponse @randomDest, TEST_MESSAGE, (message, msgHandler) =>
-          message.should.have.property('error')
-          done()
-
-      @ackCustomProduce producer, (message, msgHandler) =>
+      @respond (message, msgHandler) =>
         msgHandler.nack()
+      @deliverResponse (message) =>
+        message.should.have.property('error')
+        done()
 
     it 'can cancel listening for messages', (done) ->
       messageCount = 0
-      producer = () =>
-        @freddy.deliver @randomDest, TEST_MESSAGE
-
-      consumerHandler = @customProduce producer, (message, msgHandler) =>
+      handler = @respond (message, msgHandler) =>
         messageCount += 1
-
-      consumerHandler.cancel () =>
-        producer()
+      handler.on 'ready', =>
+        @deliver()
+        handler.cancel()
+      handler.on 'cancelled', =>
+        @deliver()
         setTimeout () =>
           messageCount.should.equal 1
           done()
