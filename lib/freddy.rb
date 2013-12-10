@@ -11,7 +11,9 @@ class Freddy
     @bunny.start
     @logger = logger
     @channel = @bunny.create_channel
-    @consumer, @producer, @request = Messaging::Consumer.new(@channel, @logger), Messaging::Producer.new(@channel, @logger), Messaging::Request.new(@channel, @logger)
+    @consumer = Messaging::Consumer.new @channel, @logger
+    @producer = Messaging::Producer.new @channel, @logger
+    @request = Messaging::Request.new @channel, @logger
   end
 
   def self.channel
@@ -64,30 +66,36 @@ class Freddy
     "#{exception.exception}\n#{format_backtrace(exception.backtrace)}" 
   end
 
-  def initialize(use_distinct_connection = false, logger = Freddy.logger)
+  def initialize(logger = Freddy.logger)
     @logger = logger
-    if use_distinct_connection
-      @channel = Freddy.new_channel
-      @consumer, @producer, @request = Messaging::Consumer.new(@channel, @logger), Messaging::Producer.new(@channel, @logger), Messaging::Request.new(@channel, @logger)
-    else 
-      @consumer, @producer, @request, @channel =Freddy.consumer, Freddy.producer, Freddy.request, Freddy.channel
-    end
+    @consumer, @producer, @request, @channel = Freddy.consumer, Freddy.producer, Freddy.request, Freddy.channel
   end
 
-  def respond_to(destination, block_thread = false, &block)
-    @request.respond_to destination, block_thread, &block
+  def use_distinct_connection
+    @channel = Freddy.new_channel
+    @consumer = Messaging::Consumer.new @channel, @logger 
+    @producer = Messaging::Producer.new @channel, @logger
+    @request = Messaging::Request.new @channel, @logger
+  end
+
+  def respond_to(destination, &callback)
+    @request.respond_to destination, false, &callback
+  end
+
+  def respond_to_and_block(destination, &callback)
+    @request.respond_to destination, true, &callback
   end
 
   def deliver(destination, payload)
     @producer.produce destination, payload
   end
 
-  def deliver_with_ack(destination, payload, timeout_seconds = 3, &block)
-    @producer.produce_with_ack destination, payload, timeout_seconds, &block
+  def deliver_with_ack(destination, payload, timeout_seconds = 3, &callback)
+    @producer.produce_with_ack destination, payload, timeout_seconds, &callback
   end
 
-  def deliver_with_response(destination, payload, timeout_seconds = 3,&block)
-    @request.request destination, payload, timeout_seconds, &block
+  def deliver_with_response(destination, payload, timeout_seconds = 3,&callback)
+    @request.request destination, payload, timeout_seconds, &callback
   end
 
   private 

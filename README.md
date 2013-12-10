@@ -11,9 +11,11 @@
 
 * Use Freddy to deliver and respond to messages:
 
-        Freddy.new(use_distinct_connection = false, logger = Freddy.logger)
+        freddy = Freddy.new(logger = Freddy.logger)
 
-    * if *use\_distinct\_connection* is set to true, then this Freddy instance will internally use a distinct tcp connection, response queue and timeout checking thread, otherwise global components are reused.
+    * by default the Freddy instance will reuse connections and queues for messaging, if you want to use a distinct tcp connection, response queue and timeout checking thread, then use 
+
+            freddy.use_distinct_connection
 
 * Deliver messages:
 
@@ -52,9 +54,11 @@
 
 * Respond to messages:
 
-         freddy.respond_to destination, block_thread = false do |message, msg_handler|
+         freddy.respond_to destination do |message, msg_handler|
 
-  * if *block\_thread* is set to true then the thread will block and the handle to the thread is returned 
+  * the respond_to method will not block the current thread, if that is what you want, use 
+
+             freddy.respond_to_and_block destination do |message, msg_handler| 
 
   * The callback is called with 2 arguments 
 
