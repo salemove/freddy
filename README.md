@@ -1,5 +1,4 @@
 # Messaging API supporting acknowledgements and request-response
-----
 
 [![Code Climate](https://codeclimate.com/repos/52a1f75613d6374c030432d2/badges/f8f96e50aa9f57dfae00/gpa.png)](https://codeclimate.com/repos/52a1f75613d6374c030432d2/feed)
 
@@ -157,7 +156,8 @@ freddy.deliverWithAck destination, message, callback
 freddy.deliverWithResponse destination, message, callback
 ```
 
-* The default timeout is 3 seconds, to use a custom timeout use
+* The default timeout is 3 seconds, to use a custom timeout use  
+
 ```coffee
 freddy.withTimeout(myTimeoutInSeconds).deliverWithAck...
 
@@ -170,6 +170,7 @@ freddy.respondTo destination, callback
 ```
 
 * Sometimes it might be useful to know when the queue has been created for the responder. For that the 'ready' is emitted on the responderHandler.  
+
 ```coffee
 responderHandler = freddy.respondTo destination, callback
 responderHandler.on 'ready', () =>
@@ -182,6 +183,7 @@ No differences to ruby spec
 #### The ResponderHandler  
 
 * When cancelling the responder `cancelled` is emitted on the responderHandler when the responder was successfully cancelled. After that the responder will not receive any new messages. 
+
 ```coffee
 responderHandler = freddy.respondTo destination, () =>
 responderHandler.cancel()
@@ -189,3 +191,8 @@ responderHandler.on 'cancelled', () =>
   freddy.deliver destination, {easy: 'go'} #will not be received
 ```
 * The join method is not provided for obvious reasons.
+
+## Development
+
+* Use RSpec and mocha, make sure the tests pass.  
+* Don't leak underlying messaging protocol internals.
