@@ -5,6 +5,10 @@
 
 ## Usage
 
+### Ruby
+
+#### Setup
+
 * Inject the appropriate default logger and set up connection parameters:  
 
         Freddy.setup(Logger.new(STDOUT), host: 'localhost', port: 5672, user: 'guest', pass: 'guest')
@@ -17,14 +21,16 @@
 
             freddy.use_distinct_connection
 
-* Deliver messages:
+#### Delivering messages
+
+* Simply deliver a message:
 
         freddy.deliver(destination, message)
 
     * destination is the recipient of the message  
     * message is the contents of the message
 
-* Deliver messages expecting explicit acknowledgement
+* Deliver a message expecting explicit acknowledgement
 
         freddy.deliver_with_ack(destination, message, timeout_seconds = 3) do |error|
 
@@ -38,7 +44,7 @@
   * callback is called with one argument that is nil if the responder positively acknowledged the message
   * note that the callback will not be called in the case that there is a responder who receives the message, but the responder doesn't finish processing the message or dies in the process.
 
-* Deliver with response
+* Deliver expecting a response
 
         freddy.deliver_with_response(destination, message, timeout_seconds = 3) do |response, msg_handler|
 
@@ -52,22 +58,28 @@
 
     * The MessageHandler(described further down)
 
-* Respond to messages:
+#### Responding to messages
+
+* Respond to messages while not blocking the current thread:
 
          freddy.respond_to destination do |message, msg_handler|
 
-  * the respond_to method will not block the current thread, if that is what you want, use 
+* Respond to message and block the thread 
 
-             freddy.respond_to_and_block destination do |message, msg_handler| 
+         freddy.respond_to_and_block destination do |message, msg_handler| 
 
-  * The callback is called with 2 arguments 
+* The callback is called with 2 arguments 
 
-    * the parsed message (note that in the message all keys are symbolized)
-    * the MessageHandler (described further down)
+  * the parsed message (note that in the message all keys are symbolized)
+  * the MessageHandler (described further down)
 
-* When responding to messages the MessageHandler is given as the second argument. The following operations are supported:
+#### The MessageHandler
+
+When responding to messages the MessageHandler is given as the second argument. 
 
         freddy.respond_to destination do |message, msg_handler|
+
+The following operations are supported:
 
   * acknowledging the message
 
@@ -91,14 +103,18 @@
 
             msg_handler.properties  
 
-* When responding to a message a ResponderHandler is returned. The following operations are supported:
+#### The ResponderHandler
 
-        responder_handler = freddy.respond_to ....
+When responding to a message a ResponderHandler is returned. 
+
+      responder_handler = freddy.respond_to ....
+
+The following operations are supported:
 
   * stop responding
 
             responder_handler.cancel
 
-  * join the current thread to the consumer thread
+  * join the current thread to the responder thread
 
             responder_handler.join
