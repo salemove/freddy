@@ -7,13 +7,13 @@
 
 * Inject the appropriate default logger and set up connection parameters:  
 
-        Messaging.setup(Logger.new(STDOUT), host: 'localhost', port: 5672, user: 'guest', pass: 'guest')
+        Freddy.setup(Logger.new(STDOUT), host: 'localhost', port: 5672, user: 'guest', pass: 'guest')
 
 * Use Freddy to deliver and respond to messages:
 
-        Messaging::Freddy.new(use_unique_channel = false, logger = Messaging.logger)
+        Freddy.new(use_distinct_connection = false, logger = Freddy.logger)
 
-    * if *use\_unique\_channel* is set to true, then this Freddy instance will create and use a new tcp connection
+    * if *use\_distinct\_connection* is set to true, then this Freddy instance will internally use a distinct tcp connection, response queue and timeout checking thread, otherwise global components are reused.
 
 * Deliver messages:
 
@@ -52,7 +52,9 @@
 
 * Respond to messages:
 
-         freddy.respond_to(destination) do |message, msg_handler|
+         freddy.respond_to destination, block_thread = false do |message, msg_handler|
+
+  * if *block\_thread* is set to true then the thread will block and the handle to the thread is returned 
 
   * The callback is called with 2 arguments 
 
@@ -62,7 +64,6 @@
 * When responding to messages the MessageHandler is given as the second argument. The following operations are supported:
 
         freddy.respond_to destination do |message, msg_handler|
-
 
   * acknowledging the message
 

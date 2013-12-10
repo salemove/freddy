@@ -14,7 +14,7 @@ module Messaging
     class EmptyResponder < Exception
     end
 
-    def initialize(channel = Messaging.channel, logger = Messaging.logger)
+    def initialize(channel = Freddy.channel, logger = Freddy.logger)
       @channel, @logger = channel, logger
       @producer, @consumer = Producer.new(channel), Consumer.new(channel)
       @listening_for_responses = false
@@ -31,11 +31,11 @@ module Messaging
       @producer.produce destination, payload, options.merge(correlation_id: correlation_id, reply_to: @response_queue.name, mandatory: true)
     end
 
-    def respond_to(destination, &block)
+    def respond_to(destination, block_thread, &block)
       raise EmptyResponder unless block
       @response_queue = create_response_queue unless @response_queue
       @logger.debug "Listening for requests on #{destination}"
-      responder_handler = @consumer.consume destination do |payload, msg_handler|
+      responder_handler = @consumer.consume destination, {block: block_thread} do |payload, msg_handler|
         handler = get_message_handler(msg_handler.properties)
         handle_request payload, msg_handler, handler.new(block, destination, @logger)
       end
@@ -74,7 +74,7 @@ module Messaging
         @logger.warn "Got rpc response for correlation_id #{correlation_id} but there is no requester"
       end
     rescue Exception => e
-      @logger.error "Exception occured while handling the response of request made to #{request[:destination]} with correlation_id #{correlation_id}: #{Messagging.format_backtrace(e.backtrace)}"
+      @logger.error "Exception occured while handling the response of request made to #{request[:destination]} with correlation_id #{correlation_id}: #{Freddy.format_exception e}"
     end
 
     def listen_for_responses

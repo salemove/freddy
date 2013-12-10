@@ -1,6 +1,5 @@
 require 'spec_helper'
-require 'messaging/freddy'
-require_relative '../lib/messaging'
+require 'freddy'
 
 class Messaging::Consumer
   def create_queue(queue_name)
@@ -31,7 +30,7 @@ def default_deliver
 end
 
 def default_let
-  let(:freddy) { Messaging::Freddy.new }
+  let(:freddy) { Freddy.new }
   let(:consumer) { Messaging::Consumer.new }
   let(:producer) { Messaging::Producer.new }
   let(:destination) { random_destination }
@@ -39,4 +38,4 @@ def default_let
 end
 
 logger = Logger.new(STDOUT).tap { |l| l.level = Logger::ERROR }
-Messaging.setup(logger, host: 'localhost', port: 5672, user: 'guest', pass: 'guest')
+Freddy.setup(logger, host: 'localhost', port: 5672, user: 'guest', pass: 'guest')

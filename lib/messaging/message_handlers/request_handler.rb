@@ -15,7 +15,7 @@ module Messaging
           @response = msg_handler.response
         end
       rescue Exception => e
-        logger.error "Exception occured while handling the request with correlation_id #{correlation_id}: #{Messagging.format_backtrace(e.backtrace)}"
+        logger.error "Exception occured while handling the request with correlation_id #{correlation_id}: #{Freddy.format_exception e }"
       end
 
     end

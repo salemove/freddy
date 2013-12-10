@@ -47,7 +47,7 @@ module Messaging
         freddy.deliver_with_response destination, payload do end
         default_sleep
 
-        expect(@received_payload).to eq Messaging.symbolize_keys(payload)
+        expect(@received_payload).to eq Freddy.symbolize_keys(payload)
       end
 
       it 'sends the response to requester' do 
@@ -55,7 +55,7 @@ module Messaging
           msg_handler.ack test_response
         end
         default_deliver_with_response
-        expect(@received_response).to eq(Messaging.symbolize_keys(test_response))
+        expect(@received_response).to eq(Freddy.symbolize_keys(test_response))
       end
 
       it 'responds to the correct requester' do

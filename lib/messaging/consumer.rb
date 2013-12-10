@@ -8,18 +8,18 @@ module Messaging
     class EmptyConsumer < Exception
     end
 
-    def initialize(channel = Messaging.channel, logger=Messaging.logger)
+    def initialize(channel = Freddy.channel, logger=Freddy.logger)
       @channel, @logger = channel, logger
     end
 
-    def consume(destination, &block)
+    def consume(destination, options = {}, &block)
       raise EmptyConsumer unless block
-      consume_from_queue create_queue(destination), &block
+      consume_from_queue create_queue(destination), options, &block
     end
 
-    def consume_from_queue(queue, &block)
-      consumer = queue.subscribe do |delivery_info, properties, payload|
-        @logger.debug "Received message on #{queue.name}"
+    def consume_from_queue(queue, options = {}, &block)
+      consumer = queue.subscribe options do |delivery_info, properties, payload|
+        @logger.debug "Received message on #{queue.name} with payload #{payload}"
         block.call (parse_payload payload), MessageHandler.new(delivery_info, properties)
       end
       @logger.debug "Consuming messages on #{queue.name}"
@@ -32,7 +32,7 @@ module Messaging
       if payload == 'null'
         {}
       else
-        Messaging.symbolize_keys(JSON(payload))
+        Freddy.symbolize_keys(JSON(payload))
       end
     end
 

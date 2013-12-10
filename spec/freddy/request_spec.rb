@@ -12,7 +12,7 @@ module Messaging
     end
 
     it 'raises empty responder exception when responding without callback' do 
-      expect {@responder = req.respond_to destination }.to raise_error Request::EmptyResponder
+      expect {@responder = req.respond_to destination, false }.to raise_error Request::EmptyResponder
     end
     
   end

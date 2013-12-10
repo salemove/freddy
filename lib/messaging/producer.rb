@@ -7,7 +7,7 @@ module Messaging
     class EmptyAckHandler < Exception 
     end
 
-    def initialize(channel = Messaging.channel, logger=Messaging.logger)
+    def initialize(channel = Freddy.channel, logger=Freddy.logger)
       @channel, @logger = channel, logger
       @exchange = @channel.default_exchange
     end
