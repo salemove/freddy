@@ -3,13 +3,12 @@ lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
 Gem::Specification.new do |spec|
-  spec.name          = "salemove-messaging"
+  spec.name          = "freddy"
   spec.version       = '0.0.1'
   spec.authors       = ["Urmas Talimaa"]
   spec.email         = ["urmas.talimaa@gmail.com"]
-  spec.description   = %q{Salemove messaging API}
-  spec.summary       = %q{API for inter-application messaging for salemove applications and services}
-  spec.homepage      = "http://app.salemove.com"
+  spec.description   = %q{Messaging API}
+  spec.summary       = %q{API for inter-application messaging supporting acknowledgements and request-response}
   spec.license       = "Private"
 
   spec.files         = `git ls-files`.split($/)
