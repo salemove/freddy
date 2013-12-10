@@ -35,7 +35,7 @@ module Messaging
       raise EmptyResponder unless block
       @response_queue = create_response_queue unless @response_queue
       @logger.debug "Listening for requests on #{destination}"
-      responder_handler = @consumer.consume destination, {block: block_thread} do |payload, msg_handler|
+      responder_handler = @consumer.consume destination, { block: block_thread } do |payload, msg_handler|
         handler = get_message_handler(msg_handler.properties)
         handle_request payload, msg_handler, handler.new(block, destination, @logger)
       end
