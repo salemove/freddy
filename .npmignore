@@ -1,0 +1,7 @@
+.git*
+.rspec
+.ruby*
+Gemfile*
+freddy.gemspec
+spec/
+lib/messaging
