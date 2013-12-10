@@ -24,7 +24,7 @@ class Request
   respondTo: (destination, queueReadyCallback, callback) ->
     @consumer.consume destination, queueReadyCallback, (message, msgHandler) =>
       properties = msgHandler.properties
-      if properties.headers?.messageWithAck
+      if properties.headers?['message_with_ack']
         callback(message, msgHandler)
         response = {error: msgHandler.error()}
       else if properties.correlationId

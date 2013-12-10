@@ -10,7 +10,7 @@ class Producer
     @connection.publish(destination, message, options)
 
   deliverWithAck: (destination, message, timeoutSeconds, callback) ->
-    @request.request destination, message, timeoutSeconds, {headers: {messageWithAck: true}}, (message, msgHandler) =>
+    @request.request destination, message, timeoutSeconds, {headers: {'message_with_ack': true}}, (message, msgHandler) =>
       callback message.error if (typeof callback is 'function')
 
   produceWithResponse: (destination, message, timeoutSeconds, callback) ->

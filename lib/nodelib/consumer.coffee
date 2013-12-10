@@ -16,9 +16,6 @@ class Consumer
     consumerHandler.setQueue queue
     queue.subscribe( 
       (message, headers, deliveryInfo) =>
-        if message?.data?
-          #when message was sent with bunny, then need to parse the JSON
-          message = @_parseMessage message.data
         callback message, new MessageHandler(headers, deliveryInfo) if message?
       ).addCallback (ok) =>
         consumerHandler.setConsumer ok.consumerTag
