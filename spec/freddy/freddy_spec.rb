@@ -162,14 +162,20 @@ module Messaging
       end
 
       it "allows * wildcard" do 
-        tap "i.want.*.*.free"
-        deliver "i.want.to.break.free"
+        tap "somebody.*.love"
+        deliver "somebody.to.love"
         expect(@tapped).to be_true
       end
 
+      it "* matches only one word" do 
+        tap "somebody.*.love"
+        deliver "somebody.not.to.love"
+        expect(@tapped).not_to be_true
+      end
+
       it "allows # wildcard" do 
-        tap "#.love"
-        deliver "somebody.to.love"
+        tap "i.#.free"
+        deliver "i.want.to.break.free"
         expect(@tapped).to be_true
       end
 
