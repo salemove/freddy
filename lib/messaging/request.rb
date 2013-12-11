@@ -1,5 +1,6 @@
 require 'messaging/producer'
 require 'messaging/consumer'
+require 'messaging/request_timeout_clearer'
 require 'messaging/message_handlers/request_handler'
 require 'messaging/message_handlers/ack_message_handler'
 require 'messaging/message_handlers/standard_message_handler'
@@ -78,32 +79,13 @@ module Messaging
     end
 
     def listen_for_responses
-      initialize_timeout_clearer unless @timeout_thread
+      @timeout_clearer = RequestTimeoutClearer.new @request_map, @logger unless @timeout_clearer
       @response_queue = create_response_queue unless @response_queue
       @consumer.consume_from_queue @response_queue do |payload, msg_handler|
         handle_response payload, msg_handler
       end
-      @listening_for_responses = true
-    end
-
-    def initialize_timeout_clearer 
-      @timeout_thread = Thread.new do
-        while true do 
-          clear_timeouts Time.now
-          sleep 0.1
-        end 
-      end
-    end
-
-    def clear_timeouts(now)
-      @request_map.each do |key, value|
-        if now > value[:timeout]
-          @logger.warn "Request #{key} timed out"
-          value[:callback].call({error: 'Timed out waiting for response'}, nil)
-          @request_map.delete key
-        end
-      end
     end
 
   end
+
 end
