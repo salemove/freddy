@@ -1,6 +1,7 @@
 should = require 'should'
 Freddy = require '../lib/freddy'
 logger = require 'winston'
+sinon  = require 'sinon'
 
 describe 'Freddy', ->
 
@@ -8,7 +9,7 @@ describe 'Freddy', ->
     test: 'data'
 
   beforeEach (done) ->
-    @freddy = new Freddy('amqp://guest:guest@localhost:5672', done)
+    @freddy = new Freddy('amqp://guest:guest@localhost:5672')
     @respond = (callback) =>
       @freddy.respondTo @randomDest, callback
     @deliver = () =>
@@ -17,6 +18,13 @@ describe 'Freddy', ->
       @freddy.deliverWithResponse @randomDest, TEST_MESSAGE, callback
     @deliverAck = (callback) =>
       @freddy.deliverWithAck @randomDest, TEST_MESSAGE, callback
+    @tap = (callback) =>
+      @freddy.tap @randomDest, callback
+    @freddy.on 'ready', () =>
+      previousFunc = @freddy.consumer._createQueue
+      @queueCreatorStub = sinon.stub @freddy.consumer, "_createQueue", (destination, options, callback) ->
+        previousFunc.call this, destination, {exclusive: true}, callback
+      done()
 
   uniqueId = ->
     id = ""
@@ -93,8 +101,7 @@ describe 'Freddy', ->
     it 'receives the request', (done) ->
       responderHandler = @respond () =>
         done()
-      responderHandler.on 'ready', () =>
-        @deliver()
+      responderHandler.on 'ready', @deliver
 
     it 'sends the response to the requester', (done) ->
       @respond (message, msgHandler) =>
@@ -122,4 +129,37 @@ describe 'Freddy', ->
         setTimeout () =>
           messageCount.should.equal 1
           done()
-        , 20
+        , 10
+
+  describe 'when tapping', ->
+    it 'can tap', (done) ->
+      handler = @tap ->
+        done()
+      handler.on 'ready', @deliver
+
+    it "doesn't consume message", (done) ->
+      
+      tap_received = (in_tap, in_respond, next) =>
+        @tap_received = true if in_tap?
+        @respond_received = true if in_respond?
+        if !@doneCalled?
+          if @tap_received and @respond_received
+            next()
+            @doneCalled = true
+      @tap () =>
+        tap_received true, false, done
+      handler = @respond () =>
+        tap_received false, true, done
+      handler.on 'ready', @deliver
+
+    it "allows * wildcard", (done) ->
+      handler = @freddy.tap "somebody.*.love", () =>
+        done()
+      handler.on 'ready', () =>
+        @freddy.deliver "somebody.to.love", {}
+
+    it "allows # wildcard", (done) ->
+      handler = @freddy.tap "i.#.free", () =>
+        done()
+      handler.on 'ready', () =>
+        @freddy.deliver "i.want.to.break.free", {}

@@ -3,10 +3,12 @@ logger   = require 'winston'
 Producer = require './nodelib/producer'
 Consumer = require './nodelib/consumer'
 Request  = require './nodelib/request'
+EventEmitter = require('events').EventEmitter
 
-class Freddy
+class Freddy extends EventEmitter
 
   DEFAULT_TIMEOUT = 3
+  FREDDY_TOPIC_NAME = 'freddy-topic'
 
   constructor: (@amqpUrl, callback) ->
     @connection = amqp.createConnection({url: @amqpUrl, reconnect: true})
@@ -15,9 +17,10 @@ class Freddy
         logger.info "Amqp connection restored"
       else 
         logger.info 'Amqp connection created'
-      @producer = new Producer @connection if !@producer?
-      @request = new Request(@connection, new Consumer(@connection), @producer) if !@request
-      callback() if (typeof callback is 'function') and !@connection_created?
+      @producer = new Producer @connection, FREDDY_TOPIC_NAME if !@producer?
+      @consumer = new Consumer @connection, FREDDY_TOPIC_NAME
+      @request = new Request @connection, @consumer, @producer if !@request
+      @emit 'ready'
       @connection_created = true
     @connection.on 'error', (err) =>
       logger.info "Error in amqp connection: #{err}"
@@ -44,5 +47,8 @@ class Freddy
 
   respondTo: (destination, callback) ->
     @request.respondTo destination, callback
+
+  tap: (destination, callback) ->
+    @consumer.tap destination, callback
 
 module.exports = Freddy

@@ -172,12 +172,12 @@ responder_handler.join
 
 #### Setup
 ```coffee
-freddy = new Freddy amqpUrl, callback
+freddy = new Freddy amqpUrl
 ```
 
 * amqpUrl defines the connection e.g `'amqp://guest:guest@localhost:5672'`
 
-* callback is called when the connection is established succesfully
+* the message 'ready' is emitted when freddy is ready to deliver and respond to message
 
 #### Delivering messages  
 ```coffee
@@ -211,6 +211,9 @@ responderHandler.on 'ready', () =>
 
 #### The MessageHandler  
 No differences to ruby spec
+
+#### Tapping to messages
+No differences to ruby spec, except blocking variant is not provided for obvious reasons.
 
 #### The ResponderHandler  
 

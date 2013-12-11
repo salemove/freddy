@@ -3,11 +3,15 @@ Request  = require './request'
 logger  = require 'winston'
 
 class Producer
-  constructor: (@connection) ->
-    @request = new Request(@connection, new Consumer(@connection), this)
+  constructor: (@connection, topicName) ->
+    @request = new Request(@connection, new Consumer(@connection, topicName), this)
+    @topicExchange = @connection.exchange(topicName, {type: 'topic', autoDelete: false})
 
   produce: (destination, message, options = {}) ->
-    @connection.publish(destination, message, options)
+    throw "Destination must be provided as a string" if (!destination? or !(typeof destination is 'string'))
+    throw "Message must be provided" if !message?
+    @topicExchange.publish destination, message, options
+    @connection.publish destination, message, options
 
   deliverWithAck: (destination, message, timeoutSeconds, callback) ->
     @request.request destination, message, timeoutSeconds, {headers: {'message_with_ack': true}}, (message, msgHandler) =>

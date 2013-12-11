@@ -12,7 +12,8 @@
     "coffee-script": ">=1.4",
     "amqp" : "latest",
     "winston": "latest",
-    "async": "latest"
+    "async": "latest",
+    "sinon": "latest"
 
   },
   "devDependencies" : {
