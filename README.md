@@ -115,7 +115,7 @@ msg_handler.nack(error = "Couldn't process message")
 msg_handler.properties
 ```
 
-#### Tapping messages
+#### Tapping into messages
 When it's necessary to receive messages but not consume them, consider tapping.  
 
 ```ruby
@@ -212,7 +212,7 @@ responderHandler.on 'ready', () =>
 #### The MessageHandler  
 No differences to ruby spec
 
-#### Tapping to messages
+#### Tapping into messages
 No differences to ruby spec, except blocking variant is not provided for obvious reasons.
 
 #### The ResponderHandler  
