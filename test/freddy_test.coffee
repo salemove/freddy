@@ -137,6 +137,13 @@ describe 'Freddy', ->
         done()
       handler.on 'ready', @deliver
 
+    it 'has the destination', (done) ->
+      handler = @freddy.tap "easy.*.easy.*", (message, destination) ->
+        destination.should.equal "easy.come.easy.go"
+        done()
+      handler.on 'ready', () =>
+        @freddy.deliver "easy.come.easy.go", {}
+
     it "doesn't consume message", (done) ->
       
       tap_received = (in_tap, in_respond, next) =>

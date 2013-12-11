@@ -24,6 +24,23 @@ freddy = Freddy.new(logger = Freddy.logger)
 freddy.use_distinct_connection
 ```
 
+#### Destinations
+Freddy encourages but doesn't enforce the following protocol for destinations:
+
+* For sending messages to services:
+
+```
+<service_name>.<method_name>.<anything_else_you_need>.<...>
+```
+
+* For reporting errors:
+
+```
+<service_name>.<method_name>.'responder'|'producer'.'errors'
+```
+
+TODO: Finish speccing protocol.
+
 #### Delivering messages
 
 * Simply deliver a message:
@@ -119,11 +136,12 @@ msg_handler.properties
 When it's necessary to receive messages but not consume them, consider tapping.  
 
 ```ruby
-freddy.tap destination, &callback do |message|
+freddy.tap pattern, &callback do |message, destination|
 ```
 
+* `destination` refers to the destination that the message was sent to
 * Note that it is not possible to acknowledge or respond to message while tapping.
-* When tapping the following wildcards are supported:
+* When tapping the following wildcards are supported in the `pattern` :
   * `#` matching 0 or more words
   * `*` matching exactly one word
 
@@ -144,7 +162,7 @@ receives messages that are delivered to `somebody.to.love` but doesn't receive m
 It is also possible to use the blocking version of tap:
 
 ```ruby
-freddy.tap_and_block destination, &callback do |message|
+freddy.tap_and_block pattern, &callback do |message, destination|
 ```
 
 #### The ResponderHandler

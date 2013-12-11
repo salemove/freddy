@@ -48,7 +48,7 @@ class Freddy extends EventEmitter
   respondTo: (destination, callback) ->
     @request.respondTo destination, callback
 
-  tap: (destination, callback) ->
-    @consumer.tap destination, callback
+  tap: (pattern, callback) ->
+    @consumer.tap pattern, callback
 
 module.exports = Freddy

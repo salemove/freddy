@@ -27,12 +27,12 @@ module Messaging
       ResponderHandler.new consumer, @channel
     end
 
-    def tap(destination, options, &block) 
-      queue = @channel.queue("", exclusive: true).bind(@topic_exchange, routing_key: destination)
-      consumer = queue.subscribe options do |delivery_info, metadata, payload|
-        block.call (parse_payload payload)
+    def tap(pattern, options, &block) 
+      queue = @channel.queue("", exclusive: true).bind(@topic_exchange, routing_key: pattern)
+      consumer = queue.subscribe options do |delivery_info, properties, payload|
+        block.call (parse_payload payload), delivery_info.routing_key
       end
-      @logger.debug "Tapping into messages that match #{destination}"
+      @logger.debug "Tapping into messages that match #{pattern}"
       ResponderHandler.new consumer, @channel
     end
 

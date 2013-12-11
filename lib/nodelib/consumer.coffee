@@ -26,14 +26,14 @@ class Consumer
         responderHandler.setConsumer ok.consumerTag
     return responderHandler
 
-  tap: (destination, callback) ->
+  tap: (pattern, callback) ->
     responderHandler = new ResponderHandler
     @connection.queue '', {exclusive: true}, (queue) =>
-      queue.bind(@topicExchange, destination)
+      queue.bind(@topicExchange, pattern)
       queue.on 'queueBindOk', () =>
         responderHandler.emit 'ready'
-      subscription = queue.subscribe (message) =>
-        callback message
+      subscription = queue.subscribe (message, headers, deliveryInfo) =>
+        callback message, deliveryInfo.routingKey
       subscription.addCallback (ok) =>
         responderHandler.setConsumer ok.consumerTag
     return responderHandler    

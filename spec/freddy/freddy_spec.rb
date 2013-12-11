@@ -136,10 +136,11 @@ module Messaging
 
     describe 'when tapping' do
 
-      def tap(custom_destination = destination)
-        freddy.tap custom_destination do |message|
+      def tap(custom_destination = destination, &callback)
+        freddy.tap custom_destination do |message, origin|
           @tapped = true
           @tapped_message = message
+          callback.call message, origin if callback
         end
       end 
 
@@ -153,7 +154,15 @@ module Messaging
         expect(@tapped_message).to eq(Freddy.symbolize_keys payload)
       end
 
-      it "doesn't consume the message" do 
+      it 'has the destination' do 
+        tap "somebody.*.love" do |message, destination|
+          @destination = destination
+        end
+        deliver "somebody.to.love"
+        expect(@destination).to eq("somebody.to.love")
+      end
+
+      it "doesn't consume the message" do
         tap
         respond_to
         deliver
