@@ -10,6 +10,7 @@ module Messaging
 
     def initialize(channel = Freddy.channel, logger=Freddy.logger)
       @channel, @logger = channel, logger
+      @topic_exchange = @channel.topic $FREDDY_TOPIC_EXCHANGE_NAME
     end
 
     def consume(destination, options = {}, &block)
@@ -23,6 +24,15 @@ module Messaging
         block.call (parse_payload payload), MessageHandler.new(delivery_info, properties)
       end
       @logger.debug "Consuming messages on #{queue.name}"
+      ResponderHandler.new consumer, @channel
+    end
+
+    def tap(destination, options, &block) 
+      queue = @channel.queue("", exclusive: true).bind(@topic_exchange, routing_key: destination)
+      consumer = queue.subscribe options do |delivery_info, metadata, payload|
+        block.call (parse_payload payload)
+      end
+      @logger.debug "Tapping into messages that match #{destination}"
       ResponderHandler.new consumer, @channel
     end
 

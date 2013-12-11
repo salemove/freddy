@@ -115,9 +115,41 @@ msg_handler.nack(error = "Couldn't process message")
 msg_handler.properties
 ```
 
+#### Tapping messages
+When it's necessary to receive messages but not consume them, consider tapping.  
+
+```ruby
+freddy.tap destination, &callback do |message|
+```
+
+* Note that it is not possible to acknowledge or respond to message while tapping.
+* When tapping the following wildcards are supported:
+  * `#` matching 0 or more words
+  * `*` matching exactly one word
+
+Examples:
+
+```ruby
+freddy.tap "i.#.free"
+```  
+
+receives messages that are delivered to `"i.want.to.break.free"`
+
+```ruby
+freddy.tap "somebody.*.love"
+```
+
+receives messages that are delivered to `somebody.to.love` but doesn't receive messages delivered to `someboy.not.to.love`
+
+It is also possible to use the blocking version of tap:
+
+```ruby
+freddy.tap_and_block destination, &callback do |message|
+```
+
 #### The ResponderHandler
 
-When responding to a message a ResponderHandler is returned. 
+When responding to a message or tapping the ResponderHandler is returned. 
 ```ruby
 responder_handler = freddy.respond_to ....
 ```

@@ -6,6 +6,8 @@ require 'json'
 
 class Freddy
 
+  $FREDDY_TOPIC_EXCHANGE_NAME = 'freddy-topic'
+
   def self.setup(logger=Logger.new(STDOUT), bunny_config)
     @bunny = Bunny.new bunny_config
     @bunny.start
@@ -88,6 +90,14 @@ class Freddy
 
   def deliver_with_response(destination, payload, timeout_seconds = 3,&callback)
     @request.request destination, payload, timeout_seconds, &callback
+  end
+
+  def tap(destination, &callback)
+    @consumer.tap destination, {block: false}, &callback
+  end
+
+  def tap_and_block(destination, &callback)
+    @consumer.tap destination, {block: true}, &callback
   end
 
   private 

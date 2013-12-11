@@ -10,10 +10,12 @@ module Messaging
     def initialize(channel = Freddy.channel, logger=Freddy.logger)
       @channel, @logger = channel, logger
       @exchange = @channel.default_exchange
+      @topic_exchange = @channel.topic $FREDDY_TOPIC_EXCHANGE_NAME
     end
 
     def produce(destination, payload, properties={})
       @logger.debug "Producing message to #{destination}"
+      @topic_exchange.publish payload.to_json, properties.merge(routing_key: destination, content_type: 'application/json')
       @exchange.publish payload.to_json, properties.merge(routing_key: destination, content_type: 'application/json')
     end
 

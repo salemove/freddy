@@ -134,5 +134,47 @@ module Messaging
       end
     end
 
+    describe 'when tapping' do
+
+      def default_tap(custom_destination = destination)
+        freddy.tap custom_destination do |message|
+          @tapped = true
+          @tapped_message = message
+        end
+      end 
+
+      it 'can tap' do 
+        freddy.tap destination do 
+        end
+      end
+
+      it 'receives messages' do 
+        default_tap
+        default_deliver
+        expect(@tapped_message).to eq(Freddy.symbolize_keys payload)
+      end
+
+      it "doesn't consume the message" do 
+        default_tap
+        default_respond_to
+        default_deliver
+        expect(@tapped).to be_true
+        expect(@message_received).to be_true
+      end
+
+      it "allows * wildcard" do 
+        default_tap "i.want.*.*.free"
+        default_deliver "i.want.to.break.free"
+        expect(@tapped).to be_true
+      end
+
+      it "allows # wildcard" do 
+        default_tap "#.love"
+        default_deliver "somebody.to.love"
+        expect(@tapped).to be_true
+      end
+
+    end
+
   end
 end
