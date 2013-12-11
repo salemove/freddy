@@ -6,7 +6,7 @@ module Messaging
     default_let
     let(:destination2) { random_destination }
     let(:test_response) { {custom: 'response'}}
-    let(:freddy) { Freddy.new }
+    let(:freddy) { Freddy.new.tap {|freddy| freddy.use_distinct_connection} } #avoid cascading fails by using distinct connection
 
      def deliver_with_response(&block)
       freddy.deliver_with_response destination, payload do |response|
@@ -43,7 +43,7 @@ module Messaging
 
       it 'sends the payload in request to the responder' do 
         respond_to do end
-        payload = {a: 'ari'}
+        payload = {a: {b: 'c'}}
         freddy.deliver_with_response destination, payload do end
         default_sleep
 
