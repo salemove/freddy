@@ -54,7 +54,7 @@ describe 'Freddy', ->
   describe 'with messages that need acknowledgement', ->
     it 'can produce', ->
       @freddy.deliverWithAck @randomDest, TEST_MESSAGE, (error) =>
-        (typeof error).should.equal 'string'
+        error.should.be.ok
 
     it 'can produce with custom timeout', ->
       @freddy.withTimeout(1).deliverWithAck @randomDest, TEST_MESSAGE

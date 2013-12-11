@@ -1,31 +1,32 @@
+#Encapsulate the request-response types of messaging
 class Request
   constructor: (@connection, @consumer, @producer, @logger) ->
     @requests = {}
     #This temporary queue will be created once per lifetime of AmqpRpc and will be cleaned up automatically by rabbitmq
     @responseQueue = null 
 
-  extend: (object, properties) ->
-    for key, val of properties
-      object[key] = val
-    object
+  deliverWithAck: (destination, message, timeoutSeconds, callback) ->
+    @_request destination, message, timeoutSeconds, {headers: {'message_with_ack': true}}, (message, msgHandler) =>
+      callback message.error if (typeof callback is 'function')
 
-  request: (destination, message, timeoutSeconds, options, callback) ->
+  deliverWithResponse: (destination, message, timeoutSeconds, callback) ->
+    @_request destination, message, timeoutSeconds, {}, (message, msgHandler) =>
+      callback message, msgHandler if (typeof callback is 'function')
+
+  _request: (destination, message, timeoutSeconds, options, callback) ->
     correlationId = @_uuid()
     @requests[correlationId] = {
       timeout: @_timeout(timeoutSeconds, correlationId, callback), 
       callback: callback
     }
     @_setupResponseQueue () =>
-      @extend options, {correlationId: correlationId, replyTo: @responseQueue}
+      @_extend options, {correlationId: correlationId, replyTo: @responseQueue}
       @producer.produce destination, message, options
 
-  deliverWithAck: (destination, message, timeoutSeconds, callback) ->
-    @request destination, message, timeoutSeconds, {headers: {'message_with_ack': true}}, (message, msgHandler) =>
-      callback message.error if (typeof callback is 'function')
-
-  deliverWithResponse: (destination, message, timeoutSeconds, callback) ->
-    @request destination, message, timeoutSeconds, {}, (message, msgHandler) =>
-      callback message, msgHandler if (typeof callback is 'function')
+  _extend: (object, properties) ->
+    for key, val of properties
+      object[key] = val
+    object
 
   respondTo: (destination, callback) ->
     @consumer.consume destination, (message, msgHandler) =>

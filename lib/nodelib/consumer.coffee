@@ -1,16 +1,22 @@
-async   = require 'async'
+#Encapsulate listening for messages
+ResponderHandler = require './responder_handler.coffee'
+MessageHandler   = require './message_handler.coffee'
 
 class Consumer
   constructor: (@connection, topicName, @logger) ->
     @topicExchange = @connection.exchange(topicName, {type: 'topic', autoDelete: false})
 
   consume: (destination, callback) ->
-    throw "Destination must be provided as a string" if !destination? or !(typeof destination is 'string')
+    @_ensureDestination destination
     responderHandler = new ResponderHandler
     @_createQueue destination, {}, (queue) =>
       responderHandler.emit 'ready'
       @consumeFromQueue queue, callback, responderHandler
     return responderHandler
+
+  _ensureDestination: (destination) ->
+    if !destination? or !(typeof destination is 'string')
+      throw "Destination must be provided as a string" 
 
   _createQueue: (destination, options, callback) ->
     @connection.queue destination, options, callback
@@ -21,7 +27,7 @@ class Consumer
     subscription = queue.subscribe (message, headers, deliveryInfo) =>
       callback message, new MessageHandler(headers, deliveryInfo) if message?
     subscription.addCallback (ok) =>
-        responderHandler.setConsumer ok.consumerTag
+        responderHandler.setConsumerTag ok.consumerTag
     return responderHandler
 
   tapInto: (pattern, callback) ->
@@ -33,49 +39,7 @@ class Consumer
       subscription = queue.subscribe (message, headers, deliveryInfo) =>
         callback message, deliveryInfo.routingKey
       subscription.addCallback (ok) =>
-        responderHandler.setConsumer ok.consumerTag
+        responderHandler.setConsumerTag ok.consumerTag
     return responderHandler    
-
-  EventEmitter = require('events').EventEmitter
-
-  class ResponderHandler extends EventEmitter
-    setConsumer: (@consumerTag) ->
-
-    setQueue: (@queue) ->
-
-    cancel: () ->
-      tries = 0
-      async.whilst () =>
-          tries < 10
-        , (callback) =>
-          if @queue and @consumerTag
-            @queue.unsubscribe(@consumerTag).addCallback () =>
-              @emit('cancelled')
-          else 
-            tries += 1
-            setTimeout callback, 10
-        , () =>
-
-  class MessageHandler
-    constructor: (@headers, @properties) ->
-      @acked = false
-
-    ack: (response) ->
-      @response = response
-      @acked = true
-
-    nack: (errorMessage) ->
-      @errorMessage = errorMessage
-      @acked = false
-      @response = {error: errorMessage}
-
-    error: ->
-      if !@acked
-        if @errorMessage?
-          @errorMessage
-        else 
-          "Responder didn't manually acknowledge message"
-      else 
-        false
 
 module.exports = Consumer
