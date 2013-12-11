@@ -24,21 +24,32 @@ class Request
   respondTo: (destination, callback) ->
     @consumer.consume destination, (message, msgHandler) =>
       properties = msgHandler.properties
-      if properties.headers?['message_with_ack']
-        callback(message, msgHandler)
-        response = {error: msgHandler.error()}
-      else if properties.correlationId
-        callback(message, msgHandler)
-        error = msgHandler.error()
-        if error
-          response = {error: error}
-        else 
-          response = msgHandler.response
-      else 
-        callback(message, msgHandler)
+      response =  @_responder(properties)(message, msgHandler, callback)
+      @producer.produce properties.replyTo, response, {correlationId: properties.correlationId} if response?
 
-      if response?
-        @producer.produce properties.replyTo, response, {correlationId: properties.correlationId}
+  _responder: (properties) ->
+    if properties.headers?['message_with_ack']
+      responder = @_respondToAck
+    else if properties.correlationId
+      responder = @_respondToRequest
+    else 
+      responder = @_respondToSimpleDeliver
+
+  _respondToAck: (message, msgHandler, callback) ->
+    callback(message, msgHandler)
+    {error: msgHandler.error()}
+
+  _respondToRequest: (message, msgHandler, callback) ->
+    callback(message, msgHandler)
+    error = msgHandler.error()
+    if error
+      {error: error}
+    else 
+      msgHandler.response
+
+  _respondToSimpleDeliver: (message, msgHandler, callback) ->
+    callback(message, msgHandler)
+    return null #avoid returning anything
 
   _uuid: ->
     'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) ->
