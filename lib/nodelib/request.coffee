@@ -1,7 +1,5 @@
-logger  = require 'winston'
-
 class Request
-  constructor: (@connection, @consumer, @producer) ->
+  constructor: (@connection, @consumer, @producer, @logger) ->
     @requests = {}
     #This temporary queue will be created once per lifetime of AmqpRpc and will be cleaned up automatically by rabbitmq
     @responseQueue = null 
@@ -20,6 +18,14 @@ class Request
     @_setupResponseQueue () =>
       @extend options, {correlationId: correlationId, replyTo: @responseQueue}
       @producer.produce destination, message, options
+
+  deliverWithAck: (destination, message, timeoutSeconds, callback) ->
+    @request destination, message, timeoutSeconds, {headers: {'message_with_ack': true}}, (message, msgHandler) =>
+      callback message.error if (typeof callback is 'function')
+
+  deliverWithResponse: (destination, message, timeoutSeconds, callback) ->
+    @request destination, message, timeoutSeconds, {}, (message, msgHandler) =>
+      callback message, msgHandler if (typeof callback is 'function')
 
   respondTo: (destination, callback) ->
     @consumer.consume destination, (message, msgHandler) =>
@@ -61,7 +67,7 @@ class Request
   _timeout: (timeoutSeconds, correlationId, callback) ->
     setTimeout( 
       ()=>
-        logger.info "Timeout waiting for response with #{timeoutSeconds} s"
+        @logger.info "Timeout waiting for response with #{timeoutSeconds} s"
         delete @requests[correlationId]
         callback {error: "Timeout waiting for response"} if (typeof callback is 'function')
       , timeoutSeconds * 1000

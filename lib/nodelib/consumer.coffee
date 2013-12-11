@@ -1,9 +1,7 @@
 async   = require 'async'
-logger  = require 'winston'
-EventEmitter = require('events').EventEmitter
 
 class Consumer
-  constructor: (@connection, topicName) ->
+  constructor: (@connection, topicName, @logger) ->
     @topicExchange = @connection.exchange(topicName, {type: 'topic', autoDelete: false})
 
   consume: (destination, callback) ->
@@ -37,6 +35,8 @@ class Consumer
       subscription.addCallback (ok) =>
         responderHandler.setConsumer ok.consumerTag
     return responderHandler    
+
+  EventEmitter = require('events').EventEmitter
 
   class ResponderHandler extends EventEmitter
     setConsumer: (@consumerTag) ->
