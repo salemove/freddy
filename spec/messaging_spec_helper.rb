@@ -24,7 +24,7 @@ def default_sleep
   sleep 0.01
 end
 
-def default_deliver(custom_destination = destination)
+def deliver(custom_destination = destination)
   freddy.deliver custom_destination, payload
   default_sleep
 end

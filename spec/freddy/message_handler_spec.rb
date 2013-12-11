@@ -22,7 +22,7 @@ module Messaging
       default_consume do |payload, msg_handler|
         properties = msg_handler.properties
       end
-      default_deliver
+      deliver
       expect(properties).not_to be_nil
     end
 

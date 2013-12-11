@@ -11,9 +11,9 @@ module Messaging
         @messages_count ||= 0
         @messages_count += 1
       end
-      default_deliver
+      deliver
       consumer_handler.cancel
-      default_deliver
+      deliver
 
       expect(@messages_count).to eq 1
     end

@@ -8,7 +8,7 @@ module Messaging
     let(:test_response) { {custom: 'response'}}
     let(:freddy) { Freddy.new }
 
-     def default_deliver_with_response(&block)
+     def deliver_with_response(&block)
       freddy.deliver_with_response destination, payload do |response|
         @received_response = response
         block.call response if block
@@ -16,7 +16,7 @@ module Messaging
       default_sleep
     end
 
-    def default_respond_to(&block)
+    def respond_to(&block)
       @responder = freddy.respond_to destination do |request_payload|
         @message_received = true
         @received_payload = request_payload
@@ -25,7 +25,7 @@ module Messaging
     end
 
 
-    def default_deliver_with_ack(&block)
+    def deliver_with_ack(&block)
       freddy.deliver_with_ack destination, payload do |error|
         @ack_error = error
         block.call error if block
@@ -36,13 +36,13 @@ module Messaging
     describe "when producing with response" do 
 
       it 'sends the request to responder' do 
-        default_respond_to
-        default_deliver_with_response
+        respond_to
+        deliver_with_response
         expect(@message_received).to be_true
       end
 
       it 'sends the payload in request to the responder' do 
-        default_respond_to do end
+        respond_to do end
         payload = {a: 'ari'}
         freddy.deliver_with_response destination, payload do end
         default_sleep
@@ -54,7 +54,7 @@ module Messaging
         freddy.respond_to destination do |message, msg_handler|
           msg_handler.ack test_response
         end
-        default_deliver_with_response
+        deliver_with_response
         expect(@received_response).to eq(Freddy.symbolize_keys(test_response))
       end
 
@@ -99,12 +99,12 @@ module Messaging
     describe 'when producing with ack' do 
       it "reports error if message wasn't acknowledged" do 
         freddy.respond_to destination do end
-        default_deliver_with_ack
+        deliver_with_ack
         expect(@ack_error).not_to be_nil
       end
 
       it 'returns error if there are no responder' do 
-        default_deliver_with_ack
+        deliver_with_ack
 
         expect(@ack_error).not_to be_nil
       end
@@ -113,7 +113,7 @@ module Messaging
         freddy.respond_to destination do |message, msg_handler|
           msg_handler.nack "bad message"
         end
-        default_deliver_with_ack
+        deliver_with_ack
         expect(@ack_error).not_to be_nil
       end
 
@@ -121,7 +121,7 @@ module Messaging
         freddy.respond_to destination do |message, msg_handler|
           msg_handler.ack
         end
-        default_deliver_with_ack
+        deliver_with_ack
         expect(@ack_error).to be_nil
       end
 
@@ -136,7 +136,7 @@ module Messaging
 
     describe 'when tapping' do
 
-      def default_tap(custom_destination = destination)
+      def tap(custom_destination = destination)
         freddy.tap custom_destination do |message|
           @tapped = true
           @tapped_message = message
@@ -144,33 +144,32 @@ module Messaging
       end 
 
       it 'can tap' do 
-        freddy.tap destination do 
-        end
+        tap
       end
 
       it 'receives messages' do 
-        default_tap
-        default_deliver
+        tap
+        deliver
         expect(@tapped_message).to eq(Freddy.symbolize_keys payload)
       end
 
       it "doesn't consume the message" do 
-        default_tap
-        default_respond_to
-        default_deliver
+        tap
+        respond_to
+        deliver
         expect(@tapped).to be_true
         expect(@message_received).to be_true
       end
 
       it "allows * wildcard" do 
-        default_tap "i.want.*.*.free"
-        default_deliver "i.want.to.break.free"
+        tap "i.want.*.*.free"
+        deliver "i.want.to.break.free"
         expect(@tapped).to be_true
       end
 
       it "allows # wildcard" do 
-        default_tap "#.love"
-        default_deliver "somebody.to.love"
+        tap "#.love"
+        deliver "somebody.to.love"
         expect(@tapped).to be_true
       end
 
