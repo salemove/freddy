@@ -136,7 +136,7 @@ msg_handler.properties
 When it's necessary to receive messages but not consume them, consider tapping.  
 
 ```ruby
-freddy.tap pattern, &callback do |message, destination|
+freddy.tap_into pattern, &callback do |message, destination|
 ```
 
 * `destination` refers to the destination that the message was sent to
@@ -148,21 +148,21 @@ freddy.tap pattern, &callback do |message, destination|
 Examples:
 
 ```ruby
-freddy.tap "i.#.free"
+freddy.tap_into "i.#.free"
 ```  
 
 receives messages that are delivered to `"i.want.to.break.free"`
 
 ```ruby
-freddy.tap "somebody.*.love"
+freddy.tap_into "somebody.*.love"
 ```
 
 receives messages that are delivered to `somebody.to.love` but doesn't receive messages delivered to `someboy.not.to.love`
 
-It is also possible to use the blocking version of tap:
+It is also possible to use the blocking version of `tap_into`:
 
 ```ruby
-freddy.tap_and_block pattern, &callback do |message, destination|
+freddy.tap_into_and_block pattern, &callback do |message, destination|
 ```
 
 #### The ResponderHandler
@@ -231,7 +231,12 @@ responderHandler.on 'ready', () =>
 No differences to ruby spec
 
 #### Tapping into messages
-No differences to ruby spec, except blocking variant is not provided for obvious reasons.
+
+```coffee
+responderHandler = freddy.tapInto pattern, callback
+```
+
+No other differences to ruby spec, blocking variant is not provided for obvious reasons.
 
 #### The ResponderHandler  
 

@@ -92,12 +92,12 @@ class Freddy
     @request.request destination, payload, timeout_seconds, &callback
   end
 
-  def tap(pattern, &callback)
-    @consumer.tap pattern, {block: false}, &callback
+  def tap_into(pattern, &callback)
+    @consumer.tap_into pattern, {block: false}, &callback
   end
 
-  def tap_and_block(pattern, &callback)
-    @consumer.tap pattern, {block: true}, &callback
+  def tap_into_and_block(pattern, &callback)
+    @consumer.tap_into pattern, {block: true}, &callback
   end
 
   private 

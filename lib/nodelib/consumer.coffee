@@ -26,7 +26,7 @@ class Consumer
         responderHandler.setConsumer ok.consumerTag
     return responderHandler
 
-  tap: (pattern, callback) ->
+  tapInto: (pattern, callback) ->
     responderHandler = new ResponderHandler
     @connection.queue '', {exclusive: true}, (queue) =>
       queue.bind(@topicExchange, pattern)

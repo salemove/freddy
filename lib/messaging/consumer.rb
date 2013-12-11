@@ -27,7 +27,7 @@ module Messaging
       ResponderHandler.new consumer, @channel
     end
 
-    def tap(pattern, options, &block) 
+    def tap_into(pattern, options, &block) 
       queue = @channel.queue("", exclusive: true).bind(@topic_exchange, routing_key: pattern)
       consumer = queue.subscribe options do |delivery_info, properties, payload|
         block.call (parse_payload payload), delivery_info.routing_key

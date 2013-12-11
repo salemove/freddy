@@ -137,7 +137,7 @@ module Messaging
     describe 'when tapping' do
 
       def tap(custom_destination = destination, &callback)
-        freddy.tap custom_destination do |message, origin|
+        freddy.tap_into custom_destination do |message, origin|
           @tapped = true
           @tapped_message = message
           callback.call message, origin if callback

@@ -19,7 +19,7 @@ describe 'Freddy', ->
     @deliverAck = (callback) =>
       @freddy.deliverWithAck @randomDest, TEST_MESSAGE, callback
     @tap = (callback) =>
-      @freddy.tap @randomDest, callback
+      @freddy.tapInto @randomDest, callback
     @freddy.on 'ready', () =>
       previousFunc = @freddy.consumer._createQueue
       @queueCreatorStub = sinon.stub @freddy.consumer, "_createQueue", (destination, options, callback) ->
@@ -138,7 +138,7 @@ describe 'Freddy', ->
       handler.on 'ready', @deliver
 
     it 'has the destination', (done) ->
-      handler = @freddy.tap "easy.*.easy.*", (message, destination) ->
+      handler = @freddy.tapInto "easy.*.easy.*", (message, destination) ->
         destination.should.equal "easy.come.easy.go"
         done()
       handler.on 'ready', () =>
@@ -160,13 +160,13 @@ describe 'Freddy', ->
       handler.on 'ready', @deliver
 
     it "allows * wildcard", (done) ->
-      handler = @freddy.tap "somebody.*.love", () =>
+      handler = @freddy.tapInto "somebody.*.love", () =>
         done()
       handler.on 'ready', () =>
         @freddy.deliver "somebody.to.love", {}
 
     it "allows # wildcard", (done) ->
-      handler = @freddy.tap "i.#.free", () =>
+      handler = @freddy.tapInto "i.#.free", () =>
         done()
       handler.on 'ready', () =>
         @freddy.deliver "i.want.to.break.free", {}
