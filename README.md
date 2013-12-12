@@ -254,3 +254,23 @@ responderHandler.on 'cancelled', () =>
 
 * Use RSpec and mocha, make sure the tests pass.  
 * Don't leak underlying messaging protocol internals.
+* 
+
+## Credits
+
+**freddy** was originally written by [Urmas Talimaa] as part of SaleMove development team.
+
+![SaleMove Inc. 2012][SaleMove Logo]
+
+**freddy** is maintained and funded by [SaleMove, Inc].
+
+The names and logos for **SaleMove** are trademarks of SaleMove, Inc.
+
+## License
+
+**freddy** is Copyright © 2013 SaleMove Inc. It is free software, and may be redistributed under the terms specified in the [Apache License].
+
+[Urmas Talimaa]: https://github.com/urmastalimaa?source=c "Urmas"
+[SaleMove, Inc]: http://salemove.com/ "SaleMove Website"
+[SaleMove Logo]: http://app.salemove.com/assets/logo.png "SaleMove Inc. 2012"
+[Apache License]: http://choosealicense.com/licenses/apache/ "Apache License"
