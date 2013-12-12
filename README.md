@@ -136,7 +136,7 @@ msg_handler.properties
 When it's necessary to receive messages but not consume them, consider tapping.  
 
 ```ruby
-freddy.tap_into pattern, &callback do |message, destination|
+freddy.tap_into pattern do |message, destination|
 ```
 
 * `destination` refers to the destination that the message was sent to
