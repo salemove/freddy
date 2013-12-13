@@ -1,12 +1,13 @@
 {
   "name": "freddy",
-  "version": "0.0.7",
+  "version": "0.0.10",
   "author": "Urmas Talimaa <urmas7@gmail.com>",
   "description": "Simple messaging API supporting acknowledgements and request-response",
   "reporistory" : {
     "type" : "git",
     "url" : "https://github.com/salemove/freddy"
   },
+  "license" : "Apache-2.0",
   "main": "./lib/freddy",
   "dependencies" : {
     "coffee-script": ">=1.4",

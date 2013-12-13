@@ -18,8 +18,10 @@ Freddy.setup(Logger.new(STDOUT), host: 'localhost', port: 5672, user: 'guest', p
 
 ```ruby
 freddy = Freddy.new(logger = Freddy.logger)
-```
-    * by default the Freddy instance will reuse connections and queues for messaging, if you want to use a distinct tcp connection, response queue and timeout checking thread, then use 
+```  
+
+  * by default the Freddy instance will reuse connections and queues for messaging, if you want to use a distinct tcp connection, response queue and timeout checking thread, then use  
+
 ```ruby
 freddy.use_distinct_connection
 ```
@@ -195,7 +197,7 @@ freddy = new Freddy amqpUrl
 
 * amqpUrl defines the connection e.g `'amqp://guest:guest@localhost:5672'`
 
-* the message 'ready' is emitted when freddy is ready to deliver and respond to message
+* the message 'ready' is emitted when freddy is ready to deliver and respond to messages.
 
 #### Delivering messages  
 ```coffee
@@ -254,7 +256,6 @@ responderHandler.on 'cancelled', () =>
 
 * Use RSpec and mocha, make sure the tests pass.  
 * Don't leak underlying messaging protocol internals.
-* 
 
 ## Credits
 
