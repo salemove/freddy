@@ -21,7 +21,7 @@ def random_destination
 end
 
 def default_sleep
-  sleep 0.01
+  sleep 0.05
 end
 
 def deliver(custom_destination = destination)

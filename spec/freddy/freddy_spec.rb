@@ -103,9 +103,8 @@ module Messaging
         expect(@ack_error).not_to be_nil
       end
 
-      it 'returns error if there are no responder' do 
+      it 'returns error if there are no responders' do 
         deliver_with_ack
-
         expect(@ack_error).not_to be_nil
       end
 
