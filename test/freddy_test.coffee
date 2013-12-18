@@ -22,7 +22,7 @@ describe 'Freddy', ->
       @freddy.tapInto @randomDest, callback
     @freddy.on 'ready', () =>
       previousFunc = @freddy.consumer._createQueue
-      @queueCreatorStub = sinon.stub @freddy.consumer, "_createQueue", (destination, options, callback) ->
+      sinon.stub @freddy.consumer, "_createQueue", (destination, options, callback) ->
         previousFunc.call this, destination, {exclusive: true}, callback
       done()
 
