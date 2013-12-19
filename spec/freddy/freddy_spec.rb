@@ -8,7 +8,7 @@ module Messaging
     let(:test_response) { {custom: 'response'}}
     let(:freddy) { Freddy.new.tap {|freddy| freddy.use_distinct_connection} } #avoid cascading fails by using distinct connection
 
-     def deliver_with_response(&block)
+    def deliver_with_response(&block)
       freddy.deliver_with_response destination, payload do |response|
         @received_response = response
         block.call response if block
@@ -17,10 +17,10 @@ module Messaging
     end
 
     def respond_to(&block)
-      @responder = freddy.respond_to destination do |request_payload|
+      @responder = freddy.respond_to destination do |request_payload, msg_handler|
         @message_received = true
         @received_payload = request_payload
-        block.call request_payload if block
+        block.call request_payload, msg_handler if block
       end
     end
 
@@ -31,6 +31,24 @@ module Messaging
         block.call error if block
       end
       default_sleep
+    end
+
+    context 'when making a synchronized request' do
+      it 'returns response as soon as possible' do
+        respond_to { |payload, msg_handler| msg_handler.ack(res: 'yey') }
+        response = freddy.deliver_with_response(destination, {a: 'b'})
+        # without sleep
+
+        expect(response).to eq(res: 'yey')
+      end
+
+      it 'gives timeout error when no response' do
+        respond_to { |payload, msg_handler| msg_handler.ack(res: 'yey') }
+        response = freddy.deliver_with_response('invalid', {a: 'b'}, 0.1)
+        # without sleep
+
+        expect(response).to eq(error: 'Timed out waiting for response')
+      end
     end
 
     describe "when producing with response" do 

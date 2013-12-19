@@ -1,14 +1,14 @@
 PATH
   remote: .
   specs:
-    freddy (0.0.2)
+    freddy (0.0.7)
       bunny (~> 1.0)
 
 GEM
   remote: https://rubygems.org/
   specs:
-    amq-protocol (1.9.0)
-    bunny (1.0.5)
+    amq-protocol (1.9.1)
+    bunny (1.0.6)
       amq-protocol (>= 1.9.0)
     coderay (1.1.0)
     diff-lcs (1.2.5)

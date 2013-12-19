@@ -22,7 +22,7 @@ module Messaging
     def produce_with_ack(destination, payload, timeout_seconds = 3, properties={}, &block)
       raise EmptyAckHandler unless block
       req = Request.new(@channel)
-      producer = req.request destination, payload, timeout_seconds, properties.merge(mandatory: true, headers: {message_with_ack: true}) do |payload|
+      producer = req.async_request destination, payload, timeout_seconds, properties.merge(mandatory: true, headers: {message_with_ack: true}) do |payload|
         block.call payload[:error]
       end
 
