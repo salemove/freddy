@@ -1,6 +1,7 @@
 require 'messaging/producer'
 require 'messaging/consumer'
 require 'messaging/request_timeout_clearer'
+require 'messaging/sync_response_container'
 require 'messaging/message_handlers/request_handler'
 require 'messaging/message_handlers/ack_message_handler'
 require 'messaging/message_handlers/standard_message_handler'
@@ -22,8 +23,13 @@ module Messaging
       @request_map = {}
     end
 
-    def request(destination, payload, timeout_seconds = 3, options={}, &block)
-      raise EmptyRequest unless block
+    def sync_request(destination, payload, timeout_seconds = 3, options={})
+      container = SyncResponseContainer.new
+      async_request destination, payload, timeout_seconds, options, &container
+      container.wait_for_response
+    end
+
+    def async_request(destination, payload, timeout_seconds = 3, options={}, &block)
       listen_for_responses unless @listening_for_responses
       correlation_id = SecureRandom.uuid
       timeout = Time.now + timeout_seconds
@@ -87,5 +93,4 @@ module Messaging
     end
 
   end
-
 end

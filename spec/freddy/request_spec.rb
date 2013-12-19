@@ -7,10 +7,6 @@ module Messaging
     default_let
     let(:req) { Request.new }
 
-    it 'raises empty request exception when requesting without callback' do 
-      expect { req.request destination, payload }.to raise_error Request::EmptyRequest
-    end
-
     it 'raises empty responder exception when responding without callback' do 
       expect {@responder = req.respond_to destination, false }.to raise_error Request::EmptyResponder
     end

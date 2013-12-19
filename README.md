@@ -83,6 +83,11 @@ freddy.deliver_with_response(destination, message, timeout_seconds = 3) do |resp
 
     * The `MessageHandler`(described further down)
 
+* Synchronous deliver expecting response
+```ruby
+  response = freddy.deliver_with_response(destination, message, timeout_seconds = 3)
+```
+
 #### Responding to messages
 
 * Respond to messages while not blocking the current thread:  

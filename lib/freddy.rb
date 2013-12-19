@@ -89,7 +89,11 @@ class Freddy
   end
 
   def deliver_with_response(destination, payload, timeout_seconds = 3,&callback)
-    @request.request destination, payload, timeout_seconds, &callback
+    if block_given?
+      @request.async_request destination, payload, timeout_seconds, &callback
+    else
+      @request.sync_request destination, payload, timeout_seconds
+    end
   end
 
   def tap_into(pattern, &callback)
@@ -99,7 +103,5 @@ class Freddy
   def tap_into_and_block(pattern, &callback)
     @consumer.tap_into pattern, {block: true}, &callback
   end
-
-  private 
 
 end
