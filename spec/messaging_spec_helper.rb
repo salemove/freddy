@@ -8,14 +8,6 @@ class Messaging::Consumer
   end
 end
 
-class Messaging::Request
-  def create_response_queue
-    #exclusive queues are deleted when the consumer disconnects,
-    #auto_delete doesn't work when there are no requests
-    @channel.queue("", exclusive: true, auto_delete: true)
-  end
-end
-
 def random_destination
   SecureRandom.hex
 end
