@@ -12,6 +12,7 @@ class Producer
     _.extend options, (contentType: 'application/json')
     throw "Destination must be provided as a string" if (!destination? or !(typeof destination is 'string'))
     throw "Message must be provided" if !message?
+    @logger.debug "Publishing to #{destination}"
     @topicExchange.publish destination, message, options
     @connection.publish destination, message, options
 

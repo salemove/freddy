@@ -86,6 +86,7 @@ class Request
           entry = @requests[correlationId]
           clearTimeout entry.timeout
           delete @requests[correlationId]
+          @logger.debug "Received request response on #{@responseQueue}"
           entry.callback message, msgHandler
           
       next()

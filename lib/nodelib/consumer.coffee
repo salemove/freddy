@@ -25,6 +25,7 @@ class Consumer
     responderHandler ?= new ResponderHandler
     responderHandler.setQueue queue
     subscription = queue.subscribe (message, headers, deliveryInfo) =>
+      @logger.debug "Received message on #{queue.name}"
       callback message, new MessageHandler(headers, deliveryInfo) if message?
     subscription.addCallback (ok) =>
         responderHandler.setConsumerTag ok.consumerTag

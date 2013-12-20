@@ -1,6 +1,6 @@
 {
   "name": "freddy",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "author": "Urmas Talimaa <urmas7@gmail.com>",
   "description": "Simple messaging API supporting acknowledgements and request-response",
   "reporistory" : {
