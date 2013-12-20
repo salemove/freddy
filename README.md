@@ -204,7 +204,7 @@ responder_handler.destroy_destination
 
 #### Setup
 ```coffee
-freddy = new Freddy amqpUrl
+freddy = new Freddy amqpUrl, logger
 ```
 
 * amqpUrl defines the connection e.g `'amqp://guest:guest@localhost:5672'`
