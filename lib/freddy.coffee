@@ -10,7 +10,6 @@ class Freddy extends EventEmitter
   FREDDY_TOPIC_NAME = 'freddy-topic'
 
   constructor: (amqpUrl, @logger) ->
-    console.log "got #{@logger} as logger"
     @logger ?= require 'winston'
     @initializeConnection amqpUrl
 
