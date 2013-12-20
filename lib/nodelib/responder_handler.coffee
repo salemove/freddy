@@ -6,7 +6,7 @@ class ResponderHandler extends EventEmitter
 
     setQueue: (@queue) ->
 
-    cancel: () ->
+    cancel: ->
       #when cancel is called immediately, then the subscription might not have been started yet
       tries = 0
       async.whilst () =>
@@ -19,5 +19,8 @@ class ResponderHandler extends EventEmitter
             tries += 1
             setTimeout callback, 10
         , () =>
+
+    destroyDestination: ->
+      @queue.destroy
 
 module.exports = ResponderHandler

@@ -14,6 +14,10 @@ module Messaging
       @consumer.queue
     end
 
+    def destroy_destination
+      @consumer.queue.delete
+    end
+
     def join
       @channel.work_pool.join
     end

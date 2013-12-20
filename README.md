@@ -191,6 +191,13 @@ responder_handler.cancel
 responder_handler.join
 ```
 
+  * delete the destination
+```ruby
+responder_handler.destroy_destination
+```
+
+    * Primary use case is in tests to not leave dangling destinations. It deletes the destination even if there are responders for the same destination in other parts of the system. Use with caution in production code. 
+
 ***
 
 ### Node.js
