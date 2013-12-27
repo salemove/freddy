@@ -12,7 +12,7 @@ class Freddy
     @bunny = Bunny.new bunny_config
     @bunny.start
     @logger = logger
-    @channel = @bunny.create_channel
+    @channel = @bunny.create_channel(nil, bunny_config[:responder_thread_count] || 4)
     @consumer = Messaging::Consumer.new @channel, @logger
     @producer = Messaging::Producer.new @channel, @logger
     @request = Messaging::Request.new @channel, @logger
