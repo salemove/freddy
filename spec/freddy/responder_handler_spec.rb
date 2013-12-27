@@ -22,11 +22,11 @@ module Messaging
       consumer_handler = freddy.respond_to destination do 
       end
       unreachable = true
-      thread = Thread.new do 
+      Thread.new do 
         consumer_handler.join
         unreachable = false
       end
-      default_sleep
+      wait_for { unreachable }
       expect(unreachable).to be_true
     end
 

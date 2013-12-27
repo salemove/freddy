@@ -9,11 +9,13 @@ module Messaging
     let(:freddy) { Freddy.new.tap {|freddy| freddy.use_distinct_connection} } #avoid cascading fails by using distinct connection
 
     def deliver_with_response(&block)
+      got_response = false
       freddy.deliver_with_response destination, payload do |response|
+        got_response = true
         @received_response = response
         block.call response if block
       end
-      default_sleep
+      wait_for { got_response }
     end
 
     def respond_to(&block)
@@ -24,13 +26,14 @@ module Messaging
       end
     end
 
-
     def deliver_with_ack(&block)
+      got_response = false
       freddy.deliver_with_ack destination, payload do |error|
+        got_response = true
         @ack_error = error
         block.call error if block
       end
-      default_sleep
+      wait_for { got_response }
     end
 
     context 'when making a synchronized request' do
@@ -63,7 +66,7 @@ module Messaging
         respond_to do end
         payload = {a: {b: 'c'}}
         freddy.deliver_with_response destination, payload do end
-        default_sleep
+        wait_for { @message_received }
 
         expect(@received_payload).to eq Freddy.symbolize_keys(payload)
       end
@@ -86,6 +89,8 @@ module Messaging
         freddy.deliver_with_response destination2, payload do 
           @dest2_response_received = true
         end
+
+        wait_for { @dest_response_received }
         default_sleep
 
         expect(@dest_response_received).to be_true
@@ -96,7 +101,7 @@ module Messaging
         freddy.deliver_with_response destination, payload, 0.1 do |response|
           @error = response[:error]
         end
-        sleep 0.25
+        wait_for { @error }
         expect(@error).not_to be_nil
       end
 
@@ -107,7 +112,8 @@ module Messaging
         freddy.deliver_with_response destination, payload do |response|
           @error = response[:error]
         end
-        default_sleep
+
+        wait_for { @error }
 
         expect(@error).not_to be_nil
       end
@@ -146,7 +152,7 @@ module Messaging
         freddy.deliver_with_ack destination, payload, 0.1 do |error|
           @error = error
         end
-        sleep 0.25
+        wait_for { @error }
         expect(@error).not_to be_nil
       end
     end

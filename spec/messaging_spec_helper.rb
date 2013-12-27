@@ -16,6 +16,13 @@ def default_sleep
   sleep 0.05
 end
 
+def wait_for(&block)
+  100.times do
+    return if block.call
+    sleep 0.005
+  end
+end
+
 def deliver(custom_destination = destination)
   freddy.deliver custom_destination, payload
   default_sleep
