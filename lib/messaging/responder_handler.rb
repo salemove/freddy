@@ -22,5 +22,9 @@ module Messaging
       @channel.work_pool.join
     end
 
+    def shutdown
+      @channel.work_pool.shutdown
+    end
+
   end
 end
