@@ -21,6 +21,6 @@ class ResponderHandler extends EventEmitter
         , () =>
 
     destroyDestination: ->
-      @queue.destroy
+      @queue.destroy()
 
 module.exports = ResponderHandler

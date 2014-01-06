@@ -34,6 +34,7 @@ class Consumer
   tapInto: (pattern, callback) ->
     responderHandler = new ResponderHandler
     @connection.queue '', {exclusive: true}, (queue) =>
+      responderHandler.setQueue queue
       queue.bind(@topicExchange, pattern)
       queue.on 'queueBindOk', () =>
         responderHandler.emit 'ready'
