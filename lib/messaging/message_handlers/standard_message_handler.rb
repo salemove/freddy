@@ -7,7 +7,8 @@ module Messaging
       def handle_message(payload, msg_handler)
         callback.call payload, msg_handler
       rescue Exception => e
-        logger.error "Exception occured while processing message on #{destination}: e"
+        logger.error "Exception occured while processing message on #{destination}: #{e.message}"
+        logger.error e.backtrace.join("\n")
       end
 
       def send_response(producer)
