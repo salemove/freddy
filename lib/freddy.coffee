@@ -38,10 +38,15 @@ class Freddy extends EventEmitter
   shutdown: ->
     @connection.end()
 
+  _ensureConnection: (methodName) ->
+    throw "Connection not ready yet, call #{methodName} when the `ready` event has been emitted on freddy" if !@producer
+
   deliver: (destination, message) ->
+    @_ensureConnection 'deliver'
     @producer.produce destination, message
 
   withTimeout: (timeoutSeconds) ->
+    @_ensureConnection 'withTimeout'
     customTimeoutProducer = 
       deliverWithAck: (destination, message, callback) =>
         @request.deliverWithAck destination, message, timeoutSeconds, callback
@@ -50,15 +55,19 @@ class Freddy extends EventEmitter
     customTimeoutProducer
 
   deliverWithAck: (destination, message, callback) ->
+    @_ensureConnection 'deliverWithAck'
     @request.deliverWithAck destination, message, DEFAULT_TIMEOUT, callback
 
   deliverWithResponse: (destination, message, callback) ->
+    @_ensureConnection 'deliverWithResponse'
     @request.deliverWithResponse destination, message, DEFAULT_TIMEOUT, callback
 
   respondTo: (destination, callback) ->
+    @_ensureConnection 'respondTo'
     @request.respondTo destination, callback
 
   tapInto: (pattern, callback) ->
+    @_ensureConnection 'tapInto'
     @consumer.tapInto pattern, callback
 
 module.exports = Freddy
