@@ -31,8 +31,8 @@ class Request
   respondTo: (destination, callback) ->
     @consumer.consume destination, (message, msgHandler) =>
       properties = msgHandler.properties
-      response =  @_responder(properties)(message, msgHandler, callback)
-      @producer.produce properties.replyTo, response, {correlationId: properties.correlationId} if response?
+      @_responder(properties) message, msgHandler, callback, (response) =>
+        @producer.produce properties.replyTo, response, {correlationId: properties.correlationId} if response?
 
   _responder: (properties) ->
     if properties.headers?['message_with_ack']
@@ -42,17 +42,20 @@ class Request
     else 
       responder = @_respondToSimpleDeliver
 
-  _respondToAck: (message, msgHandler, callback) ->
+  _respondToAck: (message, msgHandler, callback, done) ->
+    msgHandler.on 'response', (wada) =>
+      done {error: msgHandler.error()}
     callback(message, msgHandler)
-    {error: msgHandler.error()}
 
-  _respondToRequest: (message, msgHandler, callback) ->
+  _respondToRequest: (message, msgHandler, callback, done) ->
+    msgHandler.on 'response', =>
+      error = msgHandler.error()
+      if error
+        done {error: error}
+      else 
+        done msgHandler.response
+
     callback(message, msgHandler)
-    error = msgHandler.error()
-    if error
-      {error: error}
-    else 
-      msgHandler.response
 
   _respondToSimpleDeliver: (message, msgHandler, callback) ->
     callback(message, msgHandler)

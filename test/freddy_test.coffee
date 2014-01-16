@@ -9,7 +9,7 @@ describe 'Freddy', ->
     test: 'data'
 
   beforeEach (done) ->
-    @freddy = new Freddy('amqp://guest:guest@localhost:5672')
+    @freddy = new Freddy('amqp://guest:guest@localhost:5672', logger)
     @respond = (callback) =>
       @freddy.respondTo @randomDest, callback
     @deliver = () =>
@@ -66,7 +66,7 @@ describe 'Freddy', ->
 
     it 'can ack message', (done) ->
       @respond (message, msgHandler) =>
-        msgHandler.ack
+        msgHandler.ack()
         done()
       @deliverAck () =>
 
@@ -85,7 +85,7 @@ describe 'Freddy', ->
 
     it 'returns error if message was nacked', (done) ->
       @respond (message, msgHandler) =>
-        msgHandler.nack
+        msgHandler.nack()
       @deliverAck (error) =>
         error.should.be.ok
         done()
@@ -110,7 +110,7 @@ describe 'Freddy', ->
         message.my.should.equal 'response'
         done()
 
-    it 'sends error the requester if message was nacked', (done) ->
+    it 'sends error to the requester if message was nacked', (done) ->
       @respond (message, msgHandler) =>
         msgHandler.nack()
       @deliverResponse (message) =>
