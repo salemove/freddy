@@ -9,6 +9,9 @@
   },
   "license" : "Apache-2.0",
   "main": "./lib/freddy",
+  "scripts": {
+    "test": "mocha"
+  },
   "dependencies" : {
     "coffee-script": ">=1.4",
     "amqp" : "latest",
