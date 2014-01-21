@@ -44,7 +44,12 @@ class Freddy
 
   def self.symbolize_keys(hash)
     hash.each_with_object({}) do |(key, value), normalized_hash|
-      normalized_value = value.is_a?(Hash) ? symbolize_keys(value) : value
+      normalized_value = case value
+        when Hash then symbolize_keys(value)
+        when Array then value.map(&method(:symbolize_keys))
+        else
+          value
+        end
       normalized_hash[key.to_sym] = normalized_value
     end
   end
