@@ -239,6 +239,15 @@ module Messaging
           should eq(a: [{b: 'c'}])
         end
       end
+
+      context 'when array' do 
+        let(:input) { {'a' => [[1,2],[3,4]]} }
+
+        it 'symbolizes keys recursively' do
+          should eq(a: [[1,2],[3,4]])
+        end
+      end
+
     end
   end
 end
