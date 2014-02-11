@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    freddy (0.0.9)
+    freddy (0.0.10)
       bunny (~> 1.0)
 
 GEM
