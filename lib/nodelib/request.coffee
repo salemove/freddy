@@ -3,7 +3,7 @@ class Request
   constructor: (@connection, @consumer, @producer, @logger) ->
     @requests = {}
     #This temporary queue will be created once per lifetime of AmqpRpc and will be cleaned up automatically by rabbitmq
-    @responseQueue = null 
+    @responseQueue = null
 
   deliverWithAck: (destination, message, timeoutSeconds, callback) ->
     @_request destination, message, timeoutSeconds, {headers: {'message_with_ack': true}}, (message, msgHandler) =>
@@ -16,7 +16,7 @@ class Request
   _request: (destination, message, timeoutSeconds, options, callback) ->
     correlationId = @_uuid()
     @requests[correlationId] = {
-      timeout: @_timeout(timeoutSeconds, correlationId, callback), 
+      timeout: @_timeout(destination, message, timeoutSeconds, correlationId, callback)
       callback: callback
     }
     @_setupResponseQueue () =>
@@ -39,7 +39,7 @@ class Request
       responder = @_respondToAck
     else if properties.correlationId
       responder = @_respondToRequest
-    else 
+    else
       responder = @_respondToSimpleDeliver
 
   _respondToAck: (message, msgHandler, callback, done) ->
@@ -52,7 +52,7 @@ class Request
       error = msgHandler.error()
       if error
         done {error: error}
-      else 
+      else
         done msgHandler.response
 
     callback(message, msgHandler)
@@ -68,10 +68,10 @@ class Request
       v.toString(16)
     )
 
-  _timeout: (timeoutSeconds, correlationId, callback) ->
-    setTimeout( 
+  _timeout: (destination, message, timeoutSeconds, correlationId, callback) ->
+    setTimeout(
       ()=>
-        @logger.info "Timeout waiting for response with #{timeoutSeconds} s"
+        @logger.info "Timeout waiting for response from #{destination} with #{timeoutSeconds}s, payload:", message
         delete @requests[correlationId]
         callback {error: "Timeout waiting for response"} if (typeof callback is 'function')
       , timeoutSeconds * 1000
@@ -91,7 +91,6 @@ class Request
           delete @requests[correlationId]
           @logger.debug "Received request response on #{@responseQueue}"
           entry.callback message, msgHandler
-          
       next()
 
 module.exports = Request
