@@ -1,6 +1,6 @@
 {
   "name": "freddy",
-  "version": "0.0.18",
+  "version": "0.1.1",
   "author": "Urmas Talimaa <urmas7@gmail.com>",
   "description": "Simple messaging API supporting acknowledgements and request-response",
   "reporistory" : {
@@ -14,14 +14,15 @@
   },
   "dependencies" : {
     "coffee-script": ">=1.4",
-    "amqp" : "latest",
-    "winston": "latest",
-    "async": "latest",
-    "underscore": "latest"
+    "amqplib" : ">=0.1.3",
+    "winston": ">= 0.7",
+    "async": ">=0.2.10",
+    "underscore": ">=1.6",
+    "q": ">= 1.0"
   },
   "devDependencies" : {
-    "mocha" : "latest",
-    "should" : "latest",
+    "mocha" : ">=1.17",
+    "should" : ">=3.1",
     "sinon": "latest"
   }
 
