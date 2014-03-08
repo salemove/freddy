@@ -1,6 +1,6 @@
-require 'messaging/consumer'
-require 'messaging/producer'
-require 'messaging/request'
+require_relative 'messaging/consumer'
+require_relative 'messaging/producer'
+require_relative 'messaging/request'
 require 'bunny'
 require 'json'
 
@@ -57,14 +57,14 @@ class Freddy
   end
 
   def self.format_backtrace(backtrace)
-    backtrace.map{ |x|   
-      x.match(/^(.+?):(\d+)(|:in `(.+)')$/); 
-      [$1,$2,$4] 
+    backtrace.map{ |x|
+      x.match(/^(.+?):(\d+)(|:in `(.+)')$/);
+      [$1,$2,$4]
     }.join "\n"
   end
 
   def self.format_exception(exception)
-    "#{exception.exception}\n#{format_backtrace(exception.backtrace)}" 
+    "#{exception.exception}\n#{format_backtrace(exception.backtrace)}"
   end
 
   def initialize(logger = Freddy.logger)
@@ -74,7 +74,7 @@ class Freddy
 
   def use_distinct_connection
     @channel = Freddy.new_channel
-    @consumer = Messaging::Consumer.new @channel, @logger 
+    @consumer = Messaging::Consumer.new @channel, @logger
     @producer = Messaging::Producer.new @channel, @logger
     @request = Messaging::Request.new @channel, @logger
   end

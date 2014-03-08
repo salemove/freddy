@@ -1,4 +1,4 @@
-require 'messaging/message_handlers/base_message_handler'
+require_relative 'base_message_handler'
 
 module Messaging
   module MessageHandlers

@@ -1,16 +1,16 @@
-require 'messaging/producer'
-require 'messaging/consumer'
-require 'messaging/request_timeout_clearer'
-require 'messaging/sync_response_container'
-require 'messaging/message_handlers/request_handler'
-require 'messaging/message_handlers/ack_message_handler'
-require 'messaging/message_handlers/standard_message_handler'
+require_relative 'producer'
+require_relative 'consumer'
+require_relative 'request_timeout_clearer'
+require_relative 'sync_response_container'
+require_relative 'message_handlers/request_handler'
+require_relative 'message_handlers/ack_message_handler'
+require_relative 'message_handlers/standard_message_handler'
 require 'securerandom'
 
 module Messaging
   class Request
 
-    class EmptyRequest < Exception 
+    class EmptyRequest < Exception
     end
 
     class EmptyResponder < Exception
@@ -60,9 +60,9 @@ module Messaging
         handler = MessageHandlers::AckMessageHandler
       elsif properties[:correlation_id]
         handler = MessageHandlers::RequestHandler
-      else 
+      else
         handler = MessageHandlers::StandardMessageHandler
-      end 
+      end
     end
 
     def handle_request(payload, msg_handler, handler)

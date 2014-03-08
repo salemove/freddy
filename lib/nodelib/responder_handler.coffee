@@ -1,26 +1,16 @@
-async   = require 'async'
-EventEmitter = require('events').EventEmitter
+q = require 'q'
 
-class ResponderHandler extends EventEmitter
-    setConsumerTag: (@consumerTag) ->
+class ResponderHandler
 
-    setQueue: (@queue) ->
+  constructor: (@channel) ->
+    @consumerTag = q.defer()
+    @queue = null
 
-    cancel: ->
-      #when cancel is called immediately, then the subscription might not have been started yet
-      tries = 0
-      async.whilst () =>
-          tries < 10
-        , (callback) =>
-          if @queue and @consumerTag
-            @queue.unsubscribe(@consumerTag).addCallback () =>
-              @emit('cancelled')
-          else 
-            tries += 1
-            setTimeout callback, 10
-        , () =>
+  cancel: ->
+    @consumerTag.promise.then (consumerTag) =>
+      @channel.cancel(consumerTag)
 
-    destroyDestination: ->
-      @queue.destroy()
+  ready: (consumerTag) ->
+    @consumerTag.resolve(consumerTag)
 
 module.exports = ResponderHandler

@@ -1,73 +1,16 @@
-amqp     = require 'amqp'
-Producer = require './nodelib/producer'
-Consumer = require './nodelib/consumer'
-Request  = require './nodelib/request'
-EventEmitter = require('events').EventEmitter
+winston = require 'winston'
+FreddySetup = require './nodelib/freddy_setup'
 
-class Freddy extends EventEmitter
+defaultLogger = new winston.Logger
+  transports: [ new winston.transports.Console level: 'info', colorize: true, timestamp: true ]
 
-  DEFAULT_TIMEOUT = 3
-  FREDDY_TOPIC_NAME = 'freddy-topic'
+setup = null
+connect = (amqpUrl, logger = defaultLogger) ->
+  setup = new FreddySetup(logger)
+  setup.connect(amqpUrl)
 
-  constructor: (amqpUrl, @logger) ->
-    @logger ?= require 'winston'
-    @initializeConnection amqpUrl
+addErrorListener = (listener) ->
+  setup.addErrorListener listener if setup
 
-  initializeConnection: (amqpUrl) =>
-    @connection = amqp.createConnection({url: amqpUrl, reconnect: true})
-    @connection.on 'ready', @onConnectionRestored
-    @connection.once 'ready', @onConnectionReady
-    @connection.on 'error', @onConnectionError
-
-  onConnectionReady: () =>
-    @producer = new Producer @connection, FREDDY_TOPIC_NAME, @logger
-    @consumer = new Consumer @connection, FREDDY_TOPIC_NAME, @logger
-    @request = new Request @connection, @consumer, @producer, @logger
-    @emit 'ready'
-    @logger.info 'Amqp connection created' 
-
-  onConnectionRestored: () =>
-    if @producer?
-      @logger.info "Amqp connection restored"
-      @emit 'restored'
-
-  onConnectionError: (error) =>
-    @emit 'error', error
-    @logger.info "Error in amqp connection: #{error}"
-
-  shutdown: ->
-    @connection.end()
-
-  _ensureConnection: (methodName) ->
-    throw "Connection not ready yet, call #{methodName} when the `ready` event has been emitted on freddy" if !@producer
-
-  deliver: (destination, message) ->
-    @_ensureConnection 'deliver'
-    @producer.produce destination, message
-
-  withTimeout: (timeoutSeconds) ->
-    @_ensureConnection 'withTimeout'
-    customTimeoutProducer = 
-      deliverWithAck: (destination, message, callback) =>
-        @request.deliverWithAck destination, message, timeoutSeconds, callback
-      deliverWithResponse: (destination, message, callback) =>
-        @request.deliverWithResponse destination, message, timeoutSeconds, callback
-    customTimeoutProducer
-
-  deliverWithAck: (destination, message, callback) ->
-    @_ensureConnection 'deliverWithAck'
-    @request.deliverWithAck destination, message, DEFAULT_TIMEOUT, callback
-
-  deliverWithResponse: (destination, message, callback) ->
-    @_ensureConnection 'deliverWithResponse'
-    @request.deliverWithResponse destination, message, DEFAULT_TIMEOUT, callback
-
-  respondTo: (destination, callback) ->
-    @_ensureConnection 'respondTo'
-    @request.respondTo destination, callback
-
-  tapInto: (pattern, callback) ->
-    @_ensureConnection 'tapInto'
-    @consumer.tapInto pattern, callback
-
-module.exports = Freddy
+exports.connect = connect
+exports.addErrorListener = addErrorListener

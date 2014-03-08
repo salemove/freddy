@@ -1,10 +1,10 @@
-require 'messaging/request'
+require_relative 'request'
 require 'json'
 
 module Messaging
   class Producer
 
-    class EmptyAckHandler < Exception 
+    class EmptyAckHandler < Exception
     end
 
     def initialize(channel = Freddy.channel, logger=Freddy.logger)
@@ -26,7 +26,7 @@ module Messaging
         block.call payload[:error]
       end
 
-      producer.on_return do 
+      producer.on_return do
         block.call({error: "No consumers for destination #{destination}"})
       end
     end

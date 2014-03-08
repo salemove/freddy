@@ -1,34 +1,43 @@
+q = require 'q'
+_ = require 'underscore'
+
 #Encapsulate the request-response types of messaging
 class Request
-  constructor: (@connection, @consumer, @producer, @logger) ->
+
+  RESPONSE_QUEUE_OPTIONS =
+    queue:
+      exclusive: true
+
+  constructor: (@connection, @logger) ->
     @requests = {}
-    #This temporary queue will be created once per lifetime of AmqpRpc and will be cleaned up automatically by rabbitmq
     @responseQueue = null
 
-  deliverWithAck: (destination, message, timeoutSeconds, callback) ->
-    @_request destination, message, timeoutSeconds, {headers: {'message_with_ack': true}}, (message, msgHandler) =>
+  prepare: (@consumer, @producer) ->
+    q.reject('Need consumer and producer') unless @consumer and @producer
+    @connection.createChannel().then (channel) =>
+      @_setupResponseQueue(channel)
+    .then =>
+      @logger.debug "Created response queue for requests"
+      q(this)
+
+  deliverWithAckAndOptions: (destination, message, options, callback) =>
+    @_request destination, message, options, (message, msgHandler) =>
       callback message.error if (typeof callback is 'function')
 
-  deliverWithResponse: (destination, message, timeoutSeconds, callback) ->
-    @_request destination, message, timeoutSeconds, {}, (message, msgHandler) =>
+  deliverWithResponseAndOptions: (destination, message, options, callback) =>
+    @_request destination, message, options, (message, msgHandler) =>
       callback message, msgHandler if (typeof callback is 'function')
 
-  _request: (destination, message, timeoutSeconds, options, callback) ->
+  _request: (destination, message, options, callback) ->
     correlationId = @_uuid()
     @requests[correlationId] = {
-      timeout: @_timeout(destination, message, timeoutSeconds, correlationId, callback)
+      timeout: @_timeout(destination, message, options.timeout, correlationId, callback)
       callback: callback
     }
-    @_setupResponseQueue () =>
-      @_extend options, {correlationId: correlationId, replyTo: @responseQueue}
-      @producer.produce destination, message, options
+    _.extend options, {correlationId: correlationId, replyTo: @responseQueue}
+    @producer.produce destination, message, options
 
-  _extend: (object, properties) ->
-    for key, val of properties
-      object[key] = val
-    object
-
-  respondTo: (destination, callback) ->
+  respondTo: (destination, callback) =>
     @consumer.consume destination, (message, msgHandler) =>
       properties = msgHandler.properties
       @_responder(properties) message, msgHandler, callback, (response) =>
@@ -43,18 +52,17 @@ class Request
       responder = @_respondToSimpleDeliver
 
   _respondToAck: (message, msgHandler, callback, done) ->
-    msgHandler.on 'response', (wada) =>
-      done {error: msgHandler.error()}
+    msgHandler.whenResponded.then (response) =>
+      done(error: false)
+    , (error) =>
+      done(error: error)
     callback(message, msgHandler)
 
   _respondToRequest: (message, msgHandler, callback, done) ->
-    msgHandler.on 'response', =>
-      error = msgHandler.error()
-      if error
-        done {error: error}
-      else
-        done msgHandler.response
-
+    msgHandler.whenResponded.then (response) =>
+      done(response)
+    , (error) =>
+      done(error: error)
     callback(message, msgHandler)
 
   _respondToSimpleDeliver: (message, msgHandler, callback) ->
@@ -70,27 +78,23 @@ class Request
 
   _timeout: (destination, message, timeoutSeconds, correlationId, callback) ->
     setTimeout(
-      ()=>
+      =>
         @logger.info "Timeout waiting for response from #{destination} with #{timeoutSeconds}s, payload:", message
         delete @requests[correlationId]
         callback {error: "Timeout waiting for response"} if (typeof callback is 'function')
       , timeoutSeconds * 1000
       )
 
-  _setupResponseQueue: (next) =>
-    if @responseQueue? #reuse same queue
-      return next()
-
-    @connection.queue '', {exclusive: true}, (queue) =>
-      @responseQueue = queue.name
-      @consumer.consumeFromQueue queue, (message, msgHandler) =>
-        correlationId = msgHandler.properties.correlationId
-        if @requests[correlationId]?
-          entry = @requests[correlationId]
-          clearTimeout entry.timeout
-          delete @requests[correlationId]
-          @logger.debug "Received request response on #{@responseQueue}"
-          entry.callback message, msgHandler
-      next()
+  _setupResponseQueue: (channel) =>
+    @consumer.consumeWithOptions '', RESPONSE_QUEUE_OPTIONS, (message, msgHandler) =>
+      correlationId = msgHandler.properties.correlationId
+      if @requests[correlationId]?
+        entry = @requests[correlationId]
+        clearTimeout entry.timeout
+        delete @requests[correlationId]
+        @logger.debug "Received request response on #{@responseQueue}"
+        entry.callback message, msgHandler
+    .then (subscription) =>
+      @responseQueue = subscription.queue
 
 module.exports = Request

@@ -1,30 +1,18 @@
-#Allow responder to use simple ack and nack and responding with an object
-#through an unified interface
+#Allow responder to use simple ack and nack to respond to messages
+q = require 'q'
 
-EventEmitter = require('events').EventEmitter
+class MessageHandler
 
-class MessageHandler extends EventEmitter
-  constructor: (@headers, @properties) ->
-    @acked = false
+  constructor: (@logger, @properties) ->
+    @_responded = q.defer()
+    @whenResponded = @_responded.promise
 
   ack: (response) ->
-    @response = response
-    @acked = true
-    @emit 'response'
+    @logger.debug("Responder acked with", response)
+    @_responded.resolve(response || {})
 
   nack: (errorMessage) ->
-    @errorMessage = errorMessage
-    @acked = false
-    @response = {error: errorMessage}
-    @emit 'response'
+    @logger.debug("Responder nacked with error", errorMessage)
+    @_responded.reject(errorMessage || "Message was nacked")
 
-  error: ->
-    if !@acked
-      if @errorMessage?
-        @errorMessage
-      else 
-        "Responder didn't manually acknowledge message"
-    else 
-      false
-      
 module.exports = MessageHandler

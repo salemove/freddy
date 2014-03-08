@@ -1,0 +1,26 @@
+#!/usr/bin/env coffee
+
+winston = require 'winston'
+Freddy = require '../lib/freddy'
+
+@logger = new winston.Logger
+  transports: [ new winston.transports.Console level: 'warn', colorize: true, timestamp: true ]
+
+freddy = new Freddy(@logger)
+
+freddy.connect("amqp://guest:guest@localhost:5672").then =>
+  setInterval =>
+    freddy.deliver 'node.test.deliver', test: 'data'
+  , 5
+
+  freddy.consumer.DEFAULT_OPTIONS =
+    queue:
+      exclusive: true
+
+  freddy.respondTo 'node.test.respond', (msg, msgHandler) ->
+    msgHandler.ack(success: true)
+, =>
+
+setTimeout =>
+  process.exit()
+, 1000

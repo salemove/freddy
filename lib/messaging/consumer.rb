@@ -1,6 +1,6 @@
-require 'messaging/responder_handler'
-require 'messaging/message_handler'
-require 'messaging/request'
+require_relative 'responder_handler'
+require_relative 'message_handler'
+require_relative 'request'
 
 module Messaging
   class Consumer
@@ -27,7 +27,7 @@ module Messaging
       ResponderHandler.new consumer, @channel
     end
 
-    def tap_into(pattern, options, &block) 
+    def tap_into(pattern, options, &block)
       queue = @channel.queue("", exclusive: true).bind(@topic_exchange, routing_key: pattern)
       consumer = queue.subscribe options do |delivery_info, properties, payload|
         block.call (parse_payload payload), delivery_info.routing_key
