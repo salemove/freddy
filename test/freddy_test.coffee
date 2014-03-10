@@ -29,9 +29,6 @@ describe 'Freddy', ->
       done()
     , (err) ->
       done(err)
-    Freddy.addErrorListener (err) ->
-      # we want to fail test immediately after error
-      throw err
 
     @randomDest = uniqueId()
 
@@ -75,6 +72,17 @@ describe 'Freddy', ->
         done()
       .then =>
         @deliver()
+
+    it 'catches errors', (done) ->
+      myError = new Error('catch me')
+      Freddy.addErrorListener (err) ->
+        err.should.eql(myError)
+        done()
+
+      @freddy.respondTo @randomDest, (message, msgHandler) ->
+        throw myError
+      .then =>
+        @freddy.deliver @randomDest, {}
 
   describe 'with messages that need acknowledgement', ->
     it 'can produce', ->

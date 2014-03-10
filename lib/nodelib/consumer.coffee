@@ -13,6 +13,10 @@ class Consumer
     autoDelete: false
 
   constructor: (@connection, @logger) ->
+    @errorListeners = []
+
+  addErrorListener: (listener) ->
+    @errorListeners.push listener
 
   prepare: (@topicName) ->
     @connection.createChannel().then (@channel) =>
@@ -47,13 +51,25 @@ class Consumer
       q.reject(err)
 
   _consumeWithQueueReady: (queue, callback) ->
+    @logger.debug "Consuming messages on #{queue}"
     @channel.consume queue, (messageObject) =>
       return unless messageObject
       @logger.debug "Received message on #{queue}"
       properties = messageObject.properties
       @_parseMessage(messageObject).then (message) =>
         @logger.debug "The message is", message unless properties.headers?.suppressLog
-        callback(message, messageObject)
+        try
+          callback(message, messageObject)
+        catch err
+          @_notifyErrorListeners(err)
+          @logger.error "Consuming callback throw error, continuing to listen. #{err}"
+
+  _notifyErrorListeners: (error) ->
+    for listener in @errorListeners
+      try
+        listener(error) if typeof listener is 'function'
+      catch err
+        @logger.error "Error listener throw error #{err}"
 
   _parseMessage: (messageObject) ->
     try

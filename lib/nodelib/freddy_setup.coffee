@@ -38,6 +38,7 @@ class FreddySetup
 
   addErrorListener: (listener) ->
     @errorListeners.push listener
+    @consumer.addErrorListener listener if @consumer?
 
   _registerConnectionListeners: ->
     @connection.on 'close', =>
@@ -54,6 +55,8 @@ class FreddySetup
     @consumer = new Consumer @connection, @logger
     q.all([@producer.prepare(FREDDY_TOPIC_NAME),
           @consumer.prepare(FREDDY_TOPIC_NAME)]).spread (@producer, @consumer) =>
+      for listener in @errorListeners
+        @consumer.addErrorListener(listener)
       @request = new Request @connection, @logger
       @request.prepare(@consumer, @producer).then =>
         q(this)

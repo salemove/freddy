@@ -9,7 +9,7 @@
 
 #### Setup
 
-* Inject the appropriate default logger and set up connection parameters:  
+* Inject the appropriate default logger and set up connection parameters:
 
 ```ruby
 Freddy.setup(Logger.new(STDOUT), host: 'localhost', port: 5672, user: 'guest', pass: 'guest')
@@ -19,9 +19,9 @@ Freddy.setup(Logger.new(STDOUT), host: 'localhost', port: 5672, user: 'guest', p
 
 ```ruby
 freddy = Freddy.new(logger = Freddy.logger)
-```  
+```
 
-  * by default the Freddy instance will reuse connections and queues for messaging, if you want to use a distinct tcp connection, response queue and timeout checking thread, then use  
+  * by default the Freddy instance will reuse connections and queues for messaging, if you want to use a distinct tcp connection, response queue and timeout checking thread, then use
 
 ```ruby
 freddy.use_distinct_connection
@@ -42,15 +42,13 @@ Freddy encourages but doesn't enforce the following protocol for destinations:
 <service_name>.<method_name>.'responder'|'producer'.'errors'
 ```
 
-TODO: Finish speccing protocol.
-
 #### Delivering messages
 
 * Simply deliver a message:
-```ruby 
+```ruby
 freddy.deliver(destination, message)
 ```
-    * destination is the recipient of the message  
+    * destination is the recipient of the message
     * message is the contents of the message
 
 * Deliver a message expecting explicit acknowledgement
@@ -60,9 +58,9 @@ freddy.deliver_with_ack(destination, message, timeout_seconds = 3) do |error|
 
   * If timeout_seconds pass without a response from the responder, then the callback is called with a timeout error.
 
-  * callback is called with one argument: a string that contains an error message if 
-    * the message couldn't be sent to any responders or 
-    * the responder negatively acknowledged(nacked) the message or 
+  * callback is called with one argument: a string that contains an error message if
+    * the message couldn't be sent to any responders or
+    * the responder negatively acknowledged(nacked) the message or
     * the responder finished working but didn't positively acknowledge the message
 
   * callback is called with one argument that is nil if the responder positively acknowledged the message
@@ -73,7 +71,7 @@ freddy.deliver_with_ack(destination, message, timeout_seconds = 3) do |error|
 freddy.deliver_with_response(destination, message, timeout_seconds = 3) do |response, msg_handler|
 ```
 
-  * If `timeout_seconds pass` without a response from the responder then the callback is called with the hash 
+  * If `timeout_seconds pass` without a response from the responder then the callback is called with the hash
 ```ruby
 { error: 'Timed out waiting for response' }
 ```
@@ -91,31 +89,31 @@ freddy.deliver_with_response(destination, message, timeout_seconds = 3) do |resp
 
 #### Responding to messages
 
-* Respond to messages while not blocking the current thread:  
+* Respond to messages while not blocking the current thread:
 ```ruby
 freddy.respond_to destination do |message, msg_handler|
 ```
-* Respond to message and block the thread 
+* Respond to message and block the thread
 ```ruby
-freddy.respond_to_and_block destination do |message, msg_handler| 
+freddy.respond_to_and_block destination do |message, msg_handler|
 ```
 
-* The callback is called with 2 arguments 
+* The callback is called with 2 arguments
 
   * the parsed message (note that in the message all keys are symbolized)
   * the `MessageHandler` (described further down)
 
 #### The MessageHandler
 
-When responding to messages the MessageHandler is given as the second argument. 
-```ruby 
+When responding to messages the MessageHandler is given as the second argument.
+```ruby
 freddy.respond_to destination do |message, msg_handler|
 ```
 
 The following operations are supported:
 
   * acknowledging the message
-```ruby 
+```ruby
 msg_handler.ack(response = nil)
 ```
 
@@ -133,7 +131,7 @@ msg_handler.nack(error = "Couldn't process message")
 { error: error }
 ```
 
-    * when the message was produced with `produce_with_ack`, then the error (e.g negative acknowledgement) is sent to the original producer 
+    * when the message was produced with `produce_with_ack`, then the error (e.g negative acknowledgement) is sent to the original producer
 
   * Getting additional properties of the message (shouldn't be necessary under normal circumstances)
 ```ruby
@@ -141,7 +139,7 @@ msg_handler.properties
 ```
 
 #### Tapping into messages
-When it's necessary to receive messages but not consume them, consider tapping.  
+When it's necessary to receive messages but not consume them, consider tapping.
 
 ```ruby
 freddy.tap_into pattern do |message, destination|
@@ -157,7 +155,7 @@ Examples:
 
 ```ruby
 freddy.tap_into "i.#.free"
-```  
+```
 
 receives messages that are delivered to `"i.want.to.break.free"`
 
@@ -175,7 +173,7 @@ freddy.tap_into_and_block pattern, &callback do |message, destination|
 
 #### The ResponderHandler
 
-When responding to a message or tapping the ResponderHandler is returned. 
+When responding to a message or tapping the ResponderHandler is returned.
 ```ruby
 responder_handler = freddy.respond_to ....
 ```
@@ -197,14 +195,14 @@ responder_handler.join
 responder_handler.destroy_destination
 ```
 
-    * Primary use case is in tests to not leave dangling destinations. It deletes the destination even if there are responders for the same destination in other parts of the system. Use with caution in production code. 
+    * Primary use case is in tests to not leave dangling destinations. It deletes the destination even if there are responders for the same destination in other parts of the system. Use with caution in production code.
 
 
 #### Notes about concurrency
 
 The underlying bunny implementation uses 1 responder thread by default. This means that if there is a time-consuming process or a sleep call in a responder then other responders will not receive messages concurrently.
 
-This is especially devious when using `deliver_with_response` in a responder because `deliver_with_response` creates a new anonymous responder which will not receive the response if the parent responder uses a sleep call. 
+This is especially devious when using `deliver_with_response` in a responder because `deliver_with_response` creates a new anonymous responder which will not receive the response if the parent responder uses a sleep call.
 
 To resolve this problem *freddy* uses 4 responder threads by default (configurable by `responder_thread_count`). Note that this means that ordered message processing is not guaranteed by default. Read more from <http://rubybunny.info/articles/concurrency.html>.
 
@@ -214,69 +212,74 @@ To resolve this problem *freddy* uses 4 responder threads by default (configurab
 
 #### Setup
 ```coffee
-freddy = new Freddy amqpUrl, logger
+Freddy = require 'freddy'
+Freddy.addErrorListener(listener)
+Freddy.connect('amqp://guest:guest@localhost:5672', logger).then (freddy) ->
+  continueWith(freddy)
+, (error) ->
+  doSthWithError(error)
 ```
 
-* amqpUrl defines the connection e.g `'amqp://guest:guest@localhost:5672'`
-
-* the message 'ready' is emitted when freddy is ready to deliver and respond to messages.
-
-#### Delivering messages  
+#### Delivering messages
 ```coffee
-freddy.deliver destination, message
+freddy.deliver(destination, message, options = {})
 
-freddy.deliverWithAck destination, message, callback
+freddy.deliverWithAck(destination, message, callback)
 
-freddy.deliverWithResponse destination, message, callback
+freddy.deliverWithResponse(destination, message, callback)
 ```
 
-* The default timeout is 3 seconds, to use a custom timeout use  
+* The previous 2 can be used with additional options also:
+```coffee
+freddy.deliverWithAckAndOptions(destination, message, options, callback)
+
+freddy.deliverWithResponseAndOptions(destination, message, options, callback)
+```
+
+  The options include:
+
+  * `timeout`: In seconds, defaults to 3.
+  * `suppressLog`: Avoid logging the message contents
+
+
+#### Responding to messages
+```coffee
+freddy.respondTo(destination, callback)
+```
+
+* `respondTo` returns a promise which resolved with the ResponderHandler
 
 ```coffee
-freddy.withTimeout(myTimeoutInSeconds).deliverWithAck...
-
-freddy.withTimeout(myTimeoutInSeconds).deliverWithResponse...
+freddy.respondTo(destination, callback)
+.then (responderHandler) ->
+  doSthWith(responderHandler.cancel())
 ```
 
-#### Responding to messages  
-```coffee
-freddy.respondTo destination, callback
-```
-
-* Sometimes it might be useful to know when the queue has been created for the responder. For that the 'ready' is emitted on the responderHandler.  
-
-```coffee
-responderHandler = freddy.respondTo destination, callback
-responderHandler.on 'ready', () =>
-  freddy.deliver destination, {easy: 'come'}
-```
-
-#### The MessageHandler  
+#### The MessageHandler
 No differences to ruby spec
 
 #### Tapping into messages
 
 ```coffee
-responderHandler = freddy.tapInto pattern, callback
+responderHandler = freddy.tapInto(pattern, callback)
 ```
 
 No other differences to ruby spec, blocking variant is not provided for obvious reasons.
 
-#### The ResponderHandler  
+#### The ResponderHandler
 
-* When cancelling the responder `cancelled` is emitted on the responderHandler when the responder was successfully cancelled. After that the responder will not receive any new messages. 
+* When cancelling the responder returns a promise, no messages will be received after the promise resolves.
 
 ```coffee
-responderHandler = freddy.respondTo destination, () =>
-responderHandler.cancel()
-responderHandler.on 'cancelled', () =>
-  freddy.deliver destination, {easy: 'go'} #will not be received
+freddy.respondTo(destination, (->)).then (responderHandler) ->
+  responderHandler.cancel().then ->
+    freddy.deliver(destination, easy: 'go') #will not be received
 ```
 * The join method is not provided for obvious reasons.
 
 ## Development
 
-* Use RSpec and mocha, make sure the tests pass.  
+* Use RSpec and mocha, make sure the tests pass.
 * Don't leak underlying messaging protocol internals.
 
 ## Credits
