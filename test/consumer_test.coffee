@@ -29,7 +29,7 @@ describe 'Consumer', ->
         done()
 
     context '#consume', ->
-      before -> @queue = 'consumer-test-queue'
+      before -> @queue = "consumer-test-queue.#{Math.random()*100}"
 
       afterEach (done) ->
         @connection.createChannel().then (channel) =>
@@ -61,20 +61,20 @@ describe 'Consumer', ->
             , 5
 
     context '#tapInto', ->
-      before -> @queue = 'test.mix.best'
+      before -> @queue = "test.mix.best.#{Math.random()*100}"
 
       afterEach (done) ->
         @responderHandler.cancel().then =>
           done()
 
       it 'receives messages by * wildcard', (done) ->
-        @consumer.tapInto 'test.*.best', =>
+        @consumer.tapInto 'test.*.best.#', =>
           done()
         .then (@responderHandler) =>
           TestHelper.deliver @connection, @queue, @topicName, msg: 'yes'
 
       it 'receives messages by # wildcard', (done) ->
-        @consumer.tapInto '#.best', =>
+        @consumer.tapInto '#.best.#', =>
           done()
         .then (@responderHandler) =>
           TestHelper.deliver @connection, @queue, @topicName, msg: 'yes'

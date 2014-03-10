@@ -30,10 +30,7 @@ describe 'Freddy', ->
     @randomDest = uniqueId()
 
   afterEach (done) ->
-    TestHelper.connect (connection) =>
-      TestHelper.deleteExchange connection, 'freddy-topic'
-    .then =>
-      @freddy.shutdown()
+    @freddy.shutdown()
     .then ->
       done()
 

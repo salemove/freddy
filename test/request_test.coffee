@@ -38,4 +38,6 @@ describe 'Request', ->
       @request.prepare(@consumer, @producer).then ->
         done()
 
-    context 'deliverWithAck', ->
+    context '#deliverWithAckAndOptions', ->
+      beforeEach ->
+        @request.deliverWithAckAndOptions
