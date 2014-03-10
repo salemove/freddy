@@ -6,9 +6,7 @@ Freddy = require '../lib/freddy'
 @logger = new winston.Logger
   transports: [ new winston.transports.Console level: 'warn', colorize: true, timestamp: true ]
 
-freddy = new Freddy(@logger)
-
-freddy.connect("amqp://guest:guest@localhost:5672").then =>
+Freddy.connect("amqp://guest:guest@localhost:5672", @logger).then (freddy) ->
   setInterval =>
     freddy.deliver 'node.test.deliver', test: 'data'
   , 5
@@ -19,7 +17,6 @@ freddy.connect("amqp://guest:guest@localhost:5672").then =>
 
   freddy.respondTo 'node.test.respond', (msg, msgHandler) ->
     msgHandler.ack(success: true)
-, =>
 
 setTimeout =>
   process.exit()
