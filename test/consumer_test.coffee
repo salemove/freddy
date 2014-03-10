@@ -15,7 +15,11 @@ describe 'Consumer', ->
       done()
 
   after (done) ->
-    TestHelper.deleteExchange(@connection, @topicName, done)
+    TestHelper.deleteExchange(@connection, @topicName)
+    .then =>
+      @connection.close()
+    .then ->
+      done()
 
   context '#prepare', ->
     it 'resolves when done', (done) ->

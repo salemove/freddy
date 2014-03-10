@@ -6,7 +6,8 @@ q = require 'q'
 class Consumer
 
   @DEFAULT_OPTIONS =
-    queue: {}
+    queue:
+      autoDelete: true
 
   TOPIC_OPTIONS =
     durable: false

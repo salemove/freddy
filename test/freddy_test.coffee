@@ -33,8 +33,11 @@ describe 'Freddy', ->
     @randomDest = uniqueId()
 
   afterEach (done) ->
-    return done() unless @freddy
-    @freddy.shutdown().then ->
+    TestHelper.connect (connection) =>
+      TestHelper.deleteExchange connection, 'freddy-topic'
+    .then =>
+      @freddy.shutdown()
+    .then ->
       done()
 
   uniqueId = ->

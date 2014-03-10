@@ -6,11 +6,10 @@ logger = (level = 'debug') ->
   new winston.Logger
     transports: [ new winston.transports.Console level: level, colorize: true, timestamp: true ]
 
-deleteExchange = (connection, exchangeName, done) ->
+deleteExchange = (connection, exchangeName) ->
   return done() unless connection
   connection.createChannel().then (channel) ->
-    channel.deleteExchange exchangeName
-    done()
+    channel.deleteExchange(exchangeName)
 
 connect = (done) ->
   amqp.connect(amqpUrl).then done
