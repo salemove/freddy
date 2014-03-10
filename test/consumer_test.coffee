@@ -1,5 +1,6 @@
-Consumer = require '../lib/nodelib/consumer'
-TestHelper = (require './test_helper')
+q           = require 'q'
+Consumer    = require '../lib/nodelib/consumer'
+TestHelper  = (require './test_helper')
 
 describe 'Consumer', ->
 
@@ -29,7 +30,9 @@ describe 'Consumer', ->
         done()
 
     context '#consume', ->
-      before -> @queue = "consumer-test-queue.#{Math.random()*100}"
+      before ->
+        @queue = "consumer-test-queue.#{Math.random()*100}"
+        @msg = test: 'data'
 
       afterEach (done) ->
         @connection.createChannel().then (channel) =>
@@ -39,6 +42,13 @@ describe 'Consumer', ->
       it 'resolves when done', (done) ->
         @consumer.consume(@queue, (->)).then ->
           done()
+
+      it 'receives the correct message', (done) ->
+        @consumer.consume @queue, (message) =>
+          message.should.eql(@msg)
+          done()
+        .then =>
+          TestHelper.deliver(@connection, @queue, @topicName, @msg)
 
       context '#responderHandler', ->
         beforeEach (done) ->
@@ -52,13 +62,16 @@ describe 'Consumer', ->
           @responderHandler.queue.should.eql(@queue)
 
         it 'can cancel consuming', (done) ->
-          @responderHandler.cancel().then =>
-            TestHelper.deliver(@connection, @queue, @topicName, msg: 'hello')
+          TestHelper.deliver(@connection, @queue, @topicName, @msg)
+          q.delay(5)
           .then =>
-            setTimeout =>
-              @receivedMessages.should.eql(0)
-              done()
-            , 5
+            @responderHandler.cancel()
+          .then =>
+            TestHelper.deliver(@connection, @queue, @topicName, @msg)
+            q.delay(5)
+          .done =>
+            @receivedMessages.should.eql(1)
+            done()
 
     context '#tapInto', ->
       before -> @queue = "test.mix.best.#{Math.random()*100}"
@@ -68,14 +81,22 @@ describe 'Consumer', ->
           done()
 
       it 'receives messages by * wildcard', (done) ->
-        @consumer.tapInto 'test.*.best.#', =>
+        @consumer.tapInto 'test.*.best.#', (message) =>
+          message.should.eql(@msg)
           done()
         .then (@responderHandler) =>
-          TestHelper.deliver @connection, @queue, @topicName, msg: 'yes'
+          TestHelper.deliver @connection, @queue, @topicName, @msg
 
       it 'receives messages by # wildcard', (done) ->
-        @consumer.tapInto '#.best.#', =>
+        @consumer.tapInto '#.best.#', (message) =>
+          message.should.eql(@msg)
+          done()
+        .then (@responderHandler) =>
+          TestHelper.deliver @connection, @queue, @topicName, @msg
+
+      it 'has the destination', (done) ->
+        @consumer.tapInto '#', (message, destination) =>
+          destination.should.eql(@queue)
           done()
         .then (@responderHandler) =>
           TestHelper.deliver @connection, @queue, @topicName, msg: 'yes'
-

@@ -1,49 +1,12 @@
-should = require 'should'
-Freddy = require '../lib/freddy'
-logger = require 'winston'
-winston = require 'winston'
-sinon  = require 'sinon'
-TestHelper = (require './test_helper')
+Freddy      = require '../lib/freddy'
+TestHelper  = (require './test_helper')
+q           = require 'q'
 
 describe 'Freddy', ->
-
-  TEST_MESSAGE =
-    test: 'data'
-
-  beforeEach (done) ->
-    @respond = (callback) =>
-      @freddy.respondTo @randomDest, callback
-    @deliver = () =>
-      @freddy.deliver @randomDest, TEST_MESSAGE
-    @deliverResponse = (callback) =>
-      @freddy.deliverWithResponse @randomDest, TEST_MESSAGE, callback
-    @deliverAck = (callback) =>
-      @freddy.deliverWithAck @randomDest, TEST_MESSAGE, callback
-    @tap = (callback) =>
-      @freddy.tapInto @randomDest, callback
-
-    Freddy.connect('amqp://guest:guest@localhost:5672', TestHelper.logger('warn')).then (@freddy) =>
-      done()
-    , (err) ->
-      done(err)
-
-    @randomDest = uniqueId()
-
-  afterEach (done) ->
-    @freddy.shutdown()
-    .then ->
-      done()
-
-  uniqueId = ->
-    id = ""
-    id += Math.random().toString(36).substr(2) while id.length < 32
-    id.substr 0, 32
+  before -> @msg = test: 'data'
 
   it 'exists', ->
-    should.exist Freddy
-
-  it 'can produce messages', ->
-    @deliver()
+    Freddy.should.exist
 
   context 'with correct amqp url', ->
     it 'can connect to amqp', (done) ->
@@ -59,152 +22,52 @@ describe 'Freddy', ->
       , =>
         done()
 
-  describe 'when responding to messages', ->
-    it 'can respond', ->
-      @respond (message, msgHandler) =>
-
-    it 'receives sent messages', (done) ->
-      @respond (message, msgHandler) =>
-        message.should.have.property('test')
+  context 'when connected', ->
+    beforeEach (done) ->
+      @randomDest = TestHelper.uniqueId()
+      Freddy.connect('amqp://guest:guest@localhost:5672', TestHelper.logger('warn')).then (@freddy) =>
         done()
-      .then =>
-        @deliver()
+      , (err) ->
+        done(err)
 
-    it 'catches errors', (done) ->
-      myError = new Error('catch me')
-      Freddy.addErrorListener (err) ->
-        err.should.eql(myError)
+    afterEach (done) ->
+      @freddy.shutdown().then ->
         done()
 
-      @freddy.respondTo @randomDest, (message, msgHandler) ->
-        throw myError
-      .then =>
-        @freddy.deliver @randomDest, {}
+    it 'can produce messages', ->
+      @freddy.deliver @randomDest, @msg
 
-  describe 'with messages that need acknowledgement', ->
-    it 'can produce', ->
-      @freddy.deliverWithAck @randomDest, TEST_MESSAGE, (error) =>
-        error.should.be.ok
+    describe 'when responding to messages', ->
 
-    it 'can produce with custom timeout', ->
-      @freddy.deliverWithAckAndOptions @randomDest, TEST_MESSAGE, timeout: 1
-
-    it 'receives the message', (done) ->
-      @respond (message, msgHandler) =>
-        done()
-      .then =>
-        @deliverAck =>
-
-    it 'can ack message', (done) ->
-      @respond (message, msgHandler) =>
-        msgHandler.ack()
-        done()
-      .then =>
-        @deliverAck =>
-
-    it 'returns no error if message was acked', (done) ->
-      @respond (message, msgHandler) =>
-        msgHandler.ack()
-      .then =>
-        @deliverAck (error) =>
-          error.should.not.be.ok
+      it 'catches errors', (done) ->
+        myError = new Error('catch me')
+        Freddy.addErrorListener (err) ->
+          err.should.eql(myError)
           done()
 
+        @freddy.respondTo @randomDest, (message, msgHandler) ->
+          throw myError
+        .then =>
+          @freddy.deliver @randomDest, {}
 
-    it 'returns error if message was not acked', (done) ->
-      @freddy.deliverWithAckAndOptions @randomDest, TEST_MESSAGE, {timeout: 0.01}, (error) =>
-        error.should.be.ok
-        done()
+    describe 'with messages that need acknowledgement', ->
+      it 'can produce', ->
+        @freddy.deliverWithAck @randomDest, @msg, (->)
 
-    it 'returns error if message was nacked', (done) ->
-      @respond (message, msgHandler) =>
-        msgHandler.nack()
-      .then =>
-        @deliverAck (error) =>
-          error.should.be.ok
-          done()
+    describe 'with messages that need response', ->
+      it 'can produce', ->
+        @freddy.deliverWithResponse @randomDest, @msg, (->)
 
-
-  describe 'with messages that need response', ->
-    it 'can deliver', ->
-      @deliver()
-
-    it 'can deliver with custom timeout', ->
-      @freddy.deliverWithResponseAndOptions @randomDest, TEST_MESSAGE, timeout: 1
-
-    it 'receives the request', (done) ->
-      @respond =>
-        done()
-      .then =>
-        @deliver()
-
-    it 'sends the response to the requester', (done) ->
-      @respond (message, msgHandler) =>
-        msgHandler.ack {my: 'response'}
-      .then =>
-        @deliverResponse (message, msgHandler) =>
-          message.my.should.equal 'response'
-          done()
-
-    it 'sends error to the requester if message was nacked', (done) ->
-      @respond (message, msgHandler) =>
-        msgHandler.nack()
-      .then =>
-        @deliverResponse (message) =>
-          message.should.have.property('error')
-          done()
-
-    it 'can cancel listening for messages', (done) ->
-      messageCount = 0
-      @respond (message, msgHandler) =>
-        messageCount += 1
-        @responderHandler.cancel().then =>
-          @deliver()
-          setTimeout =>
-            messageCount.should.equal 1
+    describe 'when tapping', ->
+      it "doesn't consume message", (done) ->
+        tapPromise = q.defer()
+        respondPromise = q.defer()
+        @freddy.tapInto @randomDest, =>
+          tapPromise.resolve()
+        .then =>
+          @freddy.respondTo @randomDest, =>
+            respondPromise.resolve()
+        .then =>
+          q.all([tapPromise, respondPromise]).then ->
             done()
-          , 10
-      .then (@responderHandler) =>
-        @deliver()
-
-  describe 'when tapping', ->
-    it 'can tap', (done) ->
-      @tap ->
-        done()
-      .then =>
-        @deliver()
-
-    it 'has the destination', (done) ->
-      @freddy.tapInto "easy.*.easy.*", (message, destination) ->
-        destination.should.equal "easy.come.easy.go"
-        done()
-      .then =>
-        @freddy.deliver "easy.come.easy.go", {}
-
-    it "doesn't consume message", (done) ->
-
-      tap_received = (in_tap, in_respond, next) =>
-        @tap_received = true if in_tap?
-        @respond_received = true if in_respond?
-        if !@doneCalled?
-          if @tap_received and @respond_received
-            next()
-            @doneCalled = true
-      @tap () =>
-        tap_received true, false, done
-      @respond () =>
-        tap_received false, true, done
-      .then =>
-        @deliver()
-
-    it "allows * wildcard", (done) ->
-      @freddy.tapInto "somebody.*.love", () =>
-        done()
-      .then =>
-        @freddy.deliver "somebody.to.love", {}
-
-    it "allows # wildcard", (done) ->
-      @freddy.tapInto "i.#.free", () =>
-        done()
-      .then =>
-        @freddy.deliver "i.want.to.break.free", {}
+          @freddy.deliver @randomDest, @msg

@@ -1,6 +1,8 @@
-winston = require 'winston'
-amqp = require 'amqplib'
-amqpUrl = "amqp://guest:guest@localhost:5672"
+winston   = require 'winston'
+amqp      = require 'amqplib'
+amqpUrl   = "amqp://guest:guest@localhost:5672"
+
+uniqueId = -> id = ""; id += Math.random().toString(36).substr(2) while id.length < 32; id.substr 0, 32
 
 logger = (level = 'debug') ->
   new winston.Logger
@@ -26,3 +28,4 @@ exports.deleteExchange = deleteExchange
 exports.connect = connect
 exports.deliver = deliver
 exports.amqpUrl = amqpUrl
+exports.uniqueId = uniqueId

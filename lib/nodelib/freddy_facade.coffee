@@ -8,6 +8,8 @@ class FreddyFacade
     @deliver = @producer.produce
     @respondTo = @request.respondTo
     @tapInto = @consumer.tapInto
+    @deliverWithAckAndOptions = @request.deliverWithAckAndOptions
+    @deliverWithResponseAndOptions = @request.deliverWithResponseAndOptions
 
   shutdown: ->
     q(@onShutdown())
@@ -15,18 +17,7 @@ class FreddyFacade
   deliverWithAck: (destination, message, callback) ->
     @deliverWithAckAndOptions destination, message, {}, callback
 
-  deliverWithAckAndOptions: (destination, message, options, callback) ->
-    options ||= {}
-    options.timeout ||= DEFAULT_TIMEOUT
-    options.headers = { message_with_ack: true }
-    @request.deliverWithAckAndOptions destination, message, options, callback
-
   deliverWithResponse: (destination, message, callback) ->
     @deliverWithResponseAndOptions destination, message, {}, callback
-
-  deliverWithResponseAndOptions: (destination, message, options, callback) ->
-    options ||= {}
-    options.timeout ||= DEFAULT_TIMEOUT
-    @request.deliverWithResponseAndOptions destination, message, options, callback
 
 module.exports = FreddyFacade

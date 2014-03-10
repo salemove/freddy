@@ -1,5 +1,5 @@
-Producer = require '../lib/nodelib/producer'
-TestHelper = (require './test_helper')
+Producer    = require '../lib/nodelib/producer'
+TestHelper  = (require './test_helper')
 
 describe 'Producer', ->
 

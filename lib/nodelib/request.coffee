@@ -4,6 +4,8 @@ _ = require 'underscore'
 #Encapsulate the request-response types of messaging
 class Request
 
+  DEFAULT_TIMEOUT = 3
+
   RESPONSE_QUEUE_OPTIONS =
     queue:
       exclusive: true
@@ -21,20 +23,25 @@ class Request
       q(this)
 
   deliverWithAckAndOptions: (destination, message, options, callback) =>
+    options ||= {}
+    options.timeout ||= DEFAULT_TIMEOUT
+    options.headers = { message_with_ack: true }
     @_request destination, message, options, (message, msgHandler) =>
       callback message.error if (typeof callback is 'function')
 
   deliverWithResponseAndOptions: (destination, message, options, callback) =>
+    options ||= {}
+    options.timeout ||= DEFAULT_TIMEOUT
     @_request destination, message, options, (message, msgHandler) =>
       callback message, msgHandler if (typeof callback is 'function')
 
   _request: (destination, message, options, callback) ->
     correlationId = @_uuid()
+    _.extend options, {correlationId: correlationId, replyTo: @responseQueue}
     @requests[correlationId] = {
       timeout: @_timeout(destination, message, options.timeout, correlationId, callback)
       callback: callback
     }
-    _.extend options, {correlationId: correlationId, replyTo: @responseQueue}
     @producer.produce destination, message, options
 
   respondTo: (destination, callback) =>
