@@ -9,9 +9,6 @@ describe 'Consumer', ->
   beforeEach (done) ->
     TestHelper.connect (@connection) =>
       @consumer = new Consumer(connection, TestHelper.logger('warn'))
-      @consumer.DEFAULT_OPTIONS =
-        queue:
-          exclusive: true
       done()
 
   after (done) ->

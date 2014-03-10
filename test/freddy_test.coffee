@@ -23,9 +23,6 @@ describe 'Freddy', ->
       @freddy.tapInto @randomDest, callback
 
     Freddy.connect('amqp://guest:guest@localhost:5672', TestHelper.logger('warn')).then (@freddy) =>
-      @freddy.consumer.DEFAULT_OPTIONS =
-        queue:
-          exclusive: true
       done()
     , (err) ->
       done(err)

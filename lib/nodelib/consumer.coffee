@@ -5,7 +5,7 @@ q = require 'q'
 
 class Consumer
 
-  @DEFAULT_OPTIONS =
+  DEFAULT_OPTIONS =
     queue:
       autoDelete: true
 
@@ -35,7 +35,7 @@ class Consumer
       throw "Destination must be provided as a string"
 
   consume: (queue, callback) ->
-    @consumeWithOptions(queue, @DEFAULT_OPTIONS, callback)
+    @consumeWithOptions(queue, DEFAULT_OPTIONS, callback)
 
   consumeWithOptions: (queue, options, callback) ->
     @_ensureQueue(queue)

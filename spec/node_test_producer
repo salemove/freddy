@@ -11,10 +11,6 @@ Freddy.connect("amqp://guest:guest@localhost:5672", @logger).then (freddy) ->
     freddy.deliver 'node.test.deliver', test: 'data'
   , 5
 
-  freddy.consumer.DEFAULT_OPTIONS =
-    queue:
-      exclusive: true
-
   freddy.respondTo 'node.test.respond', (msg, msgHandler) ->
     msgHandler.ack(success: true)
 
