@@ -10,14 +10,14 @@ describe 'Freddy', ->
 
   context 'with correct amqp url', ->
     it 'can connect to amqp', (done) ->
-      Freddy.connect(TestHelper.amqpUrl, TestHelper.logger('warn')).then =>
+      Freddy.connect(TestHelper.amqpUrl, TestHelper.logger('warn')).done =>
         done()
       , =>
         done Error("Connection should have succeeded, but failed")
 
   context 'with incorrect amqp url', ->
     it 'cannot connect', (done) ->
-      Freddy.connect('amqp://wrong:wrong@localhost:9000', TestHelper.logger('warn')).then (@freddy) ->
+      Freddy.connect('amqp://wrong:wrong@localhost:9000', TestHelper.logger('warn')).done (@freddy) ->
         done(Error("Connection should have failed, but succeed"))
       , =>
         done()
@@ -25,13 +25,13 @@ describe 'Freddy', ->
   context 'when connected', ->
     beforeEach (done) ->
       @randomDest = TestHelper.uniqueId()
-      Freddy.connect('amqp://guest:guest@localhost:5672', TestHelper.logger('warn')).then (@freddy) =>
+      Freddy.connect('amqp://guest:guest@localhost:5672', TestHelper.logger('warn')).done (@freddy) =>
         done()
       , (err) ->
         done(err)
 
     afterEach (done) ->
-      @freddy.shutdown().then ->
+      @freddy.shutdown().done ->
         done()
 
     it 'can produce messages', ->
@@ -47,7 +47,7 @@ describe 'Freddy', ->
 
         @freddy.respondTo @randomDest, (message, msgHandler) ->
           throw myError
-        .then =>
+        .done =>
           @freddy.deliver @randomDest, {}
 
     describe 'with messages that need acknowledgement', ->
@@ -67,7 +67,7 @@ describe 'Freddy', ->
         .then =>
           @freddy.respondTo @randomDest, =>
             respondPromise.resolve()
-        .then =>
+        .done =>
           q.all([tapPromise, respondPromise]).then ->
             done()
           @freddy.deliver @randomDest, @msg

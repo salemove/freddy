@@ -20,7 +20,7 @@ describe 'MessageHandler', ->
     beforeEach -> @messageHandler.ack(@response)
 
     it 'resolves response promise with the response', (done) ->
-      @messageHandler.whenResponded.then (response) =>
+      @messageHandler.whenResponded.done (response) =>
         response.should.eql(@response)
         done()
 
@@ -31,7 +31,7 @@ describe 'MessageHandler', ->
       beforeEach -> @messageHandler.nack(@error)
 
       it 'resolves response promise with error', (done) ->
-        @messageHandler.whenResponded.then (->), (error) =>
+        @messageHandler.whenResponded.done (->), (error) =>
           error.should.eql(@error)
           done()
 
@@ -39,6 +39,6 @@ describe 'MessageHandler', ->
       before -> @error = "Message was nacked"
       beforeEach -> @messageHandler.nack()
       it "resolves response with error #{@error}", (done) ->
-        @messageHandler.whenResponded.then (->), (error) =>
+        @messageHandler.whenResponded.done (->), (error) =>
           error.should.eql(@error)
           done()

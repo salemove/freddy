@@ -20,7 +20,7 @@ class Consumer
     @errorListeners.push listener
 
   prepare: (@topicName) ->
-    @connection.createChannel().then (@channel) =>
+    q(@connection.createChannel()).then (@channel) =>
       @logger.debug("Channel created for consumer")
       channel.assertExchange(topicName, 'topic', TOPIC_OPTIONS)
     .then =>
@@ -40,7 +40,7 @@ class Consumer
   consumeWithOptions: (queue, options, callback) ->
     @_ensureQueue(queue)
     responderHandler = new ResponderHandler(@channel)
-    @channel.assertQueue(queue, options?.queue).then (queueObject) =>
+    q(@channel.assertQueue(queue, options?.queue)).then (queueObject) =>
       responderHandler.queue = queueObject.queue
       return @_consumeWithQueueReady queueObject.queue, (message, messageObject) =>
         callback(message, new MessageHandler(@logger, messageObject.properties))
@@ -57,7 +57,7 @@ class Consumer
       return unless messageObject
       @logger.debug "Received message on #{queue}"
       properties = messageObject.properties
-      @_parseMessage(messageObject).then (message) =>
+      @_parseMessage(messageObject).done (message) =>
         @logger.debug "The message is", message unless properties.headers?.suppressLog
         try
           callback(message, messageObject)
@@ -81,12 +81,13 @@ class Consumer
 
   tapInto: (pattern, callback) =>
     responderHandler = new ResponderHandler @channel
-    @channel.assertQueue('', exclusive: true).then (queueObject) =>
+    q(@channel.assertQueue('', exclusive: true)).then (queueObject) =>
       queueName = queueObject.queue
       responderHandler.queue = queueName
-      return @channel.bindQueue(queueName, @topicName, pattern).then =>
-        return @_consumeWithQueueReady queueName, (message, messageObject) =>
+      @channel.bindQueue(queueName, @topicName, pattern).then =>
+        q(@_consumeWithQueueReady(queueName, (message, messageObject) =>
           callback(message, messageObject.fields.routingKey)
+        ))
     .then (subscription) =>
       responderHandler.ready(subscription.consumerTag)
       q(responderHandler)

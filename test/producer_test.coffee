@@ -6,25 +6,26 @@ describe 'Producer', ->
   before -> @topicName = 'test-topic'
 
   beforeEach (done) ->
-    TestHelper.connect (@connection) =>
+    TestHelper.connect().done (@connection) =>
       @producer = new Producer connection, TestHelper.logger('warn')
       done()
 
   after (done) ->
+    return done() unless @connection
     TestHelper.deleteExchange(@connection, @topicName)
     .then =>
       @connection.close()
-    .then ->
+    .done ->
       done()
 
   context '#prepare', ->
     it 'resolves when done', (done) ->
-      @producer.prepare(@topicName).then =>
+      @producer.prepare(@topicName).done =>
         done()
 
   context 'when prepared', ->
     beforeEach (done) ->
-      @producer.prepare(@topicName).then =>
+      @producer.prepare(@topicName).done =>
         done()
 
     context '#produce', ->

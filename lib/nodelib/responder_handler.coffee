@@ -8,7 +8,7 @@ class ResponderHandler
 
   cancel: ->
     @consumerTag.promise.then (consumerTag) =>
-      @channel.cancel(consumerTag)
+      q(@channel.cancel(consumerTag))
 
   ready: (consumerTag) ->
     @consumerTag.resolve(consumerTag)

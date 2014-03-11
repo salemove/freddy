@@ -14,7 +14,7 @@ class FreddySetup
     @errorListeners = []
 
   connect: (amqpUrl) ->
-    amqp.connect(amqpUrl).then (@connection) =>
+    q(amqp.connect(amqpUrl)).then (@connection) =>
       @logger.info "Connection established to amqp"
 
       process.once 'SIGINT', @shutdown

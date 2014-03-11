@@ -210,11 +210,16 @@ To resolve this problem *freddy* uses 4 responder threads by default (configurab
 
 ### Node.js
 
+Since 0.2.1 freddy for node.js uses promises, more info at
+
+https://github.com/kriskowal/q (Pay close attention the the section *The End*)
+
+
 #### Setup
 ```coffee
 Freddy = require 'freddy'
 Freddy.addErrorListener(listener)
-Freddy.connect('amqp://guest:guest@localhost:5672', logger).then (freddy) ->
+Freddy.connect('amqp://guest:guest@localhost:5672', logger).done (freddy) ->
   continueWith(freddy)
 , (error) ->
   doSthWithError(error)
@@ -251,7 +256,7 @@ freddy.respondTo(destination, callback)
 
 ```coffee
 freddy.respondTo(destination, callback)
-.then (responderHandler) ->
+.done (responderHandler) ->
   doSthWith(responderHandler.cancel())
 ```
 
@@ -271,9 +276,11 @@ No other differences to ruby spec, blocking variant is not provided for obvious 
 * When cancelling the responder returns a promise, no messages will be received after the promise resolves.
 
 ```coffee
-freddy.respondTo(destination, (->)).then (responderHandler) ->
-  responderHandler.cancel().then ->
-    freddy.deliver(destination, easy: 'go') #will not be received
+freddy.respondTo(destination, (->))
+.then (responderHandler) ->
+  responderHandler.cancel()
+.done ->
+  freddy.deliver(destination, easy: 'go') #will not be received
 ```
 * The join method is not provided for obvious reasons.
 

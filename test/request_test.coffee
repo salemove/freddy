@@ -13,13 +13,13 @@ describe 'Request', ->
     @message = 'test'
 
   beforeEach (done) ->
-    TestHelper.connect (@connection) =>
+    TestHelper.connect().done (@connection) =>
       @producer = new Producer connection, TestHelper.logger('warn')
       @consumer = new Consumer connection, TestHelper.logger('warn')
       @producer.prepare(@topicName)
       .then =>
         @consumer.prepare(@topicName)
-      .then =>
+      .done =>
         @request = new Request connection, TestHelper.logger('warn')
         done()
 
@@ -27,19 +27,19 @@ describe 'Request', ->
     TestHelper.deleteExchange(@connection, @topicName)
     .then =>
       @connection.close()
-    .then ->
+    .done ->
       done()
 
   context '#prepare', ->
     it 'resolves after done', (done) ->
-      @request.prepare(@consumer, @producer).then ->
+      @request.prepare(@consumer, @producer).done ->
         done()
       , =>
         done Error("Prepare should have succeeded but failed")
 
   context 'when prepared', ->
     beforeEach (done) ->
-      @request.prepare(@consumer, @producer).then ->
+      @request.prepare(@consumer, @producer).done ->
         done()
 
     context '#deliverWithAckAndOptions', ->
@@ -59,7 +59,7 @@ describe 'Request', ->
         beforeEach (done) ->
           @request.respondTo @destination, (message, msgHandler) ->
             msgHandler.ack()
-          .then -> done()
+          .done -> done()
 
         it 'responds with null', (done) ->
           @callback = (error) ->
@@ -73,7 +73,7 @@ describe 'Request', ->
         beforeEach (done) ->
           @request.respondTo @destination, (message, msgHandler) =>
             msgHandler.nack(@error)
-          .then -> done()
+          .done -> done()
 
         it 'responds with error', (done) ->
           @callback = (error) =>
@@ -92,7 +92,7 @@ describe 'Request', ->
         beforeEach (done) ->
           @request.respondTo @destination, (message, msgHandler) =>
             msgHandler.ack(@message)
-          .then -> done()
+          .done -> done()
 
         it 'returns response', (done) ->
           @callback = (message) =>
@@ -105,7 +105,7 @@ describe 'Request', ->
         beforeEach (done) ->
           @request.respondTo @destination, (message, msgHandler) =>
             msgHandler.nack(@error)
-          .then -> done()
+          .done -> done()
 
         it 'returns error', (done) ->
           @callback = (message) =>

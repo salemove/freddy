@@ -16,7 +16,7 @@ class Request
 
   prepare: (@consumer, @producer) ->
     q.reject('Need consumer and producer') unless @consumer and @producer
-    @connection.createChannel().then (channel) =>
+    q(@connection.createChannel()).then (channel) =>
       @_setupResponseQueue(channel)
     .then =>
       @logger.debug "Created response queue for requests"
@@ -59,14 +59,14 @@ class Request
       responder = @_respondToSimpleDeliver
 
   _respondToAck: (message, msgHandler, callback, done) ->
-    msgHandler.whenResponded.then (response) =>
+    msgHandler.whenResponded.done (response) =>
       done(error: false)
     , (error) =>
       done(error: error)
     callback(message, msgHandler)
 
   _respondToRequest: (message, msgHandler, callback, done) ->
-    msgHandler.whenResponded.then (response) =>
+    msgHandler.whenResponded.done (response) =>
       done(response)
     , (error) =>
       done(error: error)
@@ -103,5 +103,6 @@ class Request
         entry.callback message, msgHandler
     .then (subscription) =>
       @responseQueue = subscription.queue
+      q(subscription)
 
 module.exports = Request

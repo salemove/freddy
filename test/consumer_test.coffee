@@ -8,7 +8,7 @@ describe 'Consumer', ->
     @topicName = 'consumer-test-topic'
 
   beforeEach (done) ->
-    TestHelper.connect (@connection) =>
+    TestHelper.connect().done (@connection) =>
       @consumer = new Consumer(connection, TestHelper.logger('warn'))
       done()
 
@@ -16,7 +16,7 @@ describe 'Consumer', ->
     TestHelper.deleteExchange(@connection, @topicName)
     .then =>
       @connection.close()
-    .then ->
+    .done ->
       done()
 
   context '#prepare', ->
@@ -47,7 +47,7 @@ describe 'Consumer', ->
         @consumer.consume @queue, (message) =>
           message.should.eql(@msg)
           done()
-        .then =>
+        .done =>
           TestHelper.deliver(@connection, @queue, @topicName, @msg)
 
       context '#responderHandler', ->
@@ -55,7 +55,7 @@ describe 'Consumer', ->
           @receivedMessages = 0
           @consumer.consume @queue, =>
             @receivedMessages += 1
-          .then (@responderHandler) =>
+          .done (@responderHandler) =>
             done()
 
         it 'has the queue', ->
@@ -84,19 +84,19 @@ describe 'Consumer', ->
         @consumer.tapInto 'test.*.best.#', (message) =>
           message.should.eql(@msg)
           done()
-        .then (@responderHandler) =>
+        .done (@responderHandler) =>
           TestHelper.deliver @connection, @queue, @topicName, @msg
 
       it 'receives messages by # wildcard', (done) ->
         @consumer.tapInto '#.best.#', (message) =>
           message.should.eql(@msg)
           done()
-        .then (@responderHandler) =>
+        .done (@responderHandler) =>
           TestHelper.deliver @connection, @queue, @topicName, @msg
 
       it 'has the destination', (done) ->
         @consumer.tapInto '#', (message, destination) =>
           destination.should.eql(@queue)
           done()
-        .then (@responderHandler) =>
-          TestHelper.deliver @connection, @queue, @topicName, msg: 'yes'
+        .done (@responderHandler) =>
+          return q(TestHelper.deliver @connection, @queue, @topicName, msg: 'yes')

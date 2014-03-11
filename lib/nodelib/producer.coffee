@@ -12,9 +12,9 @@ class Producer
   constructor: (@connection, @logger) ->
 
   prepare: (@topicName) ->
-    @connection.createChannel().then (@channel) =>
+    q(@connection.createChannel()).then (@channel) =>
       @logger.debug("Channel created for producer")
-      channel.assertExchange(topicName, 'topic', TOPIC_EXCHANGE_OPTIONS)
+      q(channel.assertExchange(topicName, 'topic', TOPIC_EXCHANGE_OPTIONS))
     .then =>
       @logger.debug("Topic exchange created for producer")
       q(this)
