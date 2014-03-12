@@ -63,7 +63,7 @@ class Consumer
           callback(message, messageObject)
         catch err
           @_notifyErrorListeners(err)
-          @logger.error "Consuming callback throw error, continuing to listen. #{err}"
+          @logger.error "Consuming from #{queue} callback #{callback} threw an error, continuing to listen. #{err}"
 
   _notifyErrorListeners: (error) ->
     for listener in @errorListeners
