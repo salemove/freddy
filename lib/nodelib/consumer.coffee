@@ -82,7 +82,7 @@ class Consumer
 
   tapInto: (pattern, callback) =>
     responderHandler = new ResponderHandler @channel
-    q(@channel.assertQueue('', exclusive: true)).then (queueObject) =>
+    q(@channel.assertQueue('', exclusive: true, autoDelete: true)).then (queueObject) =>
       queueName = queueObject.queue
       responderHandler.queue = queueName
       @channel.bindQueue(queueName, @topicName, pattern).then =>
