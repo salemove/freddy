@@ -14,13 +14,14 @@ module Messaging
     end
 
     def produce(destination, payload, properties={})
-      @logger.debug "Producing message to #{destination}"
+      log_produce(destination, payload)
       @topic_exchange.publish payload.to_json, properties.merge(routing_key: destination, content_type: 'application/json')
       @exchange.publish payload.to_json, properties.merge(routing_key: destination, content_type: 'application/json')
     end
 
     def produce_with_ack(destination, payload, timeout_seconds = 3, properties={}, &block)
       raise EmptyAckHandler unless block
+      log_produce(destination, payload)
       req = Request.new(@channel)
       producer = req.async_request destination, payload, timeout_seconds, properties.merge(mandatory: true, headers: {message_with_ack: true}) do |payload|
         block.call payload[:error]
@@ -31,5 +32,10 @@ module Messaging
       end
     end
 
+    private
+
+    def log_produce(destination, payload)
+      @logger.debug "Producing message #{payload.inspect} to #{destination}"
+    end
   end
 end
