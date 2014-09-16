@@ -18,7 +18,7 @@ module Messaging
           received = true
         end
         Process.wait
-        expect(received).to be_true
+        expect(received).to be(true)
       end
 
       it 'responds to ruby messages' do

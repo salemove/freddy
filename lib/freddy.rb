@@ -3,6 +3,7 @@ require_relative 'messaging/producer'
 require_relative 'messaging/request'
 require 'bunny'
 require 'json'
+require 'symbolizer'
 
 class Freddy
 
@@ -40,20 +41,6 @@ class Freddy
 
   def self.request
     @request
-  end
-
-  def self.symbolize_keys(hash)
-    hash.each_with_object({}) do |(key, value), normalized_hash|
-      normalized_hash[key.to_sym] = normalize_value(value)
-    end
-  end
-
-  def self.normalize_value(value)
-    case value
-    when Hash then symbolize_keys(value)
-    when Array then value.map(&method(:normalize_value))
-    else value
-    end
   end
 
   def self.format_backtrace(backtrace)

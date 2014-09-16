@@ -27,7 +27,7 @@ module Messaging
         unreachable = false
       end
       wait_for { unreachable }
-      expect(unreachable).to be_true
+      expect(unreachable).to be(true)
     end
 
   end

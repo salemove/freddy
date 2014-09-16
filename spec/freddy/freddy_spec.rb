@@ -59,7 +59,7 @@ module Messaging
       it 'sends the request to responder' do 
         respond_to
         deliver_with_response
-        expect(@message_received).to be_true
+        expect(@message_received).to be(true)
       end
 
       it 'sends the payload in request to the responder' do 
@@ -68,7 +68,7 @@ module Messaging
         freddy.deliver_with_response destination, payload do end
         wait_for { @message_received }
 
-        expect(@received_payload).to eq Freddy.symbolize_keys(payload)
+        expect(@received_payload).to eq Symbolizer.symbolize(payload)
       end
 
       it 'sends the response to requester' do 
@@ -76,7 +76,7 @@ module Messaging
           msg_handler.ack test_response
         end
         deliver_with_response
-        expect(@received_response).to eq(Freddy.symbolize_keys(test_response))
+        expect(@received_response).to eq(Symbolizer.symbolize(test_response))
       end
 
       it 'responds to the correct requester' do
@@ -93,7 +93,7 @@ module Messaging
         wait_for { @dest_response_received }
         default_sleep
 
-        expect(@dest_response_received).to be_true
+        expect(@dest_response_received).to be(true)
         expect(@dest2_response_received).to be_nil
       end
 
@@ -174,7 +174,7 @@ module Messaging
       it 'receives messages' do 
         tap
         deliver
-        expect(@tapped_message).to eq(Freddy.symbolize_keys payload)
+        expect(@tapped_message).to eq(Symbolizer.symbolize payload)
       end
 
       it 'has the destination' do 
@@ -189,63 +189,26 @@ module Messaging
         tap
         respond_to
         deliver
-        expect(@tapped).to be_true
-        expect(@message_received).to be_true
+        expect(@tapped).to be(true)
+        expect(@message_received).to be(true)
       end
 
       it "allows * wildcard" do 
         tap "somebody.*.love"
         deliver "somebody.to.love"
-        expect(@tapped).to be_true
+        expect(@tapped).to be(true)
       end
 
       it "* matches only one word" do 
         tap "somebody.*.love"
         deliver "somebody.not.to.love"
-        expect(@tapped).not_to be_true
+        expect(@tapped).not_to be(true)
       end
 
       it "allows # wildcard" do 
         tap "i.#.free"
         deliver "i.want.to.break.free"
-        expect(@tapped).to be_true
-      end
-
-    end
-
-    describe '.symbolize_keys' do
-      subject { described_class.symbolize_keys(input) }
-
-      context 'when one level hash' do
-        let(:input) { {'a' => 'b'} }
-
-        it 'symbolizes keys' do
-          should eq(a: 'b')
-        end
-      end
-
-      context 'when nested hash' do
-        let(:input) { {'a' => {'b' => 'c'}} }
-
-        it 'symbolizes keys recursively' do
-          should eq(a: {b: 'c'})
-        end
-      end
-
-      context 'when hash in an array' do
-        let(:input) { {'a' => [{'b' => 'c'}]} }
-
-        it 'symbolizes keys recursively' do
-          should eq(a: [{b: 'c'}])
-        end
-      end
-
-      context 'when array' do 
-        let(:input) { {'a' => [[1,2],[3,4]]} }
-
-        it 'symbolizes keys recursively' do
-          should eq(a: [[1,2],[3,4]])
-        end
+        expect(@tapped).to be(true)
       end
 
     end

@@ -42,7 +42,7 @@ module Messaging
       if payload == 'null'
         {}
       else
-        Freddy.symbolize_keys(JSON(payload))
+        Symbolizer.symbolize(JSON(payload))
       end
     end
 
