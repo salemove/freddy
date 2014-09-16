@@ -3,12 +3,17 @@ require_relative 'messaging/producer'
 require_relative 'messaging/request'
 require 'bunny'
 require 'json'
+require 'symbolizer'
 
 class Freddy
 
-  $FREDDY_TOPIC_EXCHANGE_NAME = 'freddy-topic'
+  FREDDY_TOPIC_EXCHANGE_NAME = 'freddy-topic'.freeze
 
-  def self.setup(logger=Logger.new(STDOUT), bunny_config)
+  class << self
+    attr_reader :logger, :consumer, :producer, :request, :channel
+  end
+
+  def self.setup(logger = Logger.new(STDOUT), bunny_config)
     @bunny = Bunny.new bunny_config
     @bunny.start
     @logger = logger
@@ -18,42 +23,8 @@ class Freddy
     @request = Messaging::Request.new @channel, @logger
   end
 
-  def self.channel
-    @channel
-  end
-
   def self.new_channel
     @bunny.create_channel
-  end
-
-  def self.logger
-    @logger
-  end
-
-  def self.consumer
-    @consumer
-  end
-
-  def self.producer
-    @producer
-  end
-
-  def self.request
-    @request
-  end
-
-  def self.symbolize_keys(hash)
-    hash.each_with_object({}) do |(key, value), normalized_hash|
-      normalized_hash[key.to_sym] = normalize_value(value)
-    end
-  end
-
-  def self.normalize_value(value)
-    case value
-    when Hash then symbolize_keys(value)
-    when Array then value.map(&method(:normalize_value))
-    else value
-    end
   end
 
   def self.format_backtrace(backtrace)

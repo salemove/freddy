@@ -18,7 +18,7 @@ module Messaging
 
     def initialize(channel = Freddy.channel, logger = Freddy.logger)
       @channel, @logger = channel, logger
-      @producer, @consumer = Producer.new(channel), Consumer.new(channel)
+      @producer, @consumer = Producer.new(channel, logger), Consumer.new(channel, logger)
       @listening_for_responses = false
       @request_map = {}
     end
