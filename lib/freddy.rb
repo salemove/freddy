@@ -7,9 +7,13 @@ require 'symbolizer'
 
 class Freddy
 
-  $FREDDY_TOPIC_EXCHANGE_NAME = 'freddy-topic'
+  FREDDY_TOPIC_EXCHANGE_NAME = 'freddy-topic'.freeze
 
-  def self.setup(logger=Logger.new(STDOUT), bunny_config)
+  class << self
+    attr_reader :logger, :consumer, :producer, :request, :channel
+  end
+
+  def self.setup(logger = Logger.new(STDOUT), bunny_config)
     @bunny = Bunny.new bunny_config
     @bunny.start
     @logger = logger
@@ -19,28 +23,8 @@ class Freddy
     @request = Messaging::Request.new @channel, @logger
   end
 
-  def self.channel
-    @channel
-  end
-
   def self.new_channel
     @bunny.create_channel
-  end
-
-  def self.logger
-    @logger
-  end
-
-  def self.consumer
-    @consumer
-  end
-
-  def self.producer
-    @producer
-  end
-
-  def self.request
-    @request
   end
 
   def self.format_backtrace(backtrace)

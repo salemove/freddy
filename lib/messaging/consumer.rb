@@ -10,7 +10,7 @@ module Messaging
 
     def initialize(channel = Freddy.channel, logger=Freddy.logger)
       @channel, @logger = channel, logger
-      @topic_exchange = @channel.topic $FREDDY_TOPIC_EXCHANGE_NAME
+      @topic_exchange = @channel.topic Freddy::FREDDY_TOPIC_EXCHANGE_NAME
     end
 
     def consume(destination, options = {}, &block)
