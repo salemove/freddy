@@ -29,12 +29,15 @@ def deliver(custom_destination = destination)
 end
 
 def default_let
-  let(:freddy) { Freddy.new }
-  let(:consumer) { Messaging::Consumer.new }
-  let(:producer) { Messaging::Producer.new }
+  let(:freddy) { Freddy.build(logger, config) }
   let(:destination) { random_destination }
   let(:payload) { {pay: 'load'} }
 end
 
-logger = Logger.new(STDOUT).tap { |l| l.level = Logger::ERROR }
-Freddy.setup(logger, host: 'localhost', port: 5672, user: 'guest', pass: 'guest')
+def logger
+  Logger.new(STDOUT).tap { |l| l.level = Logger::ERROR }
+end
+
+def config
+  {host: 'localhost', port: 5672, user: 'guest', pass: 'guest'}
+end

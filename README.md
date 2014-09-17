@@ -9,22 +9,10 @@
 
 #### Setup
 
-* Inject the appropriate default logger and set up connection parameters:
+* Inject the appropriate logger and set up connection parameters:
 
 ```ruby
-Freddy.setup(Logger.new(STDOUT), host: 'localhost', port: 5672, user: 'guest', pass: 'guest')
-```
-
-* Use Freddy to deliver and respond to messages:
-
-```ruby
-freddy = Freddy.new(logger = Freddy.logger)
-```
-
-  * by default the Freddy instance will reuse connections and queues for messaging, if you want to use a distinct tcp connection, response queue and timeout checking thread, then use
-
-```ruby
-freddy.use_distinct_connection
+freddy = Freddy.build(Logger.new(STDOUT), host: 'localhost', port: 5672, user: 'guest', pass: 'guest')
 ```
 
 #### Destinations

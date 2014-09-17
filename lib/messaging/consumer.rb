@@ -8,7 +8,7 @@ module Messaging
     class EmptyConsumer < Exception
     end
 
-    def initialize(channel = Freddy.channel, logger=Freddy.logger)
+    def initialize(channel, logger)
       @channel, @logger = channel, logger
       @topic_exchange = @channel.topic Freddy::FREDDY_TOPIC_EXCHANGE_NAME
     end

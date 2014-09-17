@@ -5,6 +5,8 @@ module Messaging
 
     default_let
 
+    let(:consumer) { freddy.consumer }
+
     it 'raises exception when no consumer is provided' do 
       expect { consumer.consume destination }.to raise_error Consumer::EmptyConsumer
     end
