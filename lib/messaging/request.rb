@@ -16,7 +16,7 @@ module Messaging
     class EmptyResponder < Exception
     end
 
-    def initialize(channel = Freddy.channel, logger = Freddy.logger)
+    def initialize(channel, logger)
       @channel, @logger = channel, logger
       @producer, @consumer = Producer.new(channel, logger), Consumer.new(channel, logger)
       @listening_for_responses = false

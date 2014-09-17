@@ -1,31 +1,14 @@
-require_relative 'messaging/consumer'
-require_relative 'messaging/producer'
-require_relative 'messaging/request'
 require 'bunny'
 require 'json'
 require 'symbolizer'
 
+require_relative 'messaging/consumer'
+require_relative 'messaging/producer'
+require_relative 'messaging/request'
+
 class Freddy
 
   FREDDY_TOPIC_EXCHANGE_NAME = 'freddy-topic'.freeze
-
-  class << self
-    attr_reader :logger, :consumer, :producer, :request, :channel
-  end
-
-  def self.setup(logger = Logger.new(STDOUT), bunny_config)
-    @bunny = Bunny.new bunny_config
-    @bunny.start
-    @logger = logger
-    @channel = @bunny.create_channel(nil, bunny_config[:responder_thread_count] || 4)
-    @consumer = Messaging::Consumer.new @channel, @logger
-    @producer = Messaging::Producer.new @channel, @logger
-    @request = Messaging::Request.new @channel, @logger
-  end
-
-  def self.new_channel
-    @bunny.create_channel
-  end
 
   def self.format_backtrace(backtrace)
     backtrace.map{ |x|
@@ -38,16 +21,20 @@ class Freddy
     "#{exception.exception}\n#{format_backtrace(exception.backtrace)}"
   end
 
-  def initialize(logger = Freddy.logger)
-    @logger = logger
-    @consumer, @producer, @request, @channel = Freddy.consumer, Freddy.producer, Freddy.request, Freddy.channel
+  def self.build(logger = Logger.new(STDOUT), bunny_config)
+    bunny = Bunny.new(bunny_config)
+    bunny.start
+
+    channel = bunny.create_channel(nil, bunny_config[:responder_thread_count] || 4)
+    new(channel, logger)
   end
 
-  def use_distinct_connection
-    @channel = Freddy.new_channel
-    @consumer = Messaging::Consumer.new @channel, @logger
-    @producer = Messaging::Producer.new @channel, @logger
-    @request = Messaging::Request.new @channel, @logger
+  attr_reader :consumer, :producer, :request
+
+  def initialize(channel, logger)
+    @consumer = Messaging::Consumer.new channel, logger
+    @producer = Messaging::Producer.new channel, logger
+    @request  = Messaging::Request.new channel, logger
   end
 
   def respond_to(destination, &callback)

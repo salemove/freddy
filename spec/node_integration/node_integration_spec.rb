@@ -3,7 +3,7 @@ require 'messaging_spec_helper'
 module Messaging
   describe "Node integration" do
     default_let
-    let(:freddy) { Freddy.new.tap {|freddy| freddy.use_distinct_connection} }
+    let(:freddy) { Freddy.build(logger, config) }
 
     context "with node_producer " do
       before(:each) do

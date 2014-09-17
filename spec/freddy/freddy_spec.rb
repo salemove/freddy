@@ -6,7 +6,7 @@ module Messaging
     default_let
     let(:destination2) { random_destination }
     let(:test_response) { {custom: 'response'}}
-    let(:freddy) { Freddy.new.tap {|freddy| freddy.use_distinct_connection} } #avoid cascading fails by using distinct connection
+    let(:freddy) { Freddy.build(logger, config) }
 
     def deliver_with_response(&block)
       got_response = false

@@ -5,6 +5,8 @@ module Messaging
 
     default_let
 
+    let(:producer) { freddy.producer }
+
     it 'accepts additional parameters for publishing' do 
       producer.produce destination, payload, content_type: 'application/html'
     end
