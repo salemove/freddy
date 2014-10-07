@@ -17,7 +17,7 @@ module Messaging
       end
 
       def send_response(producer)
-        producer.produce properties[:reply_to], response, correlation_id: correlation_id
+        producer.produce properties[:reply_to].force_encoding('utf-8'), response, correlation_id: correlation_id
       end
 
     end
