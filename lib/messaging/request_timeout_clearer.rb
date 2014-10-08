@@ -18,7 +18,9 @@ module Messaging
     def clear_timeouts(now)
       @requests.each do |key, value|
         if now > value[:timeout]
-          @logger.warn "Request #{key} timed out waiting response from #{value[:destination]} with timeout #{value[:timeout]}"
+          message = "Request #{key} timed out waiting response from #{value[:destination]} with timeout #{value[:timeout]}"
+          @logger.warn message
+          Freddy.notify 'RequestTimeout', message, request: key, destination: value[:destination], timeout: value[:timeout]
           value[:callback].call({error: 'Timed out waiting for response'}, nil)
           @requests.delete key
         end
