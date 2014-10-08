@@ -21,6 +21,23 @@ class Freddy
     "#{exception.exception}\n#{format_backtrace(exception.backtrace)}"
   end
 
+  def self.notify(name, message, parameters={})
+    if defined? Airbrake
+      Airbrake.notify_or_ignore({
+        error_class: name,
+        error_message: message,
+        cgi_data: ENV.to_hash,
+        parameters: parameters
+      })
+    end
+  end
+
+  def self.notify_exception(exception, parameters={})
+    if defined? Airbrake
+      Airbrake.notify_or_ignore(exception, cgi_data: ENV.to_hash, parameters: parameters)
+    end
+  end
+
   def self.build(logger = Logger.new(STDOUT), bunny_config)
     bunny = Bunny.new(bunny_config)
     bunny.start

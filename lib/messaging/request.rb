@@ -78,10 +78,13 @@ module Messaging
         @request_map.delete correlation_id
         request[:callback].call payload, msg_handler
       else
-        @logger.warn "Got rpc response for correlation_id #{correlation_id} but there is no requester"
+        message = "Got rpc response for correlation_id #{correlation_id} but there is no requester"
+        @logger.warn message
+        Freddy.notify 'NoRequesterForResponse', message, destination: request[:destination], correlation_id: correlation_id
       end
     rescue Exception => e
       @logger.error "Exception occured while handling the response of request made to #{request[:destination]} with correlation_id #{correlation_id}: #{Freddy.format_exception e}"
+      Freddy.notify_exception(e, destination: request[:destination], correlation_id: correlation_id)
     end
 
     def listen_for_responses

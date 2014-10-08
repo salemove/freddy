@@ -14,7 +14,9 @@ module Messaging
         logger.debug "Responder failed to acknowledge message on #{destination}: #{error}" if error
         @response = {error: error}
       rescue Exception => e
-        logger.error "Exception occured while processing a message that needs to acknowledge on #{destination} : #{e}"
+        message = "Exception occured while processing a message that awaits acknowledgement"
+        logger.error "#{message} on #{destination} : #{Freddy.format_exception e}"
+        Freddy.notify_exception(e, message: message, destination: destination)
       end
 
     end
