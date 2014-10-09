@@ -43,17 +43,18 @@ describe 'Request', ->
         done()
 
     context '#deliverWithAckAndOptions', ->
+
       before ->
         @destination = 'ack-test'
-        @subject = =>
-          @request.deliverWithAckAndOptions @destination, @message, @options, @callback
+        @subject = (callback) =>
+          @request.deliverWithAckAndOptions @destination, @message, @options, callback
 
       it 'returns error if message was neither acked nor nacked', (done) ->
         @options = timeout: 0.01
-        @callback = (error) =>
+        callback = (error) =>
           error.should.eql("Timeout waiting for response")
           done()
-        @subject()
+        @subject(callback)
 
       context 'when message was acked', ->
         beforeEach (done) ->
@@ -62,10 +63,10 @@ describe 'Request', ->
           .done -> done()
 
         it 'responds with null', (done) ->
-          @callback = (error) ->
+          callback = (error) ->
             error.should.be.nil
             done()
-          @subject()
+          @subject(callback)
 
       context 'when message was nacked', ->
         before -> @error = 'no bueno'
@@ -76,16 +77,16 @@ describe 'Request', ->
           .done -> done()
 
         it 'responds with error', (done) ->
-          @callback = (error) =>
+          callback = (error) =>
             error.should.eql(@error)
             done()
-          @subject()
+          @subject(callback)
 
     context '#deliverWithResponseAndOptions', ->
       beforeEach ->
         @destination = 'response-test'
-        @subject = =>
-          @request.deliverWithResponseAndOptions @destination, @message, @options, @callback
+        @subject = (callback) =>
+          @request.deliverWithResponseAndOptions @destination, @message, @options, callback
 
       context 'when message was acked', ->
         before -> @message = test: 'data'
@@ -95,10 +96,10 @@ describe 'Request', ->
           .done -> done()
 
         it 'returns response', (done) ->
-          @callback = (message) =>
+          callback = (message) =>
             message.should.eql(@message)
             done()
-          @subject()
+          @subject(callback)
 
       context 'when message was nacked', ->
         before -> @error = test: 'data'
@@ -108,7 +109,7 @@ describe 'Request', ->
           .done -> done()
 
         it 'returns error', (done) ->
-          @callback = (message) =>
+          callback = (message) =>
             message.error.should.eql(@error)
             done()
-          @subject()
+          @subject(callback)

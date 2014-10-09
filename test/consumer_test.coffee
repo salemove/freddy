@@ -74,7 +74,9 @@ describe 'Consumer', ->
             done()
 
     context '#tapInto', ->
-      before -> @queue = "test.mix.best.#{Math.random()*100}"
+      before ->
+        @queue = "test.mix.best.#{Math.random()*100}"
+        @msg = test: 'data'
 
       afterEach (done) ->
         @responderHandler.cancel().then =>
