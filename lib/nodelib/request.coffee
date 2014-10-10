@@ -86,7 +86,9 @@ class Request
   _timeout: (destination, message, timeoutSeconds, correlationId, callback) ->
     setTimeout(
       =>
-        @logger.info "Timeout waiting for response from #{destination} with #{timeoutSeconds}s, payload:", message
+        errorText = "Timeout waiting for response from #{destination} with #{timeoutSeconds}s"
+        @logger.error "#{errorText}, payload:", message
+        @consumer.notifyErrorListeners(new Error(errorText))
         delete @requests[correlationId]
         callback {error: "Timeout waiting for response"} if (typeof callback is 'function')
       , timeoutSeconds * 1000
