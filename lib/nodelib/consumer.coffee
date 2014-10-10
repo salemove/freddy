@@ -51,6 +51,14 @@ class Consumer
       @logger.error "Consumer with destination #{queue} exited: #{err}"
       q.reject(err)
 
+  notifyErrorListeners: (error) ->
+    for listener in @errorListeners
+      try
+        listener?(error) if typeof listener is 'function'
+      catch err
+        @logger.error "Error listener throw error #{err}"
+
+
   _consumeWithQueueReady: (queue, callback) ->
     @logger.debug "Consuming messages on #{queue}"
     @channel.consume queue, (messageObject) =>
@@ -62,16 +70,9 @@ class Consumer
         try
           callback(message, messageObject)
         catch err
-          @_notifyErrorListeners(err)
+          @notifyErrorListeners(err)
           @logger.error "Consuming from #{queue} callback #{callback} threw an error, continuing to listen. #{err}"
         @channel.ack messageObject
-
-  _notifyErrorListeners: (error) ->
-    for listener in @errorListeners
-      try
-        listener(error) if typeof listener is 'function'
-      catch err
-        @logger.error "Error listener throw error #{err}"
 
   _parseMessage: (messageObject) ->
     try
