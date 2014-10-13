@@ -46,15 +46,14 @@ describe 'Request', ->
 
       before ->
         @destination = 'ack-test'
-        @subject = (callback) =>
-          @request.deliverWithAckAndOptions @destination, @message, @options, callback
+        @subject = (callback, options={}) =>
+          @request.deliverWithAckAndOptions @destination, @message, options, callback
 
       it 'returns error if message was neither acked nor nacked', (done) ->
-        @options = timeout: 0.01
         callback = (error) =>
           error.should.eql("Timeout waiting for response")
           done()
-        @subject(callback)
+        @subject(callback, timeout: 0.01)
 
       context 'when message was acked', ->
         beforeEach (done) ->
