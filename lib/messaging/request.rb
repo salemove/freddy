@@ -88,6 +88,7 @@ module Messaging
     end
 
     def listen_for_responses
+      @listening_for_responses = true
       @timeout_clearer = RequestTimeoutClearer.new @request_map, @logger unless @timeout_clearer
       @response_queue = create_response_queue unless @response_queue
       @consumer.consume_from_queue @response_queue do |payload, msg_handler|

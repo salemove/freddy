@@ -46,9 +46,10 @@ class Freddy
     new(channel, logger)
   end
 
-  attr_reader :consumer, :producer, :request
+  attr_reader :channel, :consumer, :producer, :request
 
   def initialize(channel, logger)
+    @channel  = channel
     @consumer = Messaging::Consumer.new channel, logger
     @producer = Messaging::Producer.new channel, logger
     @request  = Messaging::Request.new channel, logger

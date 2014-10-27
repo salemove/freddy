@@ -45,6 +45,21 @@ module Messaging
         expect(response).to eq(res: 'yey')
       end
 
+      it 'does not leak consumers' do
+        respond_to { |payload, msg_handler| msg_handler.ack(res: 'yey') }
+
+        old_count = freddy.channel.consumers.keys.count
+
+        response1 = freddy.deliver_with_response(destination, {a: 'b'})
+        response2 = freddy.deliver_with_response(destination, {a: 'b'})
+
+        expect(response1).to eq(res: 'yey')
+        expect(response2).to eq(res: 'yey')
+
+        new_count = freddy.channel.consumers.keys.count
+        expect(new_count).to be(old_count + 1)
+      end
+
       it 'gives timeout error when no response' do
         respond_to { |payload, msg_handler| msg_handler.ack(res: 'yey') }
         response = freddy.deliver_with_response('invalid', {a: 'b'}, 0.1)
