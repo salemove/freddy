@@ -80,7 +80,7 @@ module Messaging
       else
         message = "Got rpc response for correlation_id #{correlation_id} but there is no requester"
         @logger.warn message
-        Freddy.notify 'NoRequesterForResponse', message, destination: request[:destination], correlation_id: correlation_id
+        Freddy.notify 'NoRequesterForResponse', message, correlation_id: correlation_id
       end
     rescue Exception => e
       destination_report = request ? "to #{request[:destination]}" : ''
