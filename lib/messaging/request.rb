@@ -83,7 +83,8 @@ module Messaging
         Freddy.notify 'NoRequesterForResponse', message, destination: request[:destination], correlation_id: correlation_id
       end
     rescue Exception => e
-      @logger.error "Exception occured while handling the response of request made to #{request[:destination]} with correlation_id #{correlation_id}: #{Freddy.format_exception e}"
+      destination_report = request ? "to #{request[:destination]}" : ''
+      @logger.error "Exception occured while handling the response of request made #{destination_report} with correlation_id #{correlation_id}: #{Freddy.format_exception e}"
       Freddy.notify_exception(e, destination: request[:destination], correlation_id: correlation_id)
     end
 
