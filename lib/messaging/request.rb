@@ -26,7 +26,7 @@ module Messaging
     def sync_request(destination, payload, timeout_seconds = 3, options={})
       container = SyncResponseContainer.new
       async_request destination, payload, timeout_seconds, options, &container
-      container.wait_for_response
+      container.wait_for_response(timeout_seconds)
     end
 
     def async_request(destination, payload, timeout_seconds = 3, options={}, &block)

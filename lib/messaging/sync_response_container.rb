@@ -1,11 +1,15 @@
+require 'timeout'
+
 module Messaging
   class SyncResponseContainer
     def call(response, _msg_handler)
       @response = response
     end
 
-    def wait_for_response
-      sleep 0.0001 until filled?
+    def wait_for_response(timeout)
+      Timeout::timeout(timeout) do
+        sleep 0.0001 until filled?
+      end
       @response
     end
 
