@@ -6,6 +6,7 @@ require_relative 'message_handlers/request_handler'
 require_relative 'message_handlers/ack_message_handler'
 require_relative 'message_handlers/standard_message_handler'
 require 'securerandom'
+require 'hamster/mutable_hash'
 
 module Messaging
   class Request
@@ -20,20 +21,20 @@ module Messaging
       @channel, @logger = channel, logger
       @producer, @consumer = Producer.new(channel, logger), Consumer.new(channel, logger)
       @listening_for_responses = false
-      @request_map = {}
+      @request_map = Hamster.mutable_hash
     end
 
     def sync_request(destination, payload, timeout_seconds = 3, options={})
       container = SyncResponseContainer.new
       async_request destination, payload, timeout_seconds, options, &container
-      container.wait_for_response(timeout_seconds)
+      container.wait_for_response(timeout_seconds + 0.1)
     end
 
     def async_request(destination, payload, timeout_seconds = 3, options={}, &block)
       listen_for_responses unless @listening_for_responses
       correlation_id = SecureRandom.uuid
       timeout = Time.now + timeout_seconds
-      @request_map[correlation_id] = { callback: block, destination: destination, timeout: timeout}
+      @request_map.store(correlation_id, { callback: block, destination: destination, timeout: timeout})
       @logger.debug "Publishing request to #{destination}, waiting for response on #{@response_queue.name} with correlation_id #{correlation_id}"
       @producer.produce destination, payload, options.merge(correlation_id: correlation_id, reply_to: @response_queue.name, mandatory: true)
     end

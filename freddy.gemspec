@@ -21,4 +21,5 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "bunny", "~> 1.3"
   spec.add_dependency "symbolizer"
+  spec.add_dependency "hamster", "~> 1.0.1.pre.rc3"
 end
