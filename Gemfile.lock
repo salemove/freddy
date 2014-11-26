@@ -2,7 +2,7 @@ PATH
   remote: .
   specs:
     freddy (0.1.1)
-      bunny (= 1.5.1)
+      bunny (= 1.6.3)
       hamster (~> 1.0.1.pre.rc3)
       symbolizer
 
@@ -11,7 +11,7 @@ GEM
   specs:
     amq-protocol (1.9.2)
     atomic (1.1.16)
-    bunny (1.5.1)
+    bunny (1.6.3)
       amq-protocol (>= 1.9.2)
     coderay (1.1.0)
     diff-lcs (1.2.5)
