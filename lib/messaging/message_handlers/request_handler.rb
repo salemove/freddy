@@ -6,8 +6,8 @@ module Messaging
       attr_reader :response
 
       def handle_message(payload, msg_handler)
-        logger.debug "Got request on #{destination} with correlation_id #{@correlation_id}"
         initialize_properties msg_handler
+        logger.debug "Got request on #{destination} with correlation_id #{@correlation_id}"
         if !@correlation_id
           logger.error "Received request without correlation_id"
           Freddy.notify_exception(e)
