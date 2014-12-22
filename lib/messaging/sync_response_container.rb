@@ -8,7 +8,7 @@ module Messaging
 
     def wait_for_response(timeout)
       Timeout::timeout(timeout) do
-        sleep 0.0001 until filled?
+        sleep 0.001 until filled?
       end
       @response
     end
