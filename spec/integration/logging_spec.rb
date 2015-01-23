@@ -22,6 +22,7 @@ describe 'Logging' do
   it 'logs all consumed messages' do
     expect(logger1).to have_received(:debug).with(/Listening for requests on \w+/)
     expect(logger1).to have_received(:debug).with(/Consuming messages on \w+/)
+    expect(logger1).to have_received(:info).with(/Received message {"queue":"\w+"}/)
     expect(logger1).to have_received(:debug).with(/Received message on \w+ with payload {"pay":"load"}/)
   end
 

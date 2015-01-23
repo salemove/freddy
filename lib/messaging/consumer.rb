@@ -20,7 +20,7 @@ module Messaging
 
     def consume_from_queue(queue, options = {}, &block)
       consumer = queue.subscribe options do |delivery_info, properties, payload|
-        @logger.debug "Received message on #{queue.name} with payload #{payload}"
+        log_receive_event(queue.name, payload)
         block.call (parse_payload payload), MessageHandler.new(delivery_info, properties)
       end
       @logger.debug "Consuming messages on #{queue.name}"
@@ -50,5 +50,11 @@ module Messaging
       @channel.queue(destination)
     end
 
+    def log_receive_event(queue_name, payload)
+      data = {queue: queue_name}
+      @logger.info "Received message #{data.to_json}"
+
+      @logger.debug "Received message on #{queue_name} with payload #{payload}"
+    end
   end
 end
