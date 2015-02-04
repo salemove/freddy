@@ -51,8 +51,9 @@ module Messaging
     end
 
     def log_receive_event(queue_name, payload)
-      data = {queue: queue_name}
-      @logger.info "Received message #{data.to_json}"
+      if defined?(Logasm) && @logger.is_a?(Logasm)
+        @logger.info "Received message", queue: queue_name
+      end
 
       @logger.debug "Received message on #{queue_name} with payload #{payload}"
     end
