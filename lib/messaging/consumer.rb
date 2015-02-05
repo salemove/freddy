@@ -20,8 +20,9 @@ module Messaging
 
     def consume_from_queue(queue, options = {}, &block)
       consumer = queue.subscribe options do |delivery_info, properties, payload|
-        log_receive_event(queue.name, payload)
-        block.call (parse_payload payload), MessageHandler.new(delivery_info, properties)
+        parsed_payload = parse_payload(payload)
+        log_receive_event(queue.name, parsed_payload)
+        block.call parsed_payload, MessageHandler.new(delivery_info, properties)
       end
       @logger.debug "Consuming messages on #{queue.name}"
       ResponderHandler.new consumer, @channel
