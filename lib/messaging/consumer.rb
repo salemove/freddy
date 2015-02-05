@@ -53,9 +53,10 @@ module Messaging
     def log_receive_event(queue_name, payload)
       if defined?(Logasm) && @logger.is_a?(Logasm)
         @logger.info "Received message", queue: queue_name
+        @logger.debug "Received message", queue: queue_name, payload: payload
+      else
+        @logger.debug "Received message on #{queue_name} with payload #{payload}"
       end
-
-      @logger.debug "Received message on #{queue_name} with payload #{payload}"
     end
   end
 end
