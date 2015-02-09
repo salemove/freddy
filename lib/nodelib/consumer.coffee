@@ -22,7 +22,7 @@ class Consumer
   prepare: (@topicName) ->
     q(@connection.createChannel()).then (@channel) =>
       @logger.debug("Channel created for consumer")
-      channel.assertExchange(topicName, 'topic', TOPIC_OPTIONS)
+      @channel.assertExchange(@topicName, 'topic', TOPIC_OPTIONS)
     .then =>
       @logger.debug("Topic exchange created for consumer")
       q(this)
