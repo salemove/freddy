@@ -14,7 +14,7 @@ class Producer
   prepare: (@topicName) ->
     q(@connection.createChannel()).then (@channel) =>
       @logger.debug("Channel created for producer")
-      q(channel.assertExchange(topicName, 'topic', TOPIC_EXCHANGE_OPTIONS))
+      q(@channel.assertExchange(@topicName, 'topic', TOPIC_EXCHANGE_OPTIONS))
     .then =>
       @logger.debug("Topic exchange created for producer")
       q(this)
