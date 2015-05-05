@@ -41,10 +41,10 @@ freddy.deliver(destination, message)
 
 * Deliver a message expecting explicit acknowledgement
 ```ruby
-freddy.deliver_with_ack(destination, message, timeout_seconds = 3) do |error|
+freddy.deliver_with_ack(destination, message, timeout: 3, delete_on_timeout: true) do |error|
 ```
 
-  * If timeout_seconds pass without a response from the responder, then the callback is called with a timeout error.
+  * If `timeout` seconds pass without a response from the responder, then the callback is called with a timeout error.
 
   * callback is called with one argument: a string that contains an error message if
     * the message couldn't be sent to any responders or
@@ -56,10 +56,10 @@ freddy.deliver_with_ack(destination, message, timeout_seconds = 3) do |error|
 
 * Deliver expecting a response
 ```ruby
-freddy.deliver_with_response(destination, message, timeout_seconds = 3) do |response, msg_handler|
+freddy.deliver_with_response(destination, message, timeout: 3, delete_on_timeout: true) do |response, msg_handler|
 ```
 
-  * If `timeout_seconds pass` without a response from the responder then the callback is called with the hash
+  * If `timeout` seconds pass without a response from the responder then the callback is called with the hash
 ```ruby
 { error: 'Timed out waiting for response' }
 ```
@@ -72,7 +72,7 @@ freddy.deliver_with_response(destination, message, timeout_seconds = 3) do |resp
 
 * Synchronous deliver expecting response
 ```ruby
-  response = freddy.deliver_with_response(destination, message, timeout_seconds = 3)
+  response = freddy.deliver_with_response(destination, message, timeout: 3)
 ```
 
 #### Responding to messages
@@ -80,10 +80,6 @@ freddy.deliver_with_response(destination, message, timeout_seconds = 3) do |resp
 * Respond to messages while not blocking the current thread:
 ```ruby
 freddy.respond_to destination do |message, msg_handler|
-```
-* Respond to message and block the thread
-```ruby
-freddy.respond_to_and_block destination do |message, msg_handler|
 ```
 
 * The callback is called with 2 arguments
@@ -152,12 +148,6 @@ freddy.tap_into "somebody.*.love"
 ```
 
 receives messages that are delivered to `somebody.to.love` but doesn't receive messages delivered to `someboy.not.to.love`
-
-It is also possible to use the blocking version of `tap_into`:
-
-```ruby
-freddy.tap_into_and_block pattern, &callback do |message, destination|
-```
 
 #### The ResponderHandler
 
