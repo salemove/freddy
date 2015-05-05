@@ -1,9 +1,9 @@
 require 'messaging_spec_helper'
 
 module Messaging
-  describe Freddy do 
-
+  describe Freddy do
     default_let
+
     let(:destination2) { random_destination }
     let(:test_response) { {custom: 'response'}}
     let(:freddy) { Freddy.build(logger, config) }
@@ -40,7 +40,6 @@ module Messaging
       it 'returns response as soon as possible' do
         respond_to { |payload, msg_handler| msg_handler.ack(res: 'yey') }
         response = freddy.deliver_with_response(destination, {a: 'b'})
-        # without sleep
 
         expect(response).to eq(res: 'yey')
       end
@@ -60,25 +59,62 @@ module Messaging
         expect(new_count).to be(old_count + 1)
       end
 
-      it 'gives timeout error when no response' do
-        respond_to { |payload, msg_handler| msg_handler.ack(res: 'yey') }
-        response = freddy.deliver_with_response('invalid', {a: 'b'}, 0.1)
-        # without sleep
+      context 'on timeout' do
+        it 'gives timeout error' do
+          respond_to { |payload, msg_handler| msg_handler.ack(res: 'yey') }
+          response = freddy.deliver_with_response('invalid', {a: 'b'}, timeout: 0.1)
 
-        expect(response).to eq(error: 'Timed out waiting for response')
+          expect(response).to eq(error: 'Timed out waiting for response')
+        end
+
+        context 'with delete_on_timeout is set to true' do
+          it 'removes the message from the queue' do
+            # Assume that there already is a queue. Otherwise will get an early
+            # return.
+            freddy.channel.queue(destination)
+
+            response = freddy.deliver_with_response(destination, {}, timeout: 0.1)
+
+            processed_after_timeout = false
+            respond_to { processed_after_timeout = true }
+
+            default_sleep
+
+            expect(response).to eq(error: 'Timed out waiting for response')
+            expect(processed_after_timeout).to be(false)
+          end
+        end
+
+        context 'with delete_on_timeout is set to false' do
+          it 'removes the message from the queue' do
+            # Assume that there already is a queue. Otherwise will get an early
+            # return.
+            freddy.channel.queue(destination)
+
+            response = freddy.deliver_with_response(destination, {}, timeout: 0.1, delete_on_timeout: false)
+
+            processed_after_timeout = false
+            respond_to { processed_after_timeout = true }
+
+            default_sleep
+
+            expect(response).to eq(error: 'Timed out waiting for response')
+            expect(processed_after_timeout).to be(true)
+          end
+        end
       end
     end
 
-    describe "when producing with response" do 
+    describe "when producing with response" do
 
-      it 'sends the request to responder' do 
+      it 'sends the request to responder' do
         respond_to
         deliver_with_response
         expect(@message_received).to be(true)
       end
 
-      it 'sends the payload in request to the responder' do 
-        respond_to do end
+      it 'sends the payload in request to the responder' do
+        respond_to { }
         payload = {a: {b: 'c'}}
         freddy.deliver_with_response destination, payload do end
         wait_for { @message_received }
@@ -86,7 +122,7 @@ module Messaging
         expect(@received_payload).to eq Symbolizer.symbolize(payload)
       end
 
-      it 'sends the response to requester' do 
+      it 'sends the response to requester' do
         freddy.respond_to destination do |message, msg_handler|
           msg_handler.ack test_response
         end
@@ -97,11 +133,11 @@ module Messaging
       it 'responds to the correct requester' do
         freddy.respond_to destination do end
 
-        freddy.deliver_with_response destination, payload do 
+        freddy.deliver_with_response destination, payload do
           @dest_response_received = true
         end
 
-        freddy.deliver_with_response destination2, payload do 
+        freddy.deliver_with_response destination2, payload do
           @dest2_response_received = true
         end
 
@@ -112,15 +148,15 @@ module Messaging
         expect(@dest2_response_received).to be_nil
       end
 
-      it 'times out when no response comes' do 
-        freddy.deliver_with_response destination, payload, 0.1 do |response|
+      it 'times out when no response comes' do
+        freddy.deliver_with_response destination, payload, timeout: 0.1 do |response|
           @error = response[:error]
         end
         wait_for { @error }
         expect(@error).not_to be_nil
       end
 
-      it 'responds with error if the message was nacked' do 
+      it 'responds with error if the message was nacked' do
         freddy.respond_to destination do |message, msg_handler|
           msg_handler.nack
         end
@@ -135,19 +171,19 @@ module Messaging
 
     end
 
-    describe 'when producing with ack' do 
-      it "reports error if message wasn't acknowledged" do 
-        freddy.respond_to destination do end
+    describe 'when producing with ack' do
+      it "reports error if message wasn't acknowledged" do
+        freddy.respond_to(destination) { }
         deliver_with_ack
         expect(@ack_error).not_to be_nil
       end
 
-      it 'returns error if there are no responders' do 
+      it 'returns error if there are no responders' do
         deliver_with_ack
         expect(@ack_error).not_to be_nil
       end
 
-      it "reports error if messages was nacked" do 
+      it "reports error if messages was nacked" do
         freddy.respond_to destination do |message, msg_handler|
           msg_handler.nack "bad message"
         end
@@ -155,7 +191,7 @@ module Messaging
         expect(@ack_error).not_to be_nil
       end
 
-      it "doesn't report error if message was acked" do 
+      it "doesn't report error if message was acked" do
         freddy.respond_to destination do |message, msg_handler|
           msg_handler.ack
         end
@@ -163,8 +199,8 @@ module Messaging
         expect(@ack_error).to be_nil
       end
 
-      it "reports error if message timed out" do 
-        freddy.deliver_with_ack destination, payload, 0.1 do |error|
+      it "reports error if message timed out" do
+        freddy.deliver_with_ack destination, payload, timeout: 0.1 do |error|
           @error = error
         end
         wait_for { @error }
@@ -180,19 +216,19 @@ module Messaging
           @tapped_message = message
           callback.call message, origin if callback
         end
-      end 
+      end
 
-      it 'can tap' do 
+      it 'can tap' do
         tap
       end
 
-      it 'receives messages' do 
+      it 'receives messages' do
         tap
         deliver
         expect(@tapped_message).to eq(Symbolizer.symbolize payload)
       end
 
-      it 'has the destination' do 
+      it 'has the destination' do
         tap "somebody.*.love" do |message, destination|
           @destination = destination
         end
@@ -208,19 +244,19 @@ module Messaging
         expect(@message_received).to be(true)
       end
 
-      it "allows * wildcard" do 
+      it "allows * wildcard" do
         tap "somebody.*.love"
         deliver "somebody.to.love"
         expect(@tapped).to be(true)
       end
 
-      it "* matches only one word" do 
+      it "* matches only one word" do
         tap "somebody.*.love"
         deliver "somebody.not.to.love"
         expect(@tapped).not_to be(true)
       end
 
-      it "allows # wildcard" do 
+      it "allows # wildcard" do
         tap "i.#.free"
         deliver "i.want.to.break.free"
         expect(@tapped).to be(true)

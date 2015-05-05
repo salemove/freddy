@@ -7,13 +7,9 @@ module Messaging
 
     let(:producer) { freddy.producer }
 
-    it 'accepts additional parameters for publishing' do 
-      producer.produce destination, payload, content_type: 'application/html'
-    end
-
     describe 'with messages that need to be acknowledged' do 
       it 'raises error if no handler is provided' do
-        expect { producer.produce_with_ack destination, payload }.to raise_error Producer::EmptyAckHandler
+        expect { producer.produce_with_ack destination, payload, timeout: 3 }.to raise_error Producer::EmptyAckHandler
       end
     end
 

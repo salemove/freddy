@@ -56,35 +56,32 @@ class Freddy
   end
 
   def respond_to(destination, &callback)
-    @request.respond_to destination, false, &callback
+    @request.respond_to destination, &callback
   end
 
-  def respond_to_and_block(destination, &callback)
-    @request.respond_to destination, true, &callback
+  def deliver(destination, payload, timeout: 3, delete_on_timeout: true)
+    @producer.produce destination, payload, {
+      timeout: timeout, delete_on_timeout: delete_on_timeout
+    }
   end
 
-  def deliver(destination, payload)
-    @producer.produce destination, payload
+  def deliver_with_ack(destination, payload, timeout: 3, delete_on_timeout: true, &callback)
+    @producer.produce_with_ack destination, payload, {
+      timeout: timeout, delete_on_timeout: delete_on_timeout
+    }, &callback
   end
 
-  def deliver_with_ack(destination, payload, timeout_seconds = 3, &callback)
-    @producer.produce_with_ack destination, payload, timeout_seconds, &callback
-  end
+  def deliver_with_response(destination, payload, timeout: 3, delete_on_timeout: true, &callback)
+    opts = {timeout: timeout, delete_on_timeout: delete_on_timeout}
 
-  def deliver_with_response(destination, payload, timeout_seconds = 3,&callback)
     if block_given?
-      @request.async_request destination, payload, timeout_seconds, &callback
+      @request.async_request destination, payload, opts, &callback
     else
-      @request.sync_request destination, payload, timeout_seconds
+      @request.sync_request destination, payload, opts
     end
   end
 
   def tap_into(pattern, &callback)
-    @consumer.tap_into pattern, {block: false}, &callback
+    @consumer.tap_into pattern, &callback
   end
-
-  def tap_into_and_block(pattern, &callback)
-    @consumer.tap_into pattern, {block: true}, &callback
-  end
-
 end

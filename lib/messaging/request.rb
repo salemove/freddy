@@ -24,26 +24,35 @@ module Messaging
       @request_map = Hamster.mutable_hash
     end
 
-    def sync_request(destination, payload, timeout_seconds = 3, options={})
+    def sync_request(destination, payload, opts)
+      timeout_seconds = opts.fetch(:timeout)
       container = SyncResponseContainer.new
-      async_request destination, payload, timeout_seconds, options, &container
+      async_request destination, payload, opts, &container
       container.wait_for_response(timeout_seconds + 0.1)
     end
 
-    def async_request(destination, payload, timeout_seconds = 3, options={}, &block)
+    def async_request(destination, payload, timeout:, delete_on_timeout:, **options, &block)
       listen_for_responses unless @listening_for_responses
+
       correlation_id = SecureRandom.uuid
-      timeout = Time.now + timeout_seconds
-      @request_map.store(correlation_id, { callback: block, destination: destination, timeout: timeout})
+      @request_map.store(correlation_id, callback: block, destination: destination, timeout: Time.now + timeout)
+
       @logger.debug "Publishing request to #{destination}, waiting for response on #{@response_queue.name} with correlation_id #{correlation_id}"
-      @producer.produce destination, payload, options.merge(correlation_id: correlation_id, reply_to: @response_queue.name, mandatory: true)
+
+      if delete_on_timeout
+        options[:expiration] = (timeout * 1000).to_i
+      end
+
+      @producer.produce destination, payload, options.merge(
+        correlation_id: correlation_id, reply_to: @response_queue.name, mandatory: true
+      )
     end
 
-    def respond_to(destination, block_thread, &block)
+    def respond_to(destination, &block)
       raise EmptyResponder unless block
       @response_queue = create_response_queue unless @response_queue
       @logger.debug "Listening for requests on #{destination}"
-      responder_handler = @consumer.consume destination, { block: block_thread } do |payload, msg_handler|
+      responder_handler = @consumer.consume destination do |payload, msg_handler|
         handler = get_message_handler(msg_handler.properties)
         handle_request payload, msg_handler, handler.new(block, destination, @logger)
       end

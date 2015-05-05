@@ -3,6 +3,7 @@ require 'json'
 
 module Messaging
   class Producer
+    CONTENT_TYPE = 'application/json'.freeze
 
     class EmptyAckHandler < Exception
     end
@@ -15,15 +16,19 @@ module Messaging
 
     def produce(destination, payload, properties={})
       @logger.debug "Producing message #{payload.inspect} to #{destination}"
-      @topic_exchange.publish payload.to_json, properties.merge(routing_key: destination, content_type: 'application/json')
-      @exchange.publish payload.to_json, properties.merge(routing_key: destination, content_type: 'application/json')
+
+      properties = properties.merge(routing_key: destination, content_type: CONTENT_TYPE)
+      json_payload = payload.to_json
+
+      @topic_exchange.publish json_payload, properties.dup
+      @exchange.publish json_payload, properties.dup
     end
 
-    def produce_with_ack(destination, payload, timeout_seconds = 3, properties={}, &block)
+    def produce_with_ack(destination, payload, options, &block)
       raise EmptyAckHandler unless block
       req = Request.new(@channel, @logger)
-      producer = req.async_request destination, payload, timeout_seconds, properties.merge(mandatory: true, headers: {message_with_ack: true}) do |payload|
-        block.call payload[:error]
+      producer = req.async_request destination, payload, options.merge(mandatory: true, headers: {message_with_ack: true}) do |received_payload|
+        block.call received_payload[:error]
       end
 
       producer.on_return do
