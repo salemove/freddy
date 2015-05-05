@@ -1,4 +1,4 @@
-module Messaging
+class Freddy
   class MessageHandler
     attr_reader :properties, :response
     @acked = false

@@ -1,6 +1,6 @@
 require_relative 'base_message_handler'
 
-module Messaging
+class Freddy
   module MessageHandlers
     class AckMessageHandler < BaseMessageHandler
 

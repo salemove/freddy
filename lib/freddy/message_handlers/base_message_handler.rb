@@ -1,4 +1,4 @@
-module Messaging
+class Freddy
   module MessageHandlers
     class BaseMessageHandler < Struct.new(:callback, :destination, :logger)
       attr_reader :properties, :correlation_id

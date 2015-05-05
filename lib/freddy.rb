@@ -2,9 +2,9 @@ require 'bunny'
 require 'json'
 require 'symbolizer'
 
-require_relative 'messaging/consumer'
-require_relative 'messaging/producer'
-require_relative 'messaging/request'
+require_relative 'freddy/consumer'
+require_relative 'freddy/producer'
+require_relative 'freddy/request'
 
 class Freddy
 
@@ -50,9 +50,9 @@ class Freddy
 
   def initialize(channel, logger)
     @channel  = channel
-    @consumer = Messaging::Consumer.new channel, logger
-    @producer = Messaging::Producer.new channel, logger
-    @request  = Messaging::Request.new channel, logger
+    @consumer = Consumer.new channel, logger
+    @producer = Producer.new channel, logger
+    @request  = Request.new channel, logger
   end
 
   def respond_to(destination, &callback)

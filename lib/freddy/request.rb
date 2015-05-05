@@ -8,7 +8,7 @@ require_relative 'message_handlers/standard_message_handler'
 require 'securerandom'
 require 'hamster/mutable_hash'
 
-module Messaging
+class Freddy
   class Request
 
     class EmptyRequest < Exception

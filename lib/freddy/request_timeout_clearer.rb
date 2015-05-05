@@ -1,5 +1,5 @@
-module Messaging
- class RequestTimeoutClearer
+class Freddy
+  class RequestTimeoutClearer
 
     def initialize(requests, logger)
       @requests, @logger = requests, logger

@@ -1,4 +1,4 @@
-module Messaging
+class Freddy
   class ResponderHandler
 
     def initialize(consumer, channel)

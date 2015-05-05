@@ -2,7 +2,7 @@ require_relative 'responder_handler'
 require_relative 'message_handler'
 require_relative 'request'
 
-module Messaging
+class Freddy
   class Consumer
 
     class EmptyConsumer < Exception

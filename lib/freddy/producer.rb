@@ -1,7 +1,7 @@
 require_relative 'request'
 require 'json'
 
-module Messaging
+class Freddy
   class Producer
     CONTENT_TYPE = 'application/json'.freeze
 

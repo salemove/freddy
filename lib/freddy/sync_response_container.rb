@@ -1,6 +1,6 @@
 require 'timeout'
 
-module Messaging
+class Freddy
   class SyncResponseContainer
     def call(response, _msg_handler)
       @response = response

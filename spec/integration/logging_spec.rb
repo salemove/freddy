@@ -1,4 +1,4 @@
-require 'messaging_spec_helper'
+require 'spec_helper'
 
 describe 'Logging' do
   let(:freddy1) { Freddy.build(logger1, config) }
