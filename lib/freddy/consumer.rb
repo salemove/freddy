@@ -1,6 +1,7 @@
 require_relative 'responder_handler'
 require_relative 'message_handler'
 require_relative 'request'
+require_relative 'delivery'
 
 class Freddy
   class Consumer
@@ -22,7 +23,7 @@ class Freddy
       consumer = queue.subscribe options do |delivery_info, properties, payload|
         parsed_payload = parse_payload(payload)
         log_receive_event(queue.name, parsed_payload)
-        block.call parsed_payload, MessageHandler.new(delivery_info, properties)
+        block.call parsed_payload, Delivery.new(delivery_info, properties)
       end
       @logger.debug "Consuming messages on #{queue.name}"
       ResponderHandler.new consumer, @channel

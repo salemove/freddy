@@ -1,28 +1,20 @@
 class Freddy
   class MessageHandler
-    attr_reader :properties, :response
-    @acked = false
+    attr_reader :destination, :correlation_id
 
-    def initialize(delivery_info, properties)
-      @delivery_info = delivery_info
-      @properties = properties
+    def initialize(adapter, delivery)
+      @adapter = adapter
+      @properties = delivery.properties
+      @destination = @properties[:destination]
+      @correlation_id = @properties[:correlation_id]
+    end
+
+    def ack(response = nil)
+      @adapter.ack(@properties[:reply_to], response)
     end
 
     def nack(error = "Couldn't process message")
-      @acked = false
-      @error = error
-      @response = { error: error }
-    end
-
-    def ack(response=nil)
-      @acked = true
-      @error = nil
-      @response = response
-    end
-
-    def error
-      return @error if @error and !@acked
-      "Responder didn't manually acknowledge message" if !@acked
+      @adapter.nack(@properties[:reply_to], error: error)
     end
   end
 end

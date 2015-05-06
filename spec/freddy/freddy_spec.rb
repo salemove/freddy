@@ -19,6 +19,13 @@ describe Freddy do
       expect(response).to eq(res: 'yey')
     end
 
+    it 'returns negative response as soon as possible' do
+      respond_to { |payload, msg_handler| msg_handler.nack('ney') }
+      response = freddy.deliver_with_response(destination, {a: 'b'})
+
+      expect(response).to eq(error: 'ney')
+    end
+
     it 'does not leak consumers' do
       respond_to { |payload, msg_handler| msg_handler.ack(res: 'yey') }
 

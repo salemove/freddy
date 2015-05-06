@@ -2,7 +2,7 @@ require 'timeout'
 
 class Freddy
   class SyncResponseContainer
-    def call(response, _msg_handler)
+    def call(response, _delivery)
       @response = response
     end
 
