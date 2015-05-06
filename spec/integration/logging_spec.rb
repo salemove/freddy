@@ -20,14 +20,14 @@ describe 'Logging' do
   end
 
   it 'logs all consumed messages' do
-    expect(logger1).to have_received(:debug).with(/Listening for requests on \w+/)
-    expect(logger1).to have_received(:debug).with(/Consuming messages on \w+/)
-    expect(logger1).to have_received(:debug).with(/Received message on \w+ with payload {:pay=>"load"}/)
+    expect(logger1).to have_received(:debug).with(/Listening for requests on \S+/)
+    expect(logger1).to have_received(:debug).with(/Consuming messages on \S+/)
+    expect(logger1).to have_received(:debug).with(/Received message on \S+ with payload {:pay=>"load"}/)
   end
 
   it 'logs all produced messages' do
-    expect(logger2).to have_received(:debug).with(/Consuming messages on \w+/)
-    expect(logger2).to have_received(:debug).with(/Publishing request to \w+, waiting for response on amq.gen-\w+ with correlation_id .*/)
-    expect(logger2).to have_received(:debug).with(/Producing message {:pay=>"load"} to \w+/)
+    expect(logger2).to have_received(:debug).with(/Consuming messages on \S+/)
+    expect(logger2).to have_received(:debug).with(/Publishing request to \S+, waiting for response on amq.gen-\S+ with correlation_id .*/)
+    expect(logger2).to have_received(:debug).with(/Producing message {:pay=>"load"} to \S+/)
   end
 end
