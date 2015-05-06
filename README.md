@@ -1,5 +1,8 @@
 # Messaging API supporting acknowledgements and request-response
 
+[![Build Status](https://travis-ci.org/salemove/node-freddy.svg?branch=master)](https://travis-ci.org/salemove/node-freddy)
+[![Code Climate](https://codeclimate.com/github/salemove/freddy/badges/gpa.svg)](https://codeclimate.com/github/salemove/freddy)
+
 ## Usage
 
 ### Setup

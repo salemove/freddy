@@ -1,0 +1,8 @@
+language: ruby
+rvm:
+  - 2.1.0
+services:
+  - rabbitmq
+before_script:
+  - bundle
+script: bundle exec rspec
