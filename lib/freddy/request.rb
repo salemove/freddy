@@ -10,6 +10,7 @@ require 'hamster/mutable_hash'
 
 class Freddy
   class Request
+    NO_ROUTE = 312
 
     class EmptyRequest < Exception
     end
@@ -22,6 +23,13 @@ class Freddy
       @producer, @consumer = Producer.new(channel, logger), Consumer.new(channel, logger)
       @listening_for_responses = false
       @request_map = Hamster.mutable_hash
+      @timeout_clearer = RequestTimeoutClearer.new @request_map, @logger
+
+      @producer.on_return do |return_info, properties, content|
+        if return_info[:reply_code] == NO_ROUTE
+          @timeout_clearer.force_timeout(properties[:correlation_id])
+        end
+      end
     end
 
     def sync_request(destination, payload, opts)
@@ -100,8 +108,8 @@ class Freddy
 
     def listen_for_responses
       @listening_for_responses = true
-      @timeout_clearer = RequestTimeoutClearer.new @request_map, @logger unless @timeout_clearer
       @response_queue = create_response_queue unless @response_queue
+      @timeout_clearer.start
       @consumer.consume_from_queue @response_queue do |payload, msg_handler|
         handle_response payload, msg_handler
       end

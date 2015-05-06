@@ -20,5 +20,9 @@ class Freddy
       @topic_exchange.publish json_payload, properties.dup
       @exchange.publish json_payload, properties.dup
     end
+
+    def on_return(*args, &block)
+      @exchange.on_return(*args, &block)
+    end
   end
 end

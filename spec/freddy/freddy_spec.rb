@@ -48,6 +48,19 @@ describe Freddy do
       expect(new_count).to be(old_count + 1)
     end
 
+    context 'when queue does not exist' do
+      it 'gives timeout error immediately' do
+        begin
+          Timeout::timeout(0.5) do
+            response = freddy.deliver_with_response(destination, {a: 'b'}, timeout: 3)
+            expect(response).to eq(error: 'Timed out waiting for response')
+          end
+        rescue Timeout::Error
+          fail('Received a long timeout instead of the immediate one')
+        end
+      end
+    end
+
     context 'on timeout' do
       it 'gives timeout error' do
         respond_to { |payload, msg_handler| msg_handler.ack(res: 'yey') }
@@ -120,21 +133,16 @@ describe Freddy do
     end
 
     it 'responds to the correct requester' do
-      freddy.respond_to destination do end
+      freddy.respond_to(destination) { }
 
-      freddy.deliver_with_response destination, payload do
-        @dest_response_received = true
-      end
+      responses = []
+      responses << freddy.deliver_with_response(destination, payload)
+      responses << freddy.deliver_with_response(destination2, payload)
 
-      freddy.deliver_with_response destination2, payload do
-        @dest2_response_received = true
-      end
-
-      wait_for { @dest_response_received }
-      default_sleep
-
-      expect(@dest_response_received).to be(true)
-      expect(@dest2_response_received).to be_nil
+      expect(responses).to eql([
+        {},
+        {error: 'Timed out waiting for response'}
+      ])
     end
 
     it 'times out when no response comes' do
