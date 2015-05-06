@@ -20,7 +20,7 @@ describe Freddy do
     end
 
     it 'returns negative response as soon as possible' do
-      respond_to { |payload, msg_handler| msg_handler.nack('ney') }
+      respond_to { |payload, msg_handler| msg_handler.nack(error: 'ney') }
       response = freddy.deliver_with_response(destination, {a: 'b'})
 
       expect(response).to eq(error: 'ney')
@@ -55,7 +55,7 @@ describe Freddy do
     end
 
     it 'responds with error if the message was nacked' do
-      respond_to { |payload, msg_handler| msg_handler.nack('not today') }
+      respond_to { |payload, msg_handler| msg_handler.nack(error: 'not today') }
 
       response = freddy.deliver_with_response(destination, payload)
 

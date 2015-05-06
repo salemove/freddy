@@ -14,7 +14,7 @@ class Freddy
     end
 
     def nack(error = "Couldn't process message")
-      @adapter.nack(@properties[:reply_to], error: error)
+      @adapter.nack(@properties[:reply_to], error)
     end
   end
 end

@@ -21,7 +21,7 @@ describe Freddy::MessageHandler do
     it 'delegates to the adapter' do
       expect(adapter).to receive(:nack).with(reply_to, error: 'text')
 
-      subject.nack('text')
+      subject.nack(error: 'text')
     end
   end
 end
