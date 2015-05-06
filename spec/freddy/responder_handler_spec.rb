@@ -1,8 +1,10 @@
 require 'spec_helper'
 
 describe Freddy::ResponderHandler do
+  let(:freddy) { Freddy.build(logger, config) }
 
-  default_let
+  let(:destination) { random_destination }
+  let(:payload)     { {pay: 'load'} }
 
   it 'can cancel listening for messages' do
     consumer_handler = freddy.respond_to destination do

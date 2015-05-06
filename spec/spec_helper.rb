@@ -36,12 +36,6 @@ def deliver(custom_destination = destination)
   default_sleep
 end
 
-def default_let
-  let(:freddy) { Freddy.build(logger, config) }
-  let(:destination) { random_destination }
-  let(:payload) { {pay: 'load'} }
-end
-
 def logger
   Logger.new(STDOUT).tap { |l| l.level = Logger::ERROR }
 end

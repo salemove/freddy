@@ -1,8 +1,10 @@
 require 'spec_helper'
 
 describe Freddy::MessageHandler do
+  let(:freddy) { Freddy.build(logger, config) }
 
-  default_let
+  let(:destination) { random_destination }
+  let(:payload)     { {pay: 'load'} }
 
   def default_consume(&block)
     freddy.respond_to destination do |payload, msg_handler|

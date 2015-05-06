@@ -1,8 +1,10 @@
 require 'spec_helper'
 
 describe Freddy::Request do
+  let(:freddy) { Freddy.build(logger, config) }
 
-  default_let
+  let(:destination) { random_destination }
+  let(:payload)     { {pay: 'load'} }
 
   let(:request) { freddy.request }
 

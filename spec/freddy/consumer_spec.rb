@@ -1,7 +1,10 @@
 require 'spec_helper'
 
 describe Freddy::Consumer do
-  default_let
+  let(:freddy) { Freddy.build(logger, config) }
+
+  let(:destination) { random_destination }
+  let(:payload)     { {pay: 'load'} }
 
   let(:consumer) { freddy.consumer }
 
@@ -13,7 +16,8 @@ describe Freddy::Consumer do
     consumer.consume destination do
       @message_received = true
     end
-    expect(@message_received).not_to be true
-    deliver
+    default_sleep
+
+    expect(@message_received).to be_falsy
   end
 end
