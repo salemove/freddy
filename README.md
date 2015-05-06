@@ -1,13 +1,8 @@
 # Messaging API supporting acknowledgements and request-response
 
-[![Build Status](http://ci.salemove.com/buildStatus/icon?job=freddy)](http://ci.salemove.com/job/freddy/)
-[![Code Climate](https://codeclimate.com/repos/52a1f75613d6374c030432d2/badges/f8f96e50aa9f57dfae00/gpa.png)](https://codeclimate.com/repos/52a1f75613d6374c030432d2/feed)
-
 ## Usage
 
-### Ruby
-
-#### Setup
+### Setup
 
 * Inject the appropriate logger and set up connection parameters:
 
@@ -15,7 +10,7 @@
 freddy = Freddy.build(Logger.new(STDOUT), host: 'localhost', port: 5672, user: 'guest', pass: 'guest')
 ```
 
-#### Destinations
+### Destinations
 Freddy encourages but doesn't enforce the following protocol for destinations:
 
 * For sending messages to services:
@@ -30,7 +25,7 @@ Freddy encourages but doesn't enforce the following protocol for destinations:
 <service_name>.<method_name>.'responder'|'producer'.'errors'
 ```
 
-#### Delivering messages
+### Delivering messages
 
 * Simply deliver a message:
 ```ruby
@@ -75,7 +70,7 @@ freddy.deliver_with_response(destination, message, timeout: 3, delete_on_timeout
   response = freddy.deliver_with_response(destination, message, timeout: 3)
 ```
 
-#### Responding to messages
+### Responding to messages
 
 * Respond to messages while not blocking the current thread:
 ```ruby
@@ -87,7 +82,7 @@ freddy.respond_to destination do |message, msg_handler|
   * the parsed message (note that in the message all keys are symbolized)
   * the `MessageHandler` (described further down)
 
-#### The MessageHandler
+### The MessageHandler
 
 When responding to messages the MessageHandler is given as the second argument.
 ```ruby
@@ -122,7 +117,7 @@ msg_handler.nack(error = "Couldn't process message")
 msg_handler.properties
 ```
 
-#### Tapping into messages
+### Tapping into messages
 When it's necessary to receive messages but not consume them, consider tapping.
 
 ```ruby
@@ -149,7 +144,7 @@ freddy.tap_into "somebody.*.love"
 
 receives messages that are delivered to `somebody.to.love` but doesn't receive messages delivered to `someboy.not.to.love`
 
-#### The ResponderHandler
+### The ResponderHandler
 
 When responding to a message or tapping the ResponderHandler is returned.
 ```ruby
@@ -176,96 +171,13 @@ responder_handler.destroy_destination
     * Primary use case is in tests to not leave dangling destinations. It deletes the destination even if there are responders for the same destination in other parts of the system. Use with caution in production code.
 
 
-#### Notes about concurrency
+### Notes about concurrency
 
 The underlying bunny implementation uses 1 responder thread by default. This means that if there is a time-consuming process or a sleep call in a responder then other responders will not receive messages concurrently.
 
 This is especially devious when using `deliver_with_response` in a responder because `deliver_with_response` creates a new anonymous responder which will not receive the response if the parent responder uses a sleep call.
 
 To resolve this problem *freddy* uses 4 responder threads by default (configurable by `responder_thread_count`). Note that this means that ordered message processing is not guaranteed by default. Read more from <http://rubybunny.info/articles/concurrency.html>.
-
-***
-
-### Node.js
-
-Since 0.2.1 freddy for node.js uses promises, more info at
-
-https://github.com/kriskowal/q (Pay close attention the the section *The End*)
-
-
-#### Setup
-```coffee
-Freddy = require 'freddy'
-Freddy.addErrorListener(listener)
-Freddy.connect('amqp://guest:guest@localhost:5672', logger).done (freddy) ->
-  continueWith(freddy)
-, (error) ->
-  doSthWithError(error)
-```
-
-#### Delivering messages
-```coffee
-freddy.deliver(destination, message, options = {})
-
-freddy.deliverWithAck(destination, message, callback)
-
-freddy.deliverWithResponse(destination, message, callback)
-```
-
-* The previous 2 can be used with additional options also:
-```coffee
-freddy.deliverWithAckAndOptions(destination, message, options, callback)
-
-freddy.deliverWithResponseAndOptions(destination, message, options, callback)
-```
-
-  The options include:
-
-  * `timeout`: In seconds, defaults to 3.
-  * `suppressLog`: Avoid logging the message contents
-
-
-#### Responding to messages
-```coffee
-freddy.respondTo(destination, callback)
-```
-
-* `respondTo` returns a promise which resolved with the ResponderHandler
-
-```coffee
-freddy.respondTo(destination, callback)
-.done (responderHandler) ->
-  doSthWith(responderHandler.cancel())
-```
-
-#### The MessageHandler
-No differences to ruby spec
-
-#### Tapping into messages
-
-```coffee
-responderHandler = freddy.tapInto(pattern, callback)
-```
-
-No other differences to ruby spec, blocking variant is not provided for obvious reasons.
-
-#### The ResponderHandler
-
-* When cancelling the responder returns a promise, no messages will be received after the promise resolves.
-
-```coffee
-freddy.respondTo(destination, (->))
-.then (responderHandler) ->
-  responderHandler.cancel()
-.done ->
-  freddy.deliver(destination, easy: 'go') #will not be received
-```
-* The join method is not provided for obvious reasons.
-
-## Development
-
-* Use RSpec and mocha, make sure the tests pass.
-* Don't leak underlying messaging protocol internals.
 
 ## Credits
 
@@ -276,10 +188,6 @@ freddy.respondTo(destination, (->))
 **freddy** is maintained and funded by [SaleMove, Inc].
 
 The names and logos for **SaleMove** are trademarks of SaleMove, Inc.
-
-## License
-
-**freddy** is Copyright © 2013 SaleMove Inc. It is free software, and may be redistributed under the terms specified in the [Apache License].
 
 [Urmas Talimaa]: https://github.com/urmastalimaa?source=c "Urmas"
 [SaleMove, Inc]: http://salemove.com/ "SaleMove Website"
