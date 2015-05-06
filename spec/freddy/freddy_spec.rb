@@ -25,16 +25,6 @@ describe Freddy do
     end
   end
 
-  def deliver_with_ack(&block)
-    got_response = false
-    freddy.deliver_with_ack destination, payload do |error|
-      got_response = true
-      @ack_error = error
-      block.call error if block
-    end
-    wait_for { got_response }
-  end
-
   context 'when making a synchronized request' do
     it 'returns response as soon as possible' do
       respond_to { |payload, msg_handler| msg_handler.ack(res: 'yey') }
@@ -168,43 +158,6 @@ describe Freddy do
       expect(@error).not_to be_nil
     end
 
-  end
-
-  describe 'when producing with ack' do
-    it "reports error if message wasn't acknowledged" do
-      freddy.respond_to(destination) { }
-      deliver_with_ack
-      expect(@ack_error).not_to be_nil
-    end
-
-    it 'returns error if there are no responders' do
-      deliver_with_ack
-      expect(@ack_error).not_to be_nil
-    end
-
-    it "reports error if messages was nacked" do
-      freddy.respond_to destination do |message, msg_handler|
-        msg_handler.nack "bad message"
-      end
-      deliver_with_ack
-      expect(@ack_error).not_to be_nil
-    end
-
-    it "doesn't report error if message was acked" do
-      freddy.respond_to destination do |message, msg_handler|
-        msg_handler.ack
-      end
-      deliver_with_ack
-      expect(@ack_error).to be_nil
-    end
-
-    it "reports error if message timed out" do
-      freddy.deliver_with_ack destination, payload, timeout: 0.1 do |error|
-        @error = error
-      end
-      wait_for { @error }
-      expect(@error).not_to be_nil
-    end
   end
 
   describe 'when tapping' do

@@ -59,16 +59,14 @@ class Freddy
     @request.respond_to destination, &callback
   end
 
+  def tap_into(pattern, &callback)
+    @consumer.tap_into pattern, &callback
+  end
+
   def deliver(destination, payload, timeout: 3, delete_on_timeout: true)
     @producer.produce destination, payload, {
       timeout: timeout, delete_on_timeout: delete_on_timeout
     }
-  end
-
-  def deliver_with_ack(destination, payload, timeout: 3, delete_on_timeout: true, &callback)
-    @producer.produce_with_ack destination, payload, {
-      timeout: timeout, delete_on_timeout: delete_on_timeout
-    }, &callback
   end
 
   def deliver_with_response(destination, payload, timeout: 3, delete_on_timeout: true, &callback)
@@ -79,9 +77,5 @@ class Freddy
     else
       @request.sync_request destination, payload, opts
     end
-  end
-
-  def tap_into(pattern, &callback)
-    @consumer.tap_into pattern, &callback
   end
 end

@@ -15,7 +15,7 @@ describe 'Logging' do
       msg_handler.ack
     end
 
-    freddy2.deliver_with_ack(destination, payload) { }
+    freddy2.deliver_with_response(destination, payload) { }
     default_sleep
   end
 

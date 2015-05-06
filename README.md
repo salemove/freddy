@@ -34,21 +34,6 @@ freddy.deliver(destination, message)
     * destination is the recipient of the message
     * message is the contents of the message
 
-* Deliver a message expecting explicit acknowledgement
-```ruby
-freddy.deliver_with_ack(destination, message, timeout: 3, delete_on_timeout: true) do |error|
-```
-
-  * If `timeout` seconds pass without a response from the responder, then the callback is called with a timeout error.
-
-  * callback is called with one argument: a string that contains an error message if
-    * the message couldn't be sent to any responders or
-    * the responder negatively acknowledged(nacked) the message or
-    * the responder finished working but didn't positively acknowledge the message
-
-  * callback is called with one argument that is nil if the responder positively acknowledged the message
-  * note that the callback will not be called in the case that there is a responder who receives the message, but the responder doesn't finish processing the message or dies in the process.
-
 * Deliver expecting a response
 ```ruby
 freddy.deliver_with_response(destination, message, timeout: 3, delete_on_timeout: true) do |response, msg_handler|

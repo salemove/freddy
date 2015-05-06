@@ -11,8 +11,8 @@ describe Freddy::MessageHandler do
     end
   end
 
-  def produce_with_ack
-    freddy.deliver_with_ack destination, payload do end
+  def produce
+    freddy.deliver destination, payload do end
     default_sleep
   end
 
@@ -29,7 +29,7 @@ describe Freddy::MessageHandler do
     default_consume do |payload, msg_handler|
       msg_handler.ack
     end
-    produce_with_ack
+    produce
     expect(@msg_handler.error).to be_nil
   end
 
@@ -37,7 +37,7 @@ describe Freddy::MessageHandler do
     default_consume do |payload, msg_handler|
       msg_handler.nack "bad message"
     end
-    produce_with_ack
+    produce
     expect(@msg_handler.error).not_to be_nil
   end
 
@@ -45,7 +45,7 @@ describe Freddy::MessageHandler do
     default_consume do |payload, msg_handler|
       msg_handler.ack(ack: 'smack')
     end
-    produce_with_ack
+    produce
 
     expect(@msg_handler.error).to be_nil
     expect(@msg_handler.response).not_to be_nil
