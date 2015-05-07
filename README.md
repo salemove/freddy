@@ -13,21 +13,6 @@
 freddy = Freddy.build(Logger.new(STDOUT), host: 'localhost', port: 5672, user: 'guest', pass: 'guest')
 ```
 
-### Destinations
-Freddy encourages but doesn't enforce the following protocol for destinations:
-
-* For sending messages to services:
-
-```
-<service_name>.<method_name>.<anything_else_you_need>.<...>
-```
-
-* For reporting errors:
-
-```
-<service_name>.<method_name>.'responder'|'producer'.'errors'
-```
-
 ### Delivering messages
 
 * Simply deliver a message:
@@ -39,23 +24,13 @@ freddy.deliver(destination, message)
 
 * Deliver expecting a response
 ```ruby
-freddy.deliver_with_response(destination, message, timeout: 3, delete_on_timeout: true) do |response, msg_handler|
+response = freddy.deliver_with_response(destination, message, timeout: 3, delete_on_timeout: true)
 ```
 
-  * If `timeout` seconds pass without a response from the responder then the callback is called with the hash
+  * If `timeout` seconds pass without a response then `Freddy::ErrorResponse` error is raised with #response
 ```ruby
-{ error: 'Timed out waiting for response' }
-```
-
-  * Callback is called with 2 arguments
-
-    * The parsed response
-
-    * The `MessageHandler`(described further down)
-
-* Synchronous deliver expecting response
-```ruby
-  response = freddy.deliver_with_response(destination, message, timeout: 3)
+rescue Freddy::ErrorResponse => e
+  e.response # => { error: 'Timed out waiting for response' }
 ```
 
 ### Responding to messages
@@ -81,28 +56,12 @@ The following operations are supported:
 
   * acknowledging the message
 ```ruby
-msg_handler.ack(response = nil)
+msg_handler.success(response = nil)
 ```
-
-    * when the message was produced with `produce_with_response`, then the response is sent to the original producer
-
-    * when the message was produced with `produce_with_ack`, then only a positive acknowledgement is sent, the provided response is dicarded
 
   * negatively acknowledging the message
 ```ruby
-msg_handler.nack(error = "Couldn't process message")
-```
-
-    * when the message was produced with `produce_with_response`, then the following hash is sent to the original producer
-```ruby
-{ error: error }
-```
-
-    * when the message was produced with `produce_with_ack`, then the error (e.g negative acknowledgement) is sent to the original producer
-
-  * Getting additional properties of the message (shouldn't be necessary under normal circumstances)
-```ruby
-msg_handler.properties
+msg_handler.error(error: "Couldn't process message")
 ```
 
 ### Tapping into messages

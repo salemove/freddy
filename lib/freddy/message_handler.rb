@@ -9,12 +9,12 @@ class Freddy
       @correlation_id = @properties[:correlation_id]
     end
 
-    def ack(response = nil)
-      @adapter.ack(@properties[:reply_to], response)
+    def success(response = nil)
+      @adapter.success(@properties[:reply_to], response)
     end
 
-    def nack(error = "Couldn't process message")
-      @adapter.nack(@properties[:reply_to], error)
+    def error(error = {error: "Couldn't process message"})
+      @adapter.error(@properties[:reply_to], error)
     end
   end
 end

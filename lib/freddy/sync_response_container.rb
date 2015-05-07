@@ -2,15 +2,21 @@ require 'timeout'
 
 class Freddy
   class SyncResponseContainer
-    def call(response, _delivery)
+    def call(response, delivery)
       @response = response
+      @delivery = delivery
     end
 
     def wait_for_response(timeout)
       Timeout::timeout(timeout) do
         sleep 0.001 until filled?
       end
-      @response
+
+      if !@delivery || @delivery.properties[:type] == 'error'
+        raise ErrorResponse.new(@response)
+      else
+        @response
+      end
     end
 
     private

@@ -13,21 +13,24 @@ describe Freddy do
 
   context 'when making a synchronized request' do
     it 'returns response as soon as possible' do
-      respond_to { |payload, msg_handler| msg_handler.ack(res: 'yey') }
+      respond_to { |payload, msg_handler| msg_handler.success(res: 'yey') }
       response = freddy.deliver_with_response(destination, {a: 'b'})
 
       expect(response).to eq(res: 'yey')
     end
 
-    it 'returns negative response as soon as possible' do
-      respond_to { |payload, msg_handler| msg_handler.nack(error: 'ney') }
-      response = freddy.deliver_with_response(destination, {a: 'b'})
+    it 'raises an error if the message was errored' do
+      respond_to { |payload, msg_handler| msg_handler.error(error: 'not today') }
 
-      expect(response).to eq(error: 'ney')
+      expect {
+        freddy.deliver_with_response(destination, payload)
+      }.to raise_error(Freddy::ErrorResponse) {|error|
+        expect(error.response).to eq(error: 'not today')
+      }
     end
 
     it 'does not leak consumers' do
-      respond_to { |payload, msg_handler| msg_handler.ack(res: 'yey') }
+      respond_to { |payload, msg_handler| msg_handler.success(res: 'yey') }
 
       old_count = freddy.channel.consumers.keys.count
 
@@ -42,32 +45,25 @@ describe Freddy do
     end
 
     it 'responds to the correct requester' do
-      respond_to { |payload, msg_handler| msg_handler.ack(res: 'yey') }
-
-      responses = []
-      responses << freddy.deliver_with_response(destination, payload)
-      responses << freddy.deliver_with_response(destination2, payload)
-
-      expect(responses).to eql([
-        {res: 'yey'},
-        {error: 'Timed out waiting for response'}
-      ])
-    end
-
-    it 'responds with error if the message was nacked' do
-      respond_to { |payload, msg_handler| msg_handler.nack(error: 'not today') }
+      respond_to { |payload, msg_handler| msg_handler.success(res: 'yey') }
 
       response = freddy.deliver_with_response(destination, payload)
+      expect(response).to eq(res: 'yey')
 
-      expect(response).to eql(error: 'not today')
+      expect {
+        freddy.deliver_with_response(destination2, payload)
+      }.to raise_error(Freddy::ErrorResponse)
     end
 
     context 'when queue does not exist' do
       it 'gives timeout error immediately' do
         begin
           Timeout::timeout(0.5) do
-            response = freddy.deliver_with_response(destination, {a: 'b'}, timeout: 3)
-            expect(response).to eq(error: 'Timed out waiting for response')
+            expect {
+              freddy.deliver_with_response(destination, {a: 'b'}, timeout: 3)
+            }.to raise_error(Freddy::ErrorResponse) {|error|
+              expect(error.response).to eq(error: 'Timed out waiting for response')
+            }
           end
         rescue Timeout::Error
           fail('Received a long timeout instead of the immediate one')
@@ -77,10 +73,13 @@ describe Freddy do
 
     context 'on timeout' do
       it 'gives timeout error' do
-        respond_to { |payload, msg_handler| msg_handler.ack(res: 'yey') }
-        response = freddy.deliver_with_response('invalid', {a: 'b'}, timeout: 0.1)
+        respond_to { |payload, msg_handler| msg_handler.success(res: 'yey') }
 
-        expect(response).to eq(error: 'Timed out waiting for response')
+        expect {
+          freddy.deliver_with_response('invalid', {a: 'b'}, timeout: 0.1)
+        }.to raise_error(Freddy::ErrorResponse) {|error|
+          expect(error.response).to eq(error: 'Timed out waiting for response')
+        }
       end
 
       context 'with delete_on_timeout is set to true' do
@@ -89,14 +88,14 @@ describe Freddy do
           # return.
           freddy.channel.queue(destination)
 
-          response = freddy.deliver_with_response(destination, {}, timeout: 0.1)
-          default_sleep
+          expect {
+            freddy.deliver_with_response(destination, {}, timeout: 0.1)
+          }.to raise_error(Freddy::ErrorResponse)
 
           processed_after_timeout = false
           respond_to { processed_after_timeout = true }
           default_sleep
 
-          expect(response).to eq(error: 'Timed out waiting for response')
           expect(processed_after_timeout).to be(false)
         end
       end
@@ -107,31 +106,17 @@ describe Freddy do
           # return.
           freddy.channel.queue(destination)
 
-          response = freddy.deliver_with_response(destination, {}, timeout: 0.1, delete_on_timeout: false)
-          default_sleep
+          expect {
+            freddy.deliver_with_response(destination, {}, timeout: 0.1, delete_on_timeout: false)
+          }.to raise_error(Freddy::ErrorResponse)
 
           processed_after_timeout = false
           respond_to { processed_after_timeout = true }
           default_sleep
 
-          expect(response).to eq(error: 'Timed out waiting for response')
           expect(processed_after_timeout).to be(true)
         end
       end
-    end
-  end
-
-  context 'when making an asynchronized request' do
-    it 'invokes callback when response returns' do
-      respond_to { |payload, msg_handler| default_sleep && msg_handler.ack(res: 'yey') }
-
-      freddy.deliver_with_response(destination, {a: 'b'}) do |response|
-        @response = response
-      end
-      expect(@response).to be(nil)
-
-      wait_for { @response }
-      expect(@response).to eq(res: 'yey')
     end
   end
 

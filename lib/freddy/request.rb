@@ -51,7 +51,7 @@ class Freddy
 
       @producer.produce destination, payload, options.merge(
         correlation_id: correlation_id, reply_to: @response_queue.name,
-        mandatory: true, type: 'ack'
+        mandatory: true, type: 'request'
       )
     end
 

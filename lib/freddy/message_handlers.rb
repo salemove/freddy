@@ -1,7 +1,7 @@
 class Freddy
   module MessageHandlers
     def self.for_type(type)
-      type == 'ack' ? RequestHandler : StandardMessageHandler
+      type == 'request' ? RequestHandler : StandardMessageHandler
     end
 
     class BaseMessageHandler
@@ -14,11 +14,11 @@ class Freddy
         raise NotImplementedError
       end
 
-      def ack
+      def success(*)
         raise NotImplementedError
       end
 
-      def nack
+      def error(*)
         raise NotImplementedError
       end
     end
@@ -32,11 +32,11 @@ class Freddy
         Freddy.notify_exception(e, destination: destination)
       end
 
-      def ack(*)
+      def success(*)
         # NOP
       end
 
-      def nack(*)
+      def error(*)
         # NOP
       end
     end
@@ -56,12 +56,12 @@ class Freddy
         Freddy.notify_exception(e, destination: msg_handler.destination, correlation_id: @correlation_id)
       end
 
-      def ack(reply_to, response)
-        send_response(reply_to, response, type: 'ack')
+      def success(reply_to, response)
+        send_response(reply_to, response, type: 'success')
       end
 
-      def nack(reply_to, response)
-        send_response(reply_to, response, type: 'nack')
+      def error(reply_to, response)
+        send_response(reply_to, response, type: 'error')
       end
 
       private

@@ -12,7 +12,7 @@ describe 'Logging' do
 
   before do
     freddy1.respond_to destination do |payload, msg_handler|
-      msg_handler.ack
+      msg_handler.success
     end
 
     freddy2.deliver_with_response(destination, payload) { }

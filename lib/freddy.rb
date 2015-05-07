@@ -7,6 +7,14 @@ require_relative 'freddy/producer'
 require_relative 'freddy/request'
 
 class Freddy
+  class ErrorResponse < StandardError
+    attr_reader :response
+
+    def initialize(response)
+      @response = response
+      super('Use #response to get the error response')
+    end
+  end
 
   FREDDY_TOPIC_EXCHANGE_NAME = 'freddy-topic'.freeze
 
@@ -69,13 +77,9 @@ class Freddy
     }
   end
 
-  def deliver_with_response(destination, payload, timeout: 3, delete_on_timeout: true, &callback)
-    opts = {timeout: timeout, delete_on_timeout: delete_on_timeout}
-
-    if block_given?
-      @request.async_request destination, payload, opts, &callback
-    else
-      @request.sync_request destination, payload, opts
-    end
+  def deliver_with_response(destination, payload, timeout: 3, delete_on_timeout: true)
+    @request.sync_request destination, payload, {
+      timeout: timeout, delete_on_timeout: delete_on_timeout
+    }
   end
 end

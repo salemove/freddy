@@ -17,7 +17,7 @@ describe Freddy::Request do
 
     before do
       freddy.respond_to 'thread-queue' do |payload, msg_handler|
-        msg_handler.ack(payload)
+        msg_handler.success(payload)
       end
     end
 

@@ -9,19 +9,19 @@ describe Freddy::MessageHandler do
 
   let(:reply_to) { double }
 
-  describe '#ack' do
+  describe '#success' do
     it 'delegates to the adapter' do
-      expect(adapter).to receive(:ack).with(reply_to, x: 'y')
+      expect(adapter).to receive(:success).with(reply_to, x: 'y')
 
-      subject.ack(x: 'y')
+      subject.success(x: 'y')
     end
   end
 
-  describe '#nack' do
+  describe '#error' do
     it 'delegates to the adapter' do
-      expect(adapter).to receive(:nack).with(reply_to, error: 'text')
+      expect(adapter).to receive(:error).with(reply_to, error: 'text')
 
-      subject.nack(error: 'text')
+      subject.error(error: 'text')
     end
   end
 end
