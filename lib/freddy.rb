@@ -2,11 +2,19 @@ require 'bunny'
 require 'json'
 require 'symbolizer'
 
-require_relative 'messaging/consumer'
-require_relative 'messaging/producer'
-require_relative 'messaging/request'
+require_relative 'freddy/consumer'
+require_relative 'freddy/producer'
+require_relative 'freddy/request'
 
 class Freddy
+  class ErrorResponse < StandardError
+    attr_reader :response
+
+    def initialize(response)
+      @response = response
+      super('Use #response to get the error response')
+    end
+  end
 
   FREDDY_TOPIC_EXCHANGE_NAME = 'freddy-topic'.freeze
 
@@ -50,41 +58,29 @@ class Freddy
 
   def initialize(channel, logger)
     @channel  = channel
-    @consumer = Messaging::Consumer.new channel, logger
-    @producer = Messaging::Producer.new channel, logger
-    @request  = Messaging::Request.new channel, logger
+    @consumer = Consumer.new channel, logger
+    @producer = Producer.new channel, logger
+    @request  = Request.new channel, logger
   end
 
   def respond_to(destination, &callback)
-    @request.respond_to destination, false, &callback
-  end
-
-  def respond_to_and_block(destination, &callback)
-    @request.respond_to destination, true, &callback
-  end
-
-  def deliver(destination, payload)
-    @producer.produce destination, payload
-  end
-
-  def deliver_with_ack(destination, payload, timeout_seconds = 3, &callback)
-    @producer.produce_with_ack destination, payload, timeout_seconds, &callback
-  end
-
-  def deliver_with_response(destination, payload, timeout_seconds = 3,&callback)
-    if block_given?
-      @request.async_request destination, payload, timeout_seconds, &callback
-    else
-      @request.sync_request destination, payload, timeout_seconds
-    end
+    @request.respond_to destination, &callback
   end
 
   def tap_into(pattern, &callback)
-    @consumer.tap_into pattern, {block: false}, &callback
+    @consumer.tap_into pattern, &callback
   end
 
-  def tap_into_and_block(pattern, &callback)
-    @consumer.tap_into pattern, {block: true}, &callback
+  def deliver(destination, payload, timeout: 0)
+    opts = {}
+    opts[:expiration] = (timeout * 1000).to_i if timeout > 0
+
+    @producer.produce destination, payload, opts
   end
 
+  def deliver_with_response(destination, payload, timeout: 3, delete_on_timeout: true)
+    @request.sync_request destination, payload, {
+      timeout: timeout, delete_on_timeout: delete_on_timeout
+    }
+  end
 end

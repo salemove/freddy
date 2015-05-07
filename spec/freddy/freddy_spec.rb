@@ -1,231 +1,223 @@
-require 'messaging_spec_helper'
+require 'spec_helper'
 
-module Messaging
-  describe Freddy do 
+describe Freddy do
+  let(:freddy) { described_class.build(logger, config) }
 
-    default_let
-    let(:destination2) { random_destination }
-    let(:test_response) { {custom: 'response'}}
-    let(:freddy) { Freddy.build(logger, config) }
+  let(:destination)  { random_destination }
+  let(:destination2) { random_destination }
+  let(:payload)      { {pay: 'load'} }
 
-    def deliver_with_response(&block)
-      got_response = false
-      freddy.deliver_with_response destination, payload do |response|
-        got_response = true
-        @received_response = response
-        block.call response if block
-      end
-      wait_for { got_response }
-    end
+  def respond_to(&block)
+    freddy.respond_to(destination, &block)
+  end
 
-    def respond_to(&block)
-      @responder = freddy.respond_to destination do |request_payload, msg_handler|
-        @message_received = true
-        @received_payload = request_payload
-        block.call request_payload, msg_handler if block
-      end
-    end
+  context 'when making a send-and-forget request' do
+    context 'with timeout' do
+      it 'removes the message from the queue after the timeout' do
+        # Assume that there already is a queue. Otherwise will get an early
+        # return.
+        freddy.channel.queue(destination)
 
-    def deliver_with_ack(&block)
-      got_response = false
-      freddy.deliver_with_ack destination, payload do |error|
-        got_response = true
-        @ack_error = error
-        block.call error if block
-      end
-      wait_for { got_response }
-    end
+        freddy.deliver(destination, {}, timeout: 0.1)
+        sleep 0.2
 
-    context 'when making a synchronized request' do
-      it 'returns response as soon as possible' do
-        respond_to { |payload, msg_handler| msg_handler.ack(res: 'yey') }
-        response = freddy.deliver_with_response(destination, {a: 'b'})
-        # without sleep
-
-        expect(response).to eq(res: 'yey')
-      end
-
-      it 'does not leak consumers' do
-        respond_to { |payload, msg_handler| msg_handler.ack(res: 'yey') }
-
-        old_count = freddy.channel.consumers.keys.count
-
-        response1 = freddy.deliver_with_response(destination, {a: 'b'})
-        response2 = freddy.deliver_with_response(destination, {a: 'b'})
-
-        expect(response1).to eq(res: 'yey')
-        expect(response2).to eq(res: 'yey')
-
-        new_count = freddy.channel.consumers.keys.count
-        expect(new_count).to be(old_count + 1)
-      end
-
-      it 'gives timeout error when no response' do
-        respond_to { |payload, msg_handler| msg_handler.ack(res: 'yey') }
-        response = freddy.deliver_with_response('invalid', {a: 'b'}, 0.1)
-        # without sleep
-
-        expect(response).to eq(error: 'Timed out waiting for response')
-      end
-    end
-
-    describe "when producing with response" do 
-
-      it 'sends the request to responder' do 
-        respond_to
-        deliver_with_response
-        expect(@message_received).to be(true)
-      end
-
-      it 'sends the payload in request to the responder' do 
-        respond_to do end
-        payload = {a: {b: 'c'}}
-        freddy.deliver_with_response destination, payload do end
-        wait_for { @message_received }
-
-        expect(@received_payload).to eq Symbolizer.symbolize(payload)
-      end
-
-      it 'sends the response to requester' do 
-        freddy.respond_to destination do |message, msg_handler|
-          msg_handler.ack test_response
-        end
-        deliver_with_response
-        expect(@received_response).to eq(Symbolizer.symbolize(test_response))
-      end
-
-      it 'responds to the correct requester' do
-        freddy.respond_to destination do end
-
-        freddy.deliver_with_response destination, payload do 
-          @dest_response_received = true
-        end
-
-        freddy.deliver_with_response destination2, payload do 
-          @dest2_response_received = true
-        end
-
-        wait_for { @dest_response_received }
+        processed_after_timeout = false
+        respond_to { processed_after_timeout = true }
         default_sleep
 
-        expect(@dest_response_received).to be(true)
-        expect(@dest2_response_received).to be_nil
-      end
-
-      it 'times out when no response comes' do 
-        freddy.deliver_with_response destination, payload, 0.1 do |response|
-          @error = response[:error]
-        end
-        wait_for { @error }
-        expect(@error).not_to be_nil
-      end
-
-      it 'responds with error if the message was nacked' do 
-        freddy.respond_to destination do |message, msg_handler|
-          msg_handler.nack
-        end
-        freddy.deliver_with_response destination, payload do |response|
-          @error = response[:error]
-        end
-
-        wait_for { @error }
-
-        expect(@error).not_to be_nil
-      end
-
-    end
-
-    describe 'when producing with ack' do 
-      it "reports error if message wasn't acknowledged" do 
-        freddy.respond_to destination do end
-        deliver_with_ack
-        expect(@ack_error).not_to be_nil
-      end
-
-      it 'returns error if there are no responders' do 
-        deliver_with_ack
-        expect(@ack_error).not_to be_nil
-      end
-
-      it "reports error if messages was nacked" do 
-        freddy.respond_to destination do |message, msg_handler|
-          msg_handler.nack "bad message"
-        end
-        deliver_with_ack
-        expect(@ack_error).not_to be_nil
-      end
-
-      it "doesn't report error if message was acked" do 
-        freddy.respond_to destination do |message, msg_handler|
-          msg_handler.ack
-        end
-        deliver_with_ack
-        expect(@ack_error).to be_nil
-      end
-
-      it "reports error if message timed out" do 
-        freddy.deliver_with_ack destination, payload, 0.1 do |error|
-          @error = error
-        end
-        wait_for { @error }
-        expect(@error).not_to be_nil
+        expect(processed_after_timeout).to be(false)
       end
     end
 
-    describe 'when tapping' do
+    context 'without timeout' do
+      it 'keeps the message in the queue' do
+        # Assume that there already is a queue. Otherwise will get an early
+        # return.
+        freddy.channel.queue(destination)
 
-      def tap(custom_destination = destination, &callback)
-        freddy.tap_into custom_destination do |message, origin|
-          @tapped = true
-          @tapped_message = message
-          callback.call message, origin if callback
+        freddy.deliver(destination, {})
+        default_sleep # to ensure everything is properly cleaned
+
+        processed_after_timeout = false
+        respond_to { processed_after_timeout = true }
+        default_sleep
+
+        expect(processed_after_timeout).to be(true)
+      end
+    end
+  end
+
+  context 'when making a synchronized request' do
+    it 'returns response as soon as possible' do
+      respond_to { |payload, msg_handler| msg_handler.success(res: 'yey') }
+      response = freddy.deliver_with_response(destination, {a: 'b'})
+
+      expect(response).to eq(res: 'yey')
+    end
+
+    it 'raises an error if the message was errored' do
+      respond_to { |payload, msg_handler| msg_handler.error(error: 'not today') }
+
+      expect {
+        freddy.deliver_with_response(destination, payload)
+      }.to raise_error(Freddy::ErrorResponse) {|error|
+        expect(error.response).to eq(error: 'not today')
+      }
+    end
+
+    it 'does not leak consumers' do
+      respond_to { |payload, msg_handler| msg_handler.success(res: 'yey') }
+
+      old_count = freddy.channel.consumers.keys.count
+
+      response1 = freddy.deliver_with_response(destination, {a: 'b'})
+      response2 = freddy.deliver_with_response(destination, {a: 'b'})
+
+      expect(response1).to eq(res: 'yey')
+      expect(response2).to eq(res: 'yey')
+
+      new_count = freddy.channel.consumers.keys.count
+      expect(new_count).to be(old_count + 1)
+    end
+
+    it 'responds to the correct requester' do
+      respond_to { |payload, msg_handler| msg_handler.success(res: 'yey') }
+
+      response = freddy.deliver_with_response(destination, payload)
+      expect(response).to eq(res: 'yey')
+
+      expect {
+        freddy.deliver_with_response(destination2, payload)
+      }.to raise_error(Freddy::ErrorResponse)
+    end
+
+    context 'when queue does not exist' do
+      it 'gives a no route error' do
+        begin
+          Timeout::timeout(0.5) do
+            expect {
+              freddy.deliver_with_response(destination, {a: 'b'}, timeout: 3)
+            }.to raise_error(Freddy::ErrorResponse) {|error|
+              expect(error.response).to eq(error: 'Specified queue does not exist')
+            }
+          end
+        rescue Timeout::Error
+          fail('Received a timeout error instead of the no route error')
         end
-      end 
+      end
+    end
 
-      it 'can tap' do 
-        tap
+    context 'on timeout' do
+      it 'gives timeout error' do
+        respond_to { |payload, msg_handler| sleep 0.2 }
+
+        expect {
+          freddy.deliver_with_response(destination, {a: 'b'}, timeout: 0.1)
+        }.to raise_error(Freddy::ErrorResponse) {|error|
+          expect(error.response).to eq(error: 'Timed out waiting for response')
+        }
       end
 
-      it 'receives messages' do 
-        tap
-        deliver
-        expect(@tapped_message).to eq(Symbolizer.symbolize payload)
-      end
+      context 'with delete_on_timeout is set to true' do
+        it 'removes the message from the queue' do
+          # Assume that there already is a queue. Otherwise will get an early
+          # return.
+          freddy.channel.queue(destination)
 
-      it 'has the destination' do 
-        tap "somebody.*.love" do |message, destination|
-          @destination = destination
+          expect {
+            freddy.deliver_with_response(destination, {}, timeout: 0.1)
+          }.to raise_error(Freddy::ErrorResponse)
+          default_sleep # to ensure everything is properly cleaned
+
+          processed_after_timeout = false
+          respond_to { processed_after_timeout = true }
+          default_sleep
+
+          expect(processed_after_timeout).to be(false)
         end
-        deliver "somebody.to.love"
-        expect(@destination).to eq("somebody.to.love")
       end
 
-      it "doesn't consume the message" do
-        tap
-        respond_to
-        deliver
-        expect(@tapped).to be(true)
-        expect(@message_received).to be(true)
-      end
+      context 'with delete_on_timeout is set to false' do
+        it 'removes the message from the queue' do
+          # Assume that there already is a queue. Otherwise will get an early
+          # return.
+          freddy.channel.queue(destination)
 
-      it "allows * wildcard" do 
-        tap "somebody.*.love"
-        deliver "somebody.to.love"
-        expect(@tapped).to be(true)
-      end
+          expect {
+            freddy.deliver_with_response(destination, {}, timeout: 0.1, delete_on_timeout: false)
+          }.to raise_error(Freddy::ErrorResponse)
+          default_sleep # to ensure everything is properly cleaned
 
-      it "* matches only one word" do 
-        tap "somebody.*.love"
-        deliver "somebody.not.to.love"
-        expect(@tapped).not_to be(true)
-      end
+          processed_after_timeout = false
+          respond_to { processed_after_timeout = true }
+          default_sleep
 
-      it "allows # wildcard" do 
-        tap "i.#.free"
-        deliver "i.want.to.break.free"
-        expect(@tapped).to be(true)
+          expect(processed_after_timeout).to be(true)
+        end
       end
+    end
+  end
 
+  describe 'when tapping' do
+    def tap(custom_destination = destination, &block)
+      freddy.tap_into(custom_destination, &block)
+    end
+
+    it 'receives messages' do
+      tap {|msg| @tapped_message = msg }
+      deliver
+
+      wait_for { @tapped_message }
+      expect(@tapped_message).to eq(payload)
+    end
+
+    it 'has the destination' do
+      tap "somebody.*.love" do |message, destination|
+        @destination = destination
+      end
+      deliver "somebody.to.love"
+
+      wait_for { @destination }
+      expect(@destination).to eq("somebody.to.love")
+    end
+
+    it "doesn't consume the message" do
+      tap { @tapped = true }
+      respond_to { @message_received = true }
+
+      deliver
+
+      wait_for { @tapped }
+      wait_for { @message_received }
+      expect(@tapped).to be(true)
+      expect(@message_received).to be(true)
+    end
+
+    it "allows * wildcard" do
+      tap("somebody.*.love") { @tapped = true }
+
+      deliver "somebody.to.love"
+
+      wait_for { @tapped }
+      expect(@tapped).to be(true)
+    end
+
+    it "* matches only one word" do
+      tap("somebody.*.love") { @tapped = true }
+
+      deliver "somebody.not.to.love"
+
+      default_sleep
+      expect(@tapped).to be_falsy
+    end
+
+    it "allows # wildcard" do
+      tap("i.#.free") { @tapped = true }
+
+      deliver "i.want.to.break.free"
+
+      wait_for { @tapped }
+      expect(@tapped).to be(true)
     end
   end
 end

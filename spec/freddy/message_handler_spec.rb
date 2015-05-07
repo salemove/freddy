@@ -1,56 +1,27 @@
-require 'messaging_spec_helper'
+require 'spec_helper'
 
-module Messaging
-  describe MessageHandler do
+describe Freddy::MessageHandler do
+  subject(:handler) { described_class.new(adapter, delivery) }
 
-    default_let
+  let(:adapter) { double }
+  let(:delivery) { double(properties: properties) }
+  let(:properties) { {reply_to: reply_to} }
 
-    def default_consume(&block)
-      freddy.respond_to destination do |payload, msg_handler|
-        @msg_handler = msg_handler
-        block.call payload, msg_handler if block
-      end
+  let(:reply_to) { double }
+
+  describe '#success' do
+    it 'delegates to the adapter' do
+      expect(adapter).to receive(:success).with(reply_to, x: 'y')
+
+      subject.success(x: 'y')
     end
+  end
 
-    def produce_with_ack
-      freddy.deliver_with_ack destination, payload do end
-      default_sleep
+  describe '#error' do
+    it 'delegates to the adapter' do
+      expect(adapter).to receive(:error).with(reply_to, error: 'text')
+
+      subject.error(error: 'text')
     end
-
-    it 'has properties about message' do 
-      properties = nil
-      default_consume do |payload, msg_handler|
-        properties = msg_handler.properties
-      end
-      deliver
-      expect(properties).not_to be_nil
-    end
-
-    it 'can ack message' do 
-      default_consume do |payload, msg_handler|
-        msg_handler.ack
-      end
-      produce_with_ack
-      expect(@msg_handler.error).to be_nil
-    end
-
-    it 'can nack message' do 
-      default_consume do |payload, msg_handler|
-        msg_handler.nack "bad message"
-      end
-      produce_with_ack
-      expect(@msg_handler.error).not_to be_nil
-    end
-
-    it 'can ack with response' do 
-      default_consume do |payload, msg_handler|
-        msg_handler.ack(ack: 'smack')
-      end
-      produce_with_ack
-
-      expect(@msg_handler.error).to be_nil
-      expect(@msg_handler.response).not_to be_nil
-    end
-
   end
 end
