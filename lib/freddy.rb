@@ -71,10 +71,11 @@ class Freddy
     @consumer.tap_into pattern, &callback
   end
 
-  def deliver(destination, payload, timeout: 3, delete_on_timeout: true)
-    @producer.produce destination, payload, {
-      timeout: timeout, delete_on_timeout: delete_on_timeout
-    }
+  def deliver(destination, payload, timeout: 0)
+    opts = {}
+    opts[:expiration] = (timeout * 1000).to_i if timeout > 0
+
+    @producer.produce destination, payload, opts
   end
 
   def deliver_with_response(destination, payload, timeout: 3, delete_on_timeout: true)

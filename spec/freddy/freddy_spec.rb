@@ -11,6 +11,42 @@ describe Freddy do
     freddy.respond_to(destination, &block)
   end
 
+  context 'when making a send-and-forget request' do
+    context 'with timeout' do
+      it 'removes the message from the queue after the timeout' do
+        # Assume that there already is a queue. Otherwise will get an early
+        # return.
+        freddy.channel.queue(destination)
+
+        freddy.deliver(destination, {}, timeout: 0.1)
+        sleep 0.2
+
+        processed_after_timeout = false
+        respond_to { processed_after_timeout = true }
+        default_sleep
+
+        expect(processed_after_timeout).to be(false)
+      end
+    end
+
+    context 'without timeout' do
+      it 'keeps the message in the queue' do
+        # Assume that there already is a queue. Otherwise will get an early
+        # return.
+        freddy.channel.queue(destination)
+
+        freddy.deliver(destination, {})
+        default_sleep # to ensure everything is properly cleaned
+
+        processed_after_timeout = false
+        respond_to { processed_after_timeout = true }
+        default_sleep
+
+        expect(processed_after_timeout).to be(true)
+      end
+    end
+  end
+
   context 'when making a synchronized request' do
     it 'returns response as soon as possible' do
       respond_to { |payload, msg_handler| msg_handler.success(res: 'yey') }
