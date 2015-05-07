@@ -1,5 +1,5 @@
 class Freddy
-  class RequestTimeoutClearer
+  class RequestManager
 
     def initialize(requests, logger)
       @requests, @logger = requests, logger
@@ -14,9 +14,10 @@ class Freddy
       end
     end
 
-    def force_timeout(correlation_id)
+    def no_route(correlation_id)
       if request = @requests[correlation_id]
-        timeout(correlation_id, request)
+        @requests.delete correlation_id
+        request[:callback].call({error: 'Specified queue does not exist'}, nil)
       end
     end
 

@@ -1,6 +1,6 @@
 require_relative 'producer'
 require_relative 'consumer'
-require_relative 'request_timeout_clearer'
+require_relative 'request_manager'
 require_relative 'sync_response_container'
 require_relative 'message_handlers'
 require 'securerandom'
@@ -21,11 +21,11 @@ class Freddy
       @producer, @consumer = Producer.new(channel, logger), Consumer.new(channel, logger)
       @listening_for_responses = false
       @request_map = Hamster.mutable_hash
-      @timeout_clearer = RequestTimeoutClearer.new @request_map, @logger
+      @request_manager = RequestManager.new @request_map, @logger
 
       @producer.on_return do |return_info, properties, content|
         if return_info[:reply_code] == NO_ROUTE
-          @timeout_clearer.force_timeout(properties[:correlation_id])
+          @request_manager.no_route(properties[:correlation_id])
         end
       end
     end
@@ -96,7 +96,7 @@ class Freddy
     def listen_for_responses
       @listening_for_responses = true
       @response_queue = create_response_queue unless @response_queue
-      @timeout_clearer.start
+      @request_manager.start
       @consumer.consume_from_queue @response_queue do |payload, delivery|
         handle_response payload, delivery
       end
