@@ -4,26 +4,12 @@ class Freddy
       type == 'request' ? RequestHandler : StandardMessageHandler
     end
 
-    class BaseMessageHandler
+    class StandardMessageHandler
       def initialize(producer, logger)
         @producer = producer
         @logger = logger
       end
 
-      def handle_message(payload, msg_handler, &block)
-        raise NotImplementedError
-      end
-
-      def success(*)
-        raise NotImplementedError
-      end
-
-      def error(*)
-        raise NotImplementedError
-      end
-    end
-
-    class StandardMessageHandler < BaseMessageHandler
       def handle_message(payload, msg_handler, &block)
         block.call payload, msg_handler
       rescue Exception => e
@@ -41,7 +27,12 @@ class Freddy
       end
     end
 
-    class RequestHandler < BaseMessageHandler
+    class RequestHandler
+      def initialize(producer, logger)
+        @producer = producer
+        @logger = logger
+      end
+
       def handle_message(payload, msg_handler, &block)
         @correlation_id = msg_handler.correlation_id
 
