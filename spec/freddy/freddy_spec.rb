@@ -91,6 +91,7 @@ describe Freddy do
           expect {
             freddy.deliver_with_response(destination, {}, timeout: 0.1)
           }.to raise_error(Freddy::ErrorResponse)
+          default_sleep # to ensure everything is properly cleaned
 
           processed_after_timeout = false
           respond_to { processed_after_timeout = true }
@@ -109,6 +110,7 @@ describe Freddy do
           expect {
             freddy.deliver_with_response(destination, {}, timeout: 0.1, delete_on_timeout: false)
           }.to raise_error(Freddy::ErrorResponse)
+          default_sleep # to ensure everything is properly cleaned
 
           processed_after_timeout = false
           respond_to { processed_after_timeout = true }
