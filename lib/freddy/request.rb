@@ -37,7 +37,12 @@ class Freddy
       container.wait_for_response(timeout_seconds + 0.1)
     end
 
-    def async_request(destination, payload, timeout:, delete_on_timeout:, **options, &block)
+    def async_request(destination, payload, options, &block)
+      timeout = options.fetch(:timeout)
+      delete_on_timeout = options.fetch(:delete_on_timeout)
+      options.delete(:timeout)
+      options.delete(:delete_on_timeout)
+
       listen_for_responses unless @listening_for_responses
 
       correlation_id = SecureRandom.uuid
