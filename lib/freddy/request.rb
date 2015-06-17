@@ -3,6 +3,7 @@ require_relative 'consumer'
 require_relative 'request_manager'
 require_relative 'sync_response_container'
 require_relative 'message_handlers'
+require 'thread'
 require 'securerandom'
 require 'hamster/mutable_hash'
 
@@ -19,7 +20,6 @@ class Freddy
     def initialize(channel, logger)
       @channel, @logger = channel, logger
       @producer, @consumer = Producer.new(channel, logger), Consumer.new(channel, logger)
-      @listening_for_responses = false
       @request_map = Hamster.mutable_hash
       @request_manager = RequestManager.new @request_map, @logger
 
@@ -28,6 +28,9 @@ class Freddy
           @request_manager.no_route(properties[:correlation_id])
         end
       end
+
+      @listening_for_responses_lock = Mutex.new
+      @response_queue_lock = Mutex.new
     end
 
     def sync_request(destination, payload, opts)
@@ -43,7 +46,7 @@ class Freddy
       options.delete(:timeout)
       options.delete(:delete_on_timeout)
 
-      listen_for_responses unless @listening_for_responses
+      ensure_listening_to_responses
 
       correlation_id = SecureRandom.uuid
       @request_map.store(correlation_id, callback: block, destination: destination, timeout: Time.now + timeout)
@@ -62,7 +65,8 @@ class Freddy
 
     def respond_to(destination, &block)
       raise EmptyResponder unless block
-      @response_queue = create_response_queue unless @response_queue
+
+      ensure_response_queue_exists
       @logger.debug "Listening for requests on #{destination}"
 
       responder_handler = @consumer.consume destination do |payload, delivery|
@@ -98,14 +102,25 @@ class Freddy
       Freddy.notify_exception(e, destination: request[:destination], correlation_id: correlation_id)
     end
 
-    def listen_for_responses
-      @listening_for_responses = true
-      @response_queue = create_response_queue unless @response_queue
-      @request_manager.start
-      @consumer.consume_from_queue @response_queue do |payload, delivery|
-        handle_response payload, delivery
+    def ensure_response_queue_exists
+      @response_queue_lock.synchronize do
+        @response_queue ||= create_response_queue
       end
     end
 
+    def ensure_listening_to_responses
+      @listening_for_responses_lock.synchronize do
+        if @listening_for_responses
+          true
+        else
+          ensure_response_queue_exists
+          @request_manager.start
+          @consumer.consume_from_queue @response_queue do |payload, delivery|
+            handle_response payload, delivery
+          end
+          @listening_for_responses = true
+        end
+      end
+    end
   end
 end
