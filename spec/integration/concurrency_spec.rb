@@ -14,7 +14,12 @@ describe 'Concurrency' do
     end
 
     freddy.respond_to 'Concurrency2' do |payload, msg_handler|
-      msg_handler.success(freddy.deliver_with_response 'Concurency3', msg: 'noop')
+      begin
+        result = freddy.deliver_with_response 'Concurrency3', msg: 'noop'
+        msg_handler.success(result)
+      rescue Freddy::ErrorResponse => e
+        msg_handler.error(e.response)
+      end
     end
 
     freddy.respond_to 'Concurrency3' do |payload, msg_handler|
@@ -28,7 +33,7 @@ describe 'Concurrency' do
         e.response
       end
 
-    expect(result).to eq(from: 'Concurrency2')
+    expect(result).to eq(from: 'Concurrency3')
   end
 
   it 'supports nested calls in #tap_into' do
