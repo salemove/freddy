@@ -21,9 +21,11 @@ class Freddy
 
     def consume_from_queue(queue, options = {}, &block)
       consumer = queue.subscribe options do |delivery_info, properties, payload|
-        parsed_payload = parse_payload(payload)
-        log_receive_event(queue.name, parsed_payload)
-        block.call parsed_payload, Delivery.new(delivery_info, properties)
+        Thread.new do
+          parsed_payload = parse_payload(payload)
+          log_receive_event(queue.name, parsed_payload)
+          block.call parsed_payload, Delivery.new(delivery_info, properties)
+        end
       end
       @logger.debug "Consuming messages on #{queue.name}"
       ResponderHandler.new consumer, @channel
@@ -32,7 +34,9 @@ class Freddy
     def tap_into(pattern, &block)
       queue = @channel.queue("", exclusive: true).bind(@topic_exchange, routing_key: pattern)
       consumer = queue.subscribe do |delivery_info, properties, payload|
-        block.call parse_payload(payload), delivery_info.routing_key
+        Thread.new do
+          block.call parse_payload(payload), delivery_info.routing_key
+        end
       end
       @logger.debug "Tapping into messages that match #{pattern}"
       ResponderHandler.new consumer, @channel
