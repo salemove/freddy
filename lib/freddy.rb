@@ -50,7 +50,7 @@ class Freddy
     bunny = Bunny.new(bunny_config)
     bunny.start
 
-    channel = bunny.create_channel(nil, bunny_config[:responder_thread_count] || 4)
+    channel = bunny.create_channel
     new(channel, logger)
   end
 
