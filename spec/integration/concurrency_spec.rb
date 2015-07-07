@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe 'Concurrency' do
-  let(:freddy) { Freddy.build(logger, config.merge(responder_thread_count: 1)) }
+  let(:freddy) { Freddy.build(logger, config) }
 
   it 'supports nested calls in #respond_to' do
     freddy.respond_to 'Concurrency1' do |payload, msg_handler|

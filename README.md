@@ -145,7 +145,7 @@ The underlying bunny implementation uses 1 responder thread by default. This mea
 
 This is especially devious when using `deliver_with_response` in a responder because `deliver_with_response` creates a new anonymous responder which will not receive the response if the parent responder uses a sleep call.
 
-To resolve this problem *freddy* uses 4 responder threads by default (configurable by `responder_thread_count`). Note that this means that ordered message processing is not guaranteed by default. Read more from <http://rubybunny.info/articles/concurrency.html>.
+To resolve this problem *freddy* creates separate threads for processing. Read more from <http://rubybunny.info/articles/concurrency.html>.
 
 ## Credits
 
