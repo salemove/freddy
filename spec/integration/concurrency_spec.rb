@@ -14,7 +14,11 @@ describe 'Concurrency' do
     end
 
     freddy.respond_to 'Concurrency2' do |payload, msg_handler|
-      msg_handler.success({from: 'Concurrency2'})
+      msg_handler.success(freddy.deliver_with_response 'Concurency3', msg: 'noop')
+    end
+
+    freddy.respond_to 'Concurrency3' do |payload, msg_handler|
+      msg_handler.success({from: 'Concurrency3'})
     end
 
     result =
