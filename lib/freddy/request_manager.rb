@@ -35,7 +35,8 @@ class Freddy
       message = "Request #{correlation_id} timed out waiting response from #{request[:destination]} with timeout #{request[:timeout]}"
       @logger.warn message
       Freddy.notify 'RequestTimeout', message, request: correlation_id, destination: request[:destination], timeout: request[:timeout]
-      request[:callback].call({error: 'Timed out waiting for response'}, nil)
+
+      request[:callback].call({error: 'RequestTimeout', message: 'Timed out waiting for response'}, nil)
     end
   end
 end
