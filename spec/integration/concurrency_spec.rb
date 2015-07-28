@@ -8,7 +8,7 @@ describe 'Concurrency' do
       begin
         result = freddy.deliver_with_response 'Concurrency2', msg: 'noop'
         msg_handler.success(result)
-      rescue Freddy::ErrorResponse => e
+      rescue Freddy::InvalidRequestError => e
         msg_handler.error(e.response)
       end
     end
@@ -17,7 +17,7 @@ describe 'Concurrency' do
       begin
         result = freddy.deliver_with_response 'Concurrency3', msg: 'noop'
         msg_handler.success(result)
-      rescue Freddy::ErrorResponse => e
+      rescue Freddy::InvalidRequestError => e
         msg_handler.error(e.response)
       end
     end
@@ -29,7 +29,7 @@ describe 'Concurrency' do
     result =
       begin
         freddy.deliver_with_response 'Concurrency1', msg: 'noop'
-      rescue Freddy::ErrorResponse => e
+      rescue Freddy::InvalidRequestError => e
         e.response
       end
 

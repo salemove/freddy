@@ -49,13 +49,15 @@ response = freddy.deliver_with_response(destination, message, timeout: 4, delete
 ```
 
 #### Errors
-`deliver_with_response` raises an error if an error is returned. This can be handled by rescuing from `Freddy::ErrorResponse` as:
+`deliver_with_response` raises an error if an error is returned. This can be handled by rescuing from `Freddy::InvalidRequestError` and `Freddy::TimeoutError` as:
 ```ruby
 begin
   response = freddy.deliver_with_response 'Q', {}
   # ...
-rescue Freddy::ErrorResponse => e
-  e.response # => { error: 'Timed out waiting for response' }
+rescue Freddy::InvalidRequestError => e
+  e.response # => { error: 'InvalidRequestError', message: 'Some error message' }
+rescue Freddy::TimeoutError => e
+  e.response # => { error: 'RequestTimeout', message: 'Timed out waiting for response' }
 ```
 
 ## Responding to messages

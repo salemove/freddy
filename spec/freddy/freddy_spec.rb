@@ -60,7 +60,7 @@ describe Freddy do
 
       expect {
         freddy.deliver_with_response(destination, payload)
-      }.to raise_error(Freddy::ErrorResponse) {|error|
+      }.to raise_error(Freddy::InvalidRequestError) {|error|
         expect(error.response).to eq(error: 'not today')
       }
     end
@@ -88,7 +88,7 @@ describe Freddy do
 
       expect {
         freddy.deliver_with_response(destination2, payload)
-      }.to raise_error(Freddy::ErrorResponse)
+      }.to raise_error(Freddy::InvalidRequestError)
     end
 
     context 'when queue does not exist' do
@@ -97,7 +97,7 @@ describe Freddy do
           Timeout::timeout(0.5) do
             expect {
               freddy.deliver_with_response(destination, {a: 'b'}, timeout: 3)
-            }.to raise_error(Freddy::ErrorResponse) {|error|
+            }.to raise_error(Freddy::InvalidRequestError) {|error|
               expect(error.response).to eq(error: 'Specified queue does not exist')
             }
           end
@@ -113,8 +113,8 @@ describe Freddy do
 
         expect {
           freddy.deliver_with_response(destination, {a: 'b'}, timeout: 0.1)
-        }.to raise_error(Freddy::ErrorResponse) {|error|
-          expect(error.response).to eq(error: 'Timed out waiting for response')
+        }.to raise_error(Freddy::TimeoutError) {|error|
+          expect(error.response).to eq(error: 'RequestTimeout', message: 'Timed out waiting for response')
         }
       end
 
@@ -126,7 +126,7 @@ describe Freddy do
 
           expect {
             freddy.deliver_with_response(destination, {}, timeout: 0.1)
-          }.to raise_error(Freddy::ErrorResponse)
+          }.to raise_error(Freddy::TimeoutError)
           default_sleep # to ensure everything is properly cleaned
 
           processed_after_timeout = false
@@ -145,7 +145,7 @@ describe Freddy do
 
           expect {
             freddy.deliver_with_response(destination, {}, timeout: 0.1, delete_on_timeout: false)
-          }.to raise_error(Freddy::ErrorResponse)
+          }.to raise_error(Freddy::TimeoutError)
           default_sleep # to ensure everything is properly cleaned
 
           processed_after_timeout = false

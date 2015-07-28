@@ -12,8 +12,10 @@ class Freddy
         sleep 0.001 until filled?
       end
 
-      if !@delivery || @delivery.properties[:type] == 'error'
-        raise ErrorResponse.new(@response)
+      if @response[:error] == 'RequestTimeout'
+        raise TimeoutError.new(@response)
+      elsif !@delivery || @delivery.properties[:type] == 'error'
+        raise InvalidRequestError.new(@response)
       else
         @response
       end

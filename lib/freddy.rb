@@ -16,6 +16,12 @@ class Freddy
     end
   end
 
+  class InvalidRequestError < ErrorResponse
+  end
+
+  class TimeoutError < ErrorResponse
+  end
+
   FREDDY_TOPIC_EXCHANGE_NAME = 'freddy-topic'.freeze
 
   def self.format_backtrace(backtrace)
