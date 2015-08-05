@@ -67,7 +67,7 @@ class Freddy
       raise EmptyResponder unless block
 
       ensure_response_queue_exists
-      @logger.debug "Listening for requests on #{destination}"
+      @logger.info "Listening for requests on #{destination}"
 
       responder_handler = @consumer.consume destination do |payload, delivery|
         handler = MessageHandlers.for_type(delivery.properties[:type]).new(@producer, @logger)
