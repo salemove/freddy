@@ -17,9 +17,9 @@ class Freddy
     class EmptyResponder < Exception
     end
 
-    def initialize(channel, logger)
+    def initialize(channel, logger, producer, consumer)
       @channel, @logger = channel, logger
-      @producer, @consumer = Producer.new(channel, logger), Consumer.new(channel, logger)
+      @producer, @consumer = producer, consumer
       @request_map = Hamster.mutable_hash
       @request_manager = RequestManager.new @request_map, @logger
 
@@ -115,7 +115,7 @@ class Freddy
         else
           ensure_response_queue_exists
           @request_manager.start
-          @consumer.consume_from_queue @response_queue do |payload, delivery|
+          @consumer.dedicated_consume @response_queue do |payload, delivery|
             handle_response payload, delivery
           end
           @listening_for_responses = true

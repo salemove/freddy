@@ -1,6 +1,7 @@
 require 'bunny'
 require 'json'
 require 'symbolizer'
+require 'thread/pool'
 
 require_relative 'freddy/consumer'
 require_relative 'freddy/producer'
@@ -68,16 +69,17 @@ class Freddy
     bunny.start
 
     channel = bunny.create_channel
-    new(channel, logger)
+    new(channel, logger, bunny_config.fetch(:max_concurrency, 4))
   end
 
   attr_reader :channel, :consumer, :producer, :request
 
-  def initialize(channel, logger)
+  def initialize(channel, logger, max_concurrency)
     @channel  = channel
-    @consumer = Consumer.new channel, logger
+    @consume_thread_pool = Thread.pool(max_concurrency)
+    @consumer = Consumer.new channel, logger, @consume_thread_pool
     @producer = Producer.new channel, logger
-    @request  = Request.new channel, logger
+    @request  = Request.new channel, logger, @producer, @consumer
   end
 
   def respond_to(destination, &callback)

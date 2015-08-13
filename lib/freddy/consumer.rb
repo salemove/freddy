@@ -9,9 +9,11 @@ class Freddy
     class EmptyConsumer < Exception
     end
 
-    def initialize(channel, logger)
+    def initialize(channel, logger, consume_thread_pool)
       @channel, @logger = channel, logger
       @topic_exchange = @channel.topic Freddy::FREDDY_TOPIC_EXCHANGE_NAME
+      @consume_thread_pool = consume_thread_pool
+      @dedicated_thread_pool = Thread.pool(1)
     end
 
     def consume(destination, options = {}, &block)
@@ -20,21 +22,17 @@ class Freddy
     end
 
     def consume_from_queue(queue, options = {}, &block)
-      consumer = queue.subscribe options do |delivery_info, properties, payload|
-        Thread.new do
-          parsed_payload = parse_payload(payload)
-          log_receive_event(queue.name, parsed_payload)
-          block.call parsed_payload, Delivery.new(delivery_info, properties)
-        end
-      end
-      @logger.debug "Consuming messages on #{queue.name}"
-      ResponderHandler.new consumer, @channel
+      consume_using_pool(queue, options, @consume_thread_pool, &block)
+    end
+
+    def dedicated_consume(queue, &block)
+      consume_using_pool(queue, {}, @dedicated_thread_pool, &block)
     end
 
     def tap_into(pattern, &block)
       queue = @channel.queue("", exclusive: true).bind(@topic_exchange, routing_key: pattern)
       consumer = queue.subscribe do |delivery_info, properties, payload|
-        Thread.new do
+        @consume_thread_pool.process do
           block.call parse_payload(payload), delivery_info.routing_key
         end
       end
@@ -43,6 +41,18 @@ class Freddy
     end
 
     private
+
+    def consume_using_pool(queue, options, pool, &block)
+      consumer = queue.subscribe options do |delivery_info, properties, payload|
+        pool.process do
+          parsed_payload = parse_payload(payload)
+          log_receive_event(queue.name, parsed_payload)
+          block.call parsed_payload, Delivery.new(delivery_info, properties)
+        end
+      end
+      @logger.debug "Consuming messages on #{queue.name}"
+      ResponderHandler.new consumer, @channel
+    end
 
     def parse_payload(payload)
       if payload == 'null'
