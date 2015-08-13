@@ -13,7 +13,7 @@ class Freddy
       @channel, @logger = channel, logger
       @topic_exchange = @channel.topic Freddy::FREDDY_TOPIC_EXCHANGE_NAME
       @consume_thread_pool = consume_thread_pool
-      @dedicated_thread_pool = Thread.pool(1)
+      @dedicated_thread_pool = Thread.pool(1) # used only internally
     end
 
     def consume(destination, options = {}, &block)
