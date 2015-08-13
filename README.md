@@ -144,10 +144,13 @@ responder_handler.destroy_destination
 ## Notes about concurrency
 
 The underlying bunny implementation uses 1 responder thread by default. This means that if there is a time-consuming process or a sleep call in a responder then other responders will not receive messages concurrently.
-
-This is especially devious when using `deliver_with_response` in a responder because `deliver_with_response` creates a new anonymous responder which will not receive the response if the parent responder uses a sleep call.
-
-To resolve this problem *freddy* creates separate threads for processing. Read more from <http://rubybunny.info/articles/concurrency.html>.
+To resolve this problem *freddy* uses a thread pool for running concurrent responders.
+The thread pool is shared between *tap_into* and *respond_to* callbacks and the default size is 4.
+The thread pool size can be configured by passing the configuration option *max_concurrency*.
+Note that other configuration options for freddy users 
+such as pool sizes for DB connections need to match or exceed *max_concurrency*
+to avoid running out of resources.
+Read more from <http://rubybunny.info/articles/concurrency.html>.
 
 ## Credits
 

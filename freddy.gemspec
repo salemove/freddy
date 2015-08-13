@@ -4,7 +4,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
 Gem::Specification.new do |spec|
   spec.name          = "freddy"
-  spec.version       = '0.3.7'
+  spec.version       = '0.4.0'
   spec.authors       = ["Urmas Talimaa"]
   spec.email         = ["urmas.talimaa@gmail.com"]
   spec.description   = %q{Messaging API}
@@ -22,4 +22,5 @@ Gem::Specification.new do |spec|
   spec.add_dependency "bunny", "1.6.3"
   spec.add_dependency "symbolizer"
   spec.add_dependency "hamster", "~> 1.0.1.pre.rc3"
+  spec.add_dependency "thread", "~> 0.2"
 end
