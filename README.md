@@ -147,9 +147,16 @@ The underlying bunny implementation uses 1 responder thread by default. This mea
 To resolve this problem *freddy* uses a thread pool for running concurrent responders.
 The thread pool is shared between *tap_into* and *respond_to* callbacks and the default size is 4.
 The thread pool size can be configured by passing the configuration option *max_concurrency*.
-Note that other configuration options for freddy users 
+
+
+Note that while it is possible to use *deliver_with_response* inside a *respond_to* block, 
+it is not possible to use another *respond_to* block inside a different *respond_to* block.
+
+
+Note also that other configuration options for freddy users 
 such as pool sizes for DB connections need to match or exceed *max_concurrency*
 to avoid running out of resources.
+
 Read more from <http://rubybunny.info/articles/concurrency.html>.
 
 ## Credits
