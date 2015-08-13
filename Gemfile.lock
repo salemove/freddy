@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    freddy (0.3.7)
+    freddy (0.4.0)
       bunny (= 1.6.3)
       hamster (~> 1.0.1.pre.rc3)
       symbolizer
