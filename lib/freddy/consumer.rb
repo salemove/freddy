@@ -46,7 +46,7 @@ class Freddy
       consumer = queue.subscribe options do |delivery_info, properties, payload|
         pool.process do
           parsed_payload = parse_payload(payload)
-          log_receive_event(queue.name, parsed_payload)
+          log_receive_event(queue.name, parsed_payload, properties[:correlation_id])
           block.call parsed_payload, Delivery.new(delivery_info, properties)
         end
       end
@@ -66,11 +66,11 @@ class Freddy
       @channel.queue(destination)
     end
 
-    def log_receive_event(queue_name, payload)
+    def log_receive_event(queue_name, payload, correlation_id)
       if defined?(Logasm) && @logger.is_a?(Logasm)
-        @logger.debug "Received message", queue: queue_name, payload: payload
+        @logger.debug "Received message", queue: queue_name, payload: payload, correlation_id: correlation_id
       else
-        @logger.debug "Received message on #{queue_name} with payload #{payload}"
+        @logger.debug "Received message on #{queue_name} with payload #{payload} with correlation_id #{correlation_id}"
       end
     end
   end
