@@ -92,9 +92,8 @@ class Freddy
         @request_map.delete correlation_id
         request[:callback].call payload, delivery
       else
-        message = "Got rpc response for correlation_id #{correlation_id} but there is no requester"
-        @logger.warn message
-        Freddy.notify 'NoRequesterForResponse', message, correlation_id: correlation_id
+        @logger.warn "Got rpc response for correlation_id #{correlation_id} but there is no requester"
+        Freddy.notify 'NoRequesterForResponse', "Got rpc response but there is no requester", correlation_id: correlation_id
       end
     rescue Exception => e
       destination_report = request ? "to #{request[:destination]}" : ''
