@@ -32,9 +32,12 @@ class Freddy
     def timeout(correlation_id, request)
       @requests.delete correlation_id
 
-      message = "Request #{correlation_id} timed out waiting response from #{request[:destination]} with timeout #{request[:timeout]}"
-      @logger.warn message
-      Freddy.notify 'RequestTimeout', message, request: correlation_id, destination: request[:destination], timeout: request[:timeout]
+      @logger.warn "Request timed out waiting response from #{request[:destination]}, correlation id #{correlation_id}"
+      Freddy.notify 'RequestTimeout', "Request timed out waiting for response from #{request[:destination]}", {
+        correlation_id: correlation_id,
+        destination: request[:destination],
+        timeout: request[:timeout]
+      }
 
       request[:callback].call({error: 'RequestTimeout', message: 'Timed out waiting for response'}, nil)
     end
