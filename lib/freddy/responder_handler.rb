@@ -19,11 +19,12 @@ class Freddy
     end
 
     def join
-      @channel.work_pool.join
+      # @channel.work_pool.join
     end
 
     def shutdown
-      @channel.work_pool.shutdown
+      # @channel.work_pool.shutdown
+      # @channel.close
     end
 
   end

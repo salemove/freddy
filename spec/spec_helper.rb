@@ -1,6 +1,9 @@
 require 'pry'
 require 'securerandom'
 require 'freddy'
+require 'logger'
+
+Thread.abort_on_exception = true
 
 RSpec.configure do |config|
   config.treat_symbols_as_metadata_keys_with_true_values = true
@@ -10,9 +13,9 @@ RSpec.configure do |config|
 end
 
 class Freddy::Consumer
-  def create_queue(queue_name)
+  def create_queue(queue_name, options={})
     #want to auto_delete queues while testing
-    @channel.queue(queue_name, auto_delete: true)
+    Freddy::AdaptiveQueue.new @channel.queue(queue_name, options.merge(auto_delete: true))
   end
 end
 

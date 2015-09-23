@@ -13,9 +13,8 @@ class Freddy
       def handle_message(payload, msg_handler, &block)
         block.call payload, msg_handler
       rescue Exception => e
-        destination = msg_handler.destination
-        @logger.error "Exception occured while processing message from #{destination}: #{Freddy.format_exception(e)}"
-        Freddy.notify_exception(e, destination: destination)
+        @logger.error "Exception occured while processing message from TODO: #{Freddy.format_exception(e)}"
+        Freddy.notify_exception(e)
       end
 
       def success(*)
@@ -44,7 +43,7 @@ class Freddy
         end
       rescue Exception => e
         @logger.error "Exception occured while handling the request with correlation_id #{@correlation_id}: #{Freddy.format_exception(e)}"
-        Freddy.notify_exception(e, destination: msg_handler.destination, correlation_id: @correlation_id)
+        Freddy.notify_exception(e, correlation_id: @correlation_id)
       end
 
       def success(reply_to, response)

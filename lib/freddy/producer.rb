@@ -3,6 +3,8 @@ require 'json'
 
 class Freddy
   class Producer
+    OnReturnNotImplemented = Class.new(NoMethodError)
+
     CONTENT_TYPE = 'application/json'.freeze
 
     def initialize(channel, logger)
@@ -22,7 +24,17 @@ class Freddy
     end
 
     def on_return(*args, &block)
-      @exchange.on_return(*args, &block)
+      if @exchange.respond_to? :on_return # Bunny
+        @exchange.on_return(*args) do |return_info, properties, content|
+          block.call(return_info[:reply_code], properties[:correlation_id])
+        end
+      elsif @channel.respond_to? :on_return # Hare
+        @channel.on_return(*args) do |reply_code, _, _, _, properties|
+          block.call(reply_code, properties.correlation_id)
+        end
+      else
+        raise OnReturnNotImplemented.new "AMQP implementation doesn't implement on_return"
+      end
     end
   end
 end

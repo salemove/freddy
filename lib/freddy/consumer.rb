@@ -30,10 +30,10 @@ class Freddy
     end
 
     def tap_into(pattern, &block)
-      queue = @channel.queue("", exclusive: true).bind(@topic_exchange, routing_key: pattern)
-      consumer = queue.subscribe do |delivery_info, properties, payload|
+      queue = create_queue('', exclusive: true).bind(@topic_exchange, routing_key: pattern)
+      consumer = queue.subscribe do |payload, delivery|
         @consume_thread_pool.process do
-          block.call parse_payload(payload), delivery_info.routing_key
+          block.call parse_payload(payload), delivery.routing_key
         end
       end
       @logger.debug "Tapping into messages that match #{pattern}"
@@ -62,8 +62,8 @@ class Freddy
       end
     end
 
-    def create_queue(destination)
-      @channel.queue(destination)
+    def create_queue(destination, options={})
+      AdaptiveQueue.new(@channel.queue(destination, options))
     end
 
     def log_receive_event(queue_name, payload, correlation_id)

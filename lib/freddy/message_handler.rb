@@ -4,17 +4,17 @@ class Freddy
 
     def initialize(adapter, delivery)
       @adapter = adapter
-      @properties = delivery.properties
-      @destination = @properties[:destination]
-      @correlation_id = @properties[:correlation_id]
+      @metadata = delivery.metadata
+      #@destination = @metadata.destination
+      @correlation_id = @metadata.correlation_id
     end
 
     def success(response = nil)
-      @adapter.success(@properties[:reply_to], response)
+      @adapter.success(@metadata.reply_to, response)
     end
 
     def error(error = {error: "Couldn't process message"})
-      @adapter.error(@properties[:reply_to], error)
+      @adapter.error(@metadata.reply_to, error)
     end
   end
 end
