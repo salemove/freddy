@@ -49,6 +49,7 @@ class Freddy
       ensure_listening_to_responses
 
       correlation_id = SecureRandom.uuid
+      puts "STARTING ASYNC REQUEST #{options.inspect}, #{correlation_id}"
       @request_map.store(correlation_id, callback: block, destination: destination, timeout: Time.now + timeout)
 
       @logger.debug "Publishing request to #{destination}, waiting for response on #{@response_queue.name} with correlation_id #{correlation_id}"
@@ -70,7 +71,7 @@ class Freddy
       @logger.info "Listening for requests on #{destination}"
 
       responder_handler = @consumer.consume destination do |payload, delivery|
-        handler = MessageHandlers.for_type(delivery.properties[:type]).new(@producer, @logger)
+        handler = MessageHandlers.for_type(delivery.metadata.type).new(@producer, @logger)
 
         msg_handler = MessageHandler.new(handler, delivery)
         handler.handle_message payload, msg_handler, &block
@@ -85,7 +86,9 @@ class Freddy
     end
 
     def handle_response(payload, delivery)
-      correlation_id = delivery.properties[:correlation_id]
+      puts "HANDLE RESPONSE!!!"
+
+      correlation_id = delivery.metadata.correlation_id
       request = @request_map[correlation_id]
       if request
         @logger.debug "Got response for request to #{request[:destination]} with correlation_id #{correlation_id}"
@@ -115,7 +118,9 @@ class Freddy
         else
           ensure_response_queue_exists
           @request_manager.start
+          puts "START CONSUMING"
           @consumer.consume_from_queue @response_queue do |payload, delivery|
+            puts "GOT RESPONSE"
             handle_response payload, delivery
           end
           @listening_for_responses = true

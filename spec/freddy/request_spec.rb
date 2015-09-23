@@ -1,3 +1,4 @@
+#Thread.abort_on_exception = true
 require 'spec_helper'
 
 describe Freddy::Request do
@@ -13,24 +14,26 @@ describe Freddy::Request do
   end
 
   context 'requesting from multiple threads' do
-    let(:nr_of_threads) { 10 }
+    let(:nr_of_threads) { 50 }
 
     before do
       freddy.respond_to 'thread-queue' do |payload, msg_handler|
+        puts "RESPONDING"
         msg_handler.success(payload)
       end
     end
 
-    it 'handles multiple threads' do
-      msg_counter = 0
-      nr_of_threads.times.map do
+    it 'handles multiple threads', focus: true do
+      require 'hamster/experimental/mutable_set'
+      msg_counter = Hamster.mutable_set
+      nr_of_threads.times.map do |index|
         Thread.new do
           response = freddy.deliver_with_response 'thread-queue', payload
-          msg_counter += 1
+          msg_counter << index
           expect(response).to eq(payload)
         end
       end.each(&:join)
-      expect(msg_counter).to eq(nr_of_threads)
+      expect(msg_counter.count).to eq(nr_of_threads)
     end
 
   end

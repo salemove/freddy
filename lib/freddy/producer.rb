@@ -9,6 +9,7 @@ class Freddy
       @channel, @logger = channel, logger
       @exchange = @channel.default_exchange
       @topic_exchange = @channel.topic Freddy::FREDDY_TOPIC_EXCHANGE_NAME
+      @x = Mutex.new
     end
 
     def produce(destination, payload, properties={})
@@ -22,7 +23,7 @@ class Freddy
     end
 
     def on_return(*args, &block)
-      @exchange.on_return(*args, &block)
+      #@exchange.on_return(*args, &block)
     end
   end
 end

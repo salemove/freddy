@@ -1,10 +1,9 @@
 class Freddy
   class Delivery
-    attr_reader :info, :properties
+    attr_reader :metadata
 
-    def initialize(info, properties)
-      @info = info
-      @properties = properties
+    def initialize(metadata)
+      @metadata = metadata
     end
   end
 end

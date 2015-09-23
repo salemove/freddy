@@ -14,7 +14,7 @@ class Freddy
 
       if @response[:error] == 'RequestTimeout'
         raise TimeoutError.new(@response)
-      elsif !@delivery || @delivery.properties[:type] == 'error'
+      elsif !@delivery || @delivery.metadata.type == 'error'
         raise InvalidRequestError.new(@response)
       else
         @response

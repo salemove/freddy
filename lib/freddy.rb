@@ -1,4 +1,4 @@
-require 'bunny'
+require 'march_hare'
 require 'json'
 require 'symbolizer'
 
@@ -64,11 +64,23 @@ class Freddy
   end
 
   def self.build(logger = Logger.new(STDOUT), bunny_config)
-    bunny = Bunny.new(bunny_config)
-    bunny.start
+    bunny = MarchHare.connect(bunny_config)
 
-    channel = bunny.create_channel
+    channel = SafeChannel.new(bunny.create_channel)
     new(channel, logger)
+  end
+
+  class SafeChannel
+    def initialize(channel)
+      @channel = channel
+      @lock = Mutex.new
+    end
+
+    def method_missing(*args)
+      @lock.synchronize do
+        @channel.public_send(*args)
+      end
+    end
   end
 
   attr_reader :channel, :consumer, :producer, :request

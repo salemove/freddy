@@ -2,6 +2,7 @@ require_relative 'responder_handler'
 require_relative 'message_handler'
 require_relative 'request'
 require_relative 'delivery'
+Thread.abort_on_exception = true
 
 class Freddy
   class Consumer
@@ -20,13 +21,16 @@ class Freddy
     end
 
     def consume_from_queue(queue, options = {}, &block)
-      consumer = queue.subscribe options do |delivery_info, properties, payload|
+      consumer = queue.subscribe options do |metadata, payload|
+        puts "PROCESSING SOMETHING #{payload.inspect}"
+
         Thread.new do
           parsed_payload = parse_payload(payload)
           log_receive_event(queue.name, parsed_payload)
-          block.call parsed_payload, Delivery.new(delivery_info, properties)
+          block.call parsed_payload, Delivery.new(metadata)
         end
       end
+      puts "STARTED CONSUMING ON #{queue.name}"
       @logger.debug "Consuming messages on #{queue.name}"
       ResponderHandler.new consumer, @channel
     end
