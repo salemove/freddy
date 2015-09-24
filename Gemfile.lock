@@ -2,27 +2,31 @@ PATH
   remote: .
   specs:
     freddy (0.4.2)
-      bunny (= 2.2.0)
       hamster (~> 1.0.1.pre.rc3)
+      march_hare (~> 2.12.0)
       symbolizer
       thread (~> 0.2)
 
 GEM
   remote: https://rubygems.org/
   specs:
-    amq-protocol (2.0.0)
-    atomic (1.1.99)
-    bunny (2.2.0)
-      amq-protocol (>= 2.0.0)
+    atomic (1.1.99-java)
     coderay (1.1.0)
     diff-lcs (1.2.5)
+    ffi (1.9.10-java)
     hamster (1.0.1.pre.rc3)
       atomic (~> 1.1)
+    march_hare (2.12.0-java)
     method_source (0.8.2)
     pry (0.10.1)
       coderay (~> 1.1.0)
       method_source (~> 0.8.1)
       slop (~> 3.4)
+    pry (0.10.1-java)
+      coderay (~> 1.1.0)
+      method_source (~> 0.8.1)
+      slop (~> 3.4)
+      spoon (~> 0.0)
     rake (10.4.2)
     rspec (3.3.0)
       rspec-core (~> 3.3.0)
@@ -38,10 +42,13 @@ GEM
       rspec-support (~> 3.3.0)
     rspec-support (3.3.0)
     slop (3.6.0)
+    spoon (0.0.4)
+      ffi
     symbolizer (0.0.1)
     thread (0.2.2)
 
 PLATFORMS
+  java
   ruby
 
 DEPENDENCIES

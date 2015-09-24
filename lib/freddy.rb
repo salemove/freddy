@@ -70,23 +70,25 @@ class Freddy
     end
   end
 
-  def self.build(logger = Logger.new(STDOUT), bunny_config)
+  def self.build(logger = Logger.new(STDOUT), config)
     if RUBY_PLATFORM == 'java'
-      connection = MarchHare.connect(bunny_config)
+      puts "Using MarchHare for AMQP implementation"
+      connection = MarchHare.connect(config)
     else
-      connection = Bunny.new(bunny_config)
+      puts "Using Bunny for AMQP implementation"
+      connection = Bunny.new(config)
       connection.start
       connection
     end
 
-    new(connection, logger)
+    new(connection, logger, config.fetch(:max_concurrency, 4))
   end
 
   attr_reader :channel, :consumer, :producer, :request
 
   def initialize(connection, logger, max_concurrency)
     @connection = connection
-    @channel  = channel
+    @channel  = connection.create_channel
     @consume_thread_pool = Thread.pool(max_concurrency)
     @consumer = Consumer.new channel, logger, @consume_thread_pool
     @producer = Producer.new channel, logger

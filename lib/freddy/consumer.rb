@@ -43,11 +43,11 @@ class Freddy
     private
 
     def consume_using_pool(queue, options, pool, &block)
-      consumer = queue.subscribe options do |delivery_info, properties, payload|
+      consumer = queue.subscribe do |payload, delivery|
         pool.process do
           parsed_payload = parse_payload(payload)
           log_receive_event(queue.name, parsed_payload, properties[:correlation_id])
-          block.call parsed_payload, Delivery.new(delivery_info, properties)
+          block.call parsed_payload, delivery
         end
       end
       @logger.debug "Consuming messages on #{queue.name}"
