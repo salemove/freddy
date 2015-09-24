@@ -8,9 +8,7 @@ describe Freddy::Request do
 
   let(:request) { freddy.request }
 
-  after do
-    freddy.close
-  end
+  after { freddy.close }
 
   it 'raises empty responder exception when responding without callback' do
     expect {@responder = request.respond_to destination }.to raise_error described_class::EmptyResponder

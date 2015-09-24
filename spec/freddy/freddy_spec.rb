@@ -7,6 +7,8 @@ describe Freddy do
   let(:destination2) { random_destination }
   let(:payload)      { {pay: 'load'} }
 
+  after { freddy.close }
+
   def respond_to(&block)
     freddy.respond_to(destination, &block)
   end

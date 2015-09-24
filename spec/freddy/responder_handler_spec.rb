@@ -6,6 +6,8 @@ describe Freddy::ResponderHandler do
   let(:destination) { random_destination }
   let(:payload)     { {pay: 'load'} }
 
+  after { freddy.close }
+
   it 'can cancel listening for messages' do
     consumer_handler = freddy.respond_to destination do
       @messages_count ||= 0
