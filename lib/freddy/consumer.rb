@@ -46,7 +46,7 @@ class Freddy
       consumer = queue.subscribe do |payload, delivery|
         pool.process do
           parsed_payload = parse_payload(payload)
-          log_receive_event(queue.name, parsed_payload, properties[:correlation_id])
+          log_receive_event(queue.name, parsed_payload, delivery.correlation_id)
           block.call parsed_payload, delivery
         end
       end

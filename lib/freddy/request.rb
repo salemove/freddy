@@ -41,7 +41,6 @@ class Freddy
     end
 
     def async_request(destination, payload, options, &block)
-      puts "Request#async_request #{destination} #{payload} #{options}"
       timeout = options.fetch(:timeout)
       delete_on_timeout = options.fetch(:delete_on_timeout)
       options.delete(:timeout)
@@ -69,7 +68,6 @@ class Freddy
 
       ensure_response_queue_exists
       @logger.info "Listening for requests on #{destination}"
-      puts "Request#respond_to listening #{destination}"
       responder_handler = @consumer.consume destination do |payload, delivery|
         handler = MessageHandlers.for_type(delivery.metadata.type).new(@producer, @logger)
 
@@ -86,7 +84,6 @@ class Freddy
     end
 
     def handle_response(payload, delivery)
-
       correlation_id = delivery.metadata.correlation_id
       request = @request_map[correlation_id]
       if request

@@ -11,13 +11,6 @@ RSpec.configure do |config|
   config.order = 'random'
 end
 
-class Freddy::Consumer
-  def create_queue(queue_name, options={})
-    #want to auto_delete queues while testing
-    Freddy::AdaptiveQueue.new @channel.queue(queue_name, options.merge(auto_delete: true))
-  end
-end
-
 def random_destination
   SecureRandom.hex
 end

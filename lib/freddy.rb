@@ -72,10 +72,8 @@ class Freddy
 
   def self.build(logger = Logger.new(STDOUT), config)
     if RUBY_PLATFORM == 'java'
-      puts "Using MarchHare for AMQP implementation"
       connection = MarchHare.connect(config)
     else
-      puts "Using Bunny for AMQP implementation"
       connection = Bunny.new(config)
       connection.start
       connection

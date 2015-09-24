@@ -23,14 +23,16 @@ class Freddy
       @exchange.publish json_payload, properties.dup
     end
 
-    def on_return(*args, &block)
+    def on_return(&block)
       if @exchange.respond_to? :on_return # Bunny
-        @exchange.on_return(*args) do |return_info, properties, content|
+        @exchange.on_return do |return_info, properties, content|
           block.call(return_info[:reply_code], properties[:correlation_id])
         end
       elsif @channel.respond_to? :on_return # Hare
-        @channel.on_return(*args) do |reply_code, _, _, _, properties|
-          block.call(reply_code, properties.correlation_id)
+        @channel.on_return do |reply_code, _, exchange_name, _, properties|
+          if exchange_name != Freddy::FREDDY_TOPIC_EXCHANGE_NAME
+            block.call(reply_code, properties.correlation_id)
+          end
         end
       else
         raise OnReturnNotImplemented.new "AMQP implementation doesn't implement on_return"

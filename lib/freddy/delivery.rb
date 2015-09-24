@@ -6,5 +6,9 @@ class Freddy
       @metadata = metadata
       @routing_key = routing_key
     end
+
+    def correlation_id
+      @metadata.correlation_id
+    end
   end
 end
