@@ -3,7 +3,11 @@ lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
 Gem::Specification.new do |spec|
-  spec.name          = "freddy"
+  if RUBY_PLATFORM == 'java'
+    spec.name          = "freddy-jruby"
+  else
+    spec.name          = "freddy"
+  end
   spec.version       = '0.4.2'
   spec.authors       = ["Urmas Talimaa"]
   spec.email         = ["urmas.talimaa@gmail.com"]
