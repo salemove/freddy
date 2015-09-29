@@ -5,7 +5,6 @@ class Freddy
     def initialize(adapter, delivery)
       @adapter = adapter
       @metadata = delivery.metadata
-      #@destination = @metadata.destination
       @correlation_id = @metadata.correlation_id
     end
 

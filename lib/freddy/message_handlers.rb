@@ -13,7 +13,7 @@ class Freddy
       def handle_message(payload, msg_handler, &block)
         block.call payload, msg_handler
       rescue Exception => e
-        @logger.error "Exception occured while processing message from TODO: #{Freddy.format_exception(e)}"
+        @logger.error "Exception occured while processing message from #{Freddy.format_exception(e)}"
         Freddy.notify_exception(e)
       end
 
