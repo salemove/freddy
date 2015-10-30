@@ -19,17 +19,4 @@ describe Freddy::ResponderHandler do
 
     expect(@messages_count).to eq 1
   end
-
-  it 'can join the thread to the consumer' do
-    consumer_handler = freddy.respond_to destination do
-    end
-    unreachable = true
-    Thread.new do
-      consumer_handler.join
-      unreachable = false
-    end
-    wait_for { unreachable }
-    expect(unreachable).to be(true)
-  end
-
 end
