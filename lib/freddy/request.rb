@@ -23,9 +23,9 @@ class Freddy
       @request_map = Hamster.mutable_hash
       @request_manager = RequestManager.new @request_map, @logger
 
-      @producer.on_return do |return_info, properties, content|
-        if return_info[:reply_code] == NO_ROUTE
-          @request_manager.no_route(properties[:correlation_id])
+      @producer.on_return do |reply_code, correlation_id|
+        if reply_code == NO_ROUTE
+          @request_manager.no_route(correlation_id)
         end
       end
 
@@ -68,9 +68,8 @@ class Freddy
 
       ensure_response_queue_exists
       @logger.info "Listening for requests on #{destination}"
-
       responder_handler = @consumer.consume destination do |payload, delivery|
-        handler = MessageHandlers.for_type(delivery.properties[:type]).new(@producer, @logger)
+        handler = MessageHandlers.for_type(delivery.metadata.type).new(@producer, destination, @logger)
 
         msg_handler = MessageHandler.new(handler, delivery)
         handler.handle_message payload, msg_handler, &block
@@ -81,11 +80,11 @@ class Freddy
     private
 
     def create_response_queue
-      @channel.queue("", exclusive: true)
+      AdaptiveQueue.new @channel.queue("", exclusive: true)
     end
 
     def handle_response(payload, delivery)
-      correlation_id = delivery.properties[:correlation_id]
+      correlation_id = delivery.metadata.correlation_id
       request = @request_map[correlation_id]
       if request
         @logger.debug "Got response for request to #{request[:destination]} with correlation_id #{correlation_id}"

@@ -3,7 +3,11 @@ lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
 Gem::Specification.new do |spec|
-  spec.name          = "freddy"
+  if RUBY_PLATFORM == 'java'
+    spec.name          = "freddy-jruby"
+  else
+    spec.name          = "freddy"
+  end
   spec.version       = '0.4.2'
   spec.authors       = ["Urmas Talimaa"]
   spec.email         = ["urmas.talimaa@gmail.com"]
@@ -16,10 +20,15 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ["lib"]
 
-  spec.add_development_dependency "bundler", "~> 1.3"
+  spec.add_development_dependency "bundler"
   spec.add_development_dependency "rake"
 
-  spec.add_dependency "bunny", "1.6.3"
+  if RUBY_PLATFORM == 'java'
+    spec.add_dependency 'march_hare', '~> 2.12.0'
+  else
+    spec.add_dependency "bunny", "2.2.0"
+  end
+
   spec.add_dependency "symbolizer"
   spec.add_dependency "hamster", "~> 1.0.1.pre.rc3"
   spec.add_dependency "thread", "~> 0.2"

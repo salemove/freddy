@@ -8,6 +8,8 @@ describe Freddy::Consumer do
 
   let(:consumer) { freddy.consumer }
 
+  after { freddy.close }
+
   it 'raises exception when no consumer is provided' do
     expect { consumer.consume destination }.to raise_error described_class::EmptyConsumer
   end

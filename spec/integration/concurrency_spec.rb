@@ -5,6 +5,8 @@ describe 'Concurrency' do
   let(:freddy2) { Freddy.build(logger, config) }
   let(:freddy3) { Freddy.build(logger, config) }
 
+  after { [freddy1, freddy2, freddy3].each(&:close) }
+
   it 'supports multiple requests in #respond_to' do
     freddy1.respond_to 'Concurrency1' do |payload, msg_handler|
       begin

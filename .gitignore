@@ -1,1 +1,5 @@
 .bundle/
+Gemfile.lock
+pkg
+.tags
+.tags1

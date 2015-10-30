@@ -128,11 +128,6 @@ The following operations are supported:
 responder_handler.cancel
 ```
 
-  * join the current thread to the responder thread
-```ruby
-responder_handler.join
-```
-
   * delete the destination
 ```ruby
 responder_handler.destroy_destination
@@ -149,11 +144,11 @@ The thread pool is shared between *tap_into* and *respond_to* callbacks and the 
 The thread pool size can be configured by passing the configuration option *max_concurrency*.
 
 
-Note that while it is possible to use *deliver_with_response* inside a *respond_to* block, 
+Note that while it is possible to use *deliver_with_response* inside a *respond_to* block,
 it is not possible to use another *respond_to* block inside a different *respond_to* block.
 
 
-Note also that other configuration options for freddy users 
+Note also that other configuration options for freddy users
 such as pool sizes for DB connections need to match or exceed *max_concurrency*
 to avoid running out of resources.
 

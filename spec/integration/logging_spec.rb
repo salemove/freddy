@@ -10,6 +10,8 @@ describe 'Logging' do
   let(:destination) { random_destination }
   let(:payload)     { {pay: 'load'} }
 
+  after { [freddy1, freddy2].each(&:close) }
+
   before do
     freddy1.respond_to destination do |payload, msg_handler|
       msg_handler.success

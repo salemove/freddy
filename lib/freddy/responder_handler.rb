@@ -17,14 +17,5 @@ class Freddy
     def destroy_destination
       @consumer.queue.delete
     end
-
-    def join
-      @channel.work_pool.join
-    end
-
-    def shutdown
-      @channel.work_pool.shutdown
-    end
-
   end
 end

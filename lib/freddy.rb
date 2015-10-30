@@ -1,8 +1,14 @@
-require 'bunny'
+if RUBY_PLATFORM == 'java'
+  require 'march_hare'
+else
+  require 'bunny'
+end
+
 require 'json'
 require 'symbolizer'
 require 'thread/pool'
 
+require_relative 'freddy/adaptive_queue'
 require_relative 'freddy/consumer'
 require_relative 'freddy/producer'
 require_relative 'freddy/request'
@@ -64,18 +70,23 @@ class Freddy
     end
   end
 
-  def self.build(logger = Logger.new(STDOUT), bunny_config)
-    bunny = Bunny.new(bunny_config)
-    bunny.start
+  def self.build(logger = Logger.new(STDOUT), config)
+    if RUBY_PLATFORM == 'java'
+      connection = MarchHare.connect(config)
+    else
+      connection = Bunny.new(config)
+      connection.start
+      connection
+    end
 
-    channel = bunny.create_channel
-    new(channel, logger, bunny_config.fetch(:max_concurrency, 4))
+    new(connection, logger, config.fetch(:max_concurrency, 4))
   end
 
   attr_reader :channel, :consumer, :producer, :request
 
-  def initialize(channel, logger, max_concurrency)
-    @channel  = channel
+  def initialize(connection, logger, max_concurrency)
+    @connection = connection
+    @channel  = connection.create_channel
     @consume_thread_pool = Thread.pool(max_concurrency)
     @consumer = Consumer.new channel, logger, @consume_thread_pool
     @producer = Producer.new channel, logger
@@ -105,5 +116,9 @@ class Freddy
     @request.sync_request destination, payload, {
       timeout: timeout, delete_on_timeout: delete_on_timeout
     }
+  end
+
+  def close
+    @connection.close
   end
 end
