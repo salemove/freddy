@@ -69,7 +69,7 @@ class Freddy
       ensure_response_queue_exists
       @logger.info "Listening for requests on #{destination}"
       responder_handler = @consumer.consume destination do |payload, delivery|
-        handler = MessageHandlers.for_type(delivery.metadata.type).new(@producer, @logger)
+        handler = MessageHandlers.for_type(delivery.metadata.type).new(@producer, destination, @logger)
 
         msg_handler = MessageHandler.new(handler, delivery)
         handler.handle_message payload, msg_handler, &block

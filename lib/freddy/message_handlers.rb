@@ -5,7 +5,8 @@ class Freddy
     end
 
     class StandardMessageHandler
-      def initialize(producer, logger)
+      def initialize(producer, destination, logger)
+        @destination = destination
         @producer = producer
         @logger = logger
       end
@@ -14,7 +15,7 @@ class Freddy
         block.call payload, msg_handler
       rescue Exception => e
         @logger.error "Exception occured while processing message from #{Freddy.format_exception(e)}"
-        Freddy.notify_exception(e)
+        Freddy.notify_exception(e, destination: @destination)
       end
 
       def success(*)
@@ -27,9 +28,10 @@ class Freddy
     end
 
     class RequestHandler
-      def initialize(producer, logger)
+      def initialize(producer, destination, logger)
         @producer = producer
         @logger = logger
+        @destination = destination
       end
 
       def handle_message(payload, msg_handler, &block)
@@ -43,7 +45,7 @@ class Freddy
         end
       rescue Exception => e
         @logger.error "Exception occured while handling the request with correlation_id #{@correlation_id}: #{Freddy.format_exception(e)}"
-        Freddy.notify_exception(e, correlation_id: @correlation_id)
+        Freddy.notify_exception(e, correlation_id: @correlation_id, destination: @destination)
       end
 
       def success(reply_to, response)
