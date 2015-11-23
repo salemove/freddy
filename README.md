@@ -12,6 +12,12 @@ logger = Logger.new(STDOUT)
 freddy = Freddy.build(logger, host: 'localhost', port: 5672, user: 'guest', pass: 'guest')
 ```
 
+## Supported message queues
+
+These message queues have been tested and are working with Freddy. Other queues can be added easily:
+
+* [RabbitMQ](https://www.rabbitmq.com/)
+
 ## Delivering messages
 
 ### Simple delivery
