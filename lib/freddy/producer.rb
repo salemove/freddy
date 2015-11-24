@@ -17,7 +17,7 @@ class Freddy
       @logger.debug "Producing message #{payload.inspect} to #{destination}"
 
       properties = properties.merge(routing_key: destination, content_type: CONTENT_TYPE)
-      json_payload = payload.to_json
+      json_payload = Payload.dump(payload)
 
       @topic_exchange.publish json_payload, properties.dup
       @exchange.publish json_payload, properties.dup
