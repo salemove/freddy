@@ -33,7 +33,7 @@ class Freddy
       queue = create_queue('', exclusive: true).bind(@topic_exchange, routing_key: pattern)
       consumer = queue.subscribe do |payload, delivery|
         @consume_thread_pool.process do
-          block.call parse_payload(payload), delivery.routing_key
+          block.call Payload.parse(payload), delivery.routing_key
         end
       end
       @logger.debug "Tapping into messages that match #{pattern}"
@@ -45,21 +45,13 @@ class Freddy
     def consume_using_pool(queue, options, pool, &block)
       consumer = queue.subscribe do |payload, delivery|
         pool.process do
-          parsed_payload = parse_payload(payload)
+          parsed_payload = Payload.parse(payload)
           log_receive_event(queue.name, parsed_payload, delivery.correlation_id)
           block.call parsed_payload, delivery
         end
       end
       @logger.debug "Consuming messages on #{queue.name}"
       ResponderHandler.new consumer, @channel
-    end
-
-    def parse_payload(payload)
-      if payload == 'null'
-        {}
-      else
-        Symbolizer.symbolize(JSON(payload))
-      end
     end
 
     def create_queue(destination, options={})

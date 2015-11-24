@@ -25,11 +25,12 @@ Gem::Specification.new do |spec|
 
   if RUBY_PLATFORM == 'java'
     spec.add_dependency 'march_hare', '~> 2.12.0'
+    spec.add_dependency 'symbolizer'
   else
     spec.add_dependency "bunny", "2.2.0"
+    spec.add_dependency "oj", "~> 2.13"
   end
 
-  spec.add_dependency "symbolizer"
   spec.add_dependency "hamster", "~> 1.0.1.pre.rc3"
   spec.add_dependency "thread", "~> 0.2"
 end

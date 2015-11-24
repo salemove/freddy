@@ -5,13 +5,13 @@ else
 end
 
 require 'json'
-require 'symbolizer'
 require 'thread/pool'
 
 require_relative 'freddy/adaptive_queue'
 require_relative 'freddy/consumer'
 require_relative 'freddy/producer'
 require_relative 'freddy/request'
+require_relative 'freddy/payload'
 
 class Freddy
   class ErrorResponse < StandardError
