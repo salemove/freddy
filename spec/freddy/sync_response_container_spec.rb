@@ -6,7 +6,7 @@ describe Freddy::SyncResponseContainer do
   context 'when timeout' do
     subject { container.wait_for_response(0.01) }
 
-    it 'raises' do
+    it 'raises timeout error' do
       expect { subject }.to raise_error(Timeout::Error, 'execution expired')
     end
   end
