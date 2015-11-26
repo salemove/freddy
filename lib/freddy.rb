@@ -122,6 +122,12 @@ class Freddy
     }
   end
 
+  # Closes the connection with message queue
+  #
+  # @return [void]
+  #
+  # @example
+  #   freddy.close
   def close
     @connection.close
   end
