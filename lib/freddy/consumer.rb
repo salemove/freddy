@@ -37,7 +37,7 @@ class Freddy
         end
       end
       @logger.debug "Tapping into messages that match #{pattern}"
-      ResponderHandler.new consumer, @channel
+      ResponderHandler.new consumer, @consume_thread_pool
     end
 
     private
@@ -51,7 +51,7 @@ class Freddy
         end
       end
       @logger.debug "Consuming messages on #{queue.name}"
-      ResponderHandler.new consumer, @channel
+      ResponderHandler.new consumer, pool
     end
 
     def create_queue(destination, options={})
