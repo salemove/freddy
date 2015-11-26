@@ -23,7 +23,7 @@ class Freddy
       @request_map = Hamster.mutable_hash
       @request_manager = RequestManager.new @request_map, @logger
 
-      @producer.on_return do |reply_code, correlation_id|
+      @channel.on_return do |reply_code, correlation_id|
         if reply_code == NO_ROUTE
           @request_manager.no_route(correlation_id)
         end
@@ -80,7 +80,7 @@ class Freddy
     private
 
     def create_response_queue
-      AdaptiveQueue.new @channel.queue("", exclusive: true)
+      @channel.queue("", exclusive: true)
     end
 
     def handle_response(payload, delivery)
