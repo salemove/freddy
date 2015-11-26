@@ -12,65 +12,30 @@ require_relative 'freddy/consumer'
 require_relative 'freddy/producer'
 require_relative 'freddy/request'
 require_relative 'freddy/payload'
+require_relative 'freddy/error_response'
+require_relative 'freddy/invalid_request_error'
+require_relative 'freddy/timeout_error'
+require_relative 'freddy/utils'
 
 class Freddy
-  class ErrorResponse < StandardError
-    DEFAULT_ERROR_MESSAGE = 'Use #response to get the error response'
-
-    attr_reader :response
-
-    def initialize(response)
-      @response = response
-      super(format_message(response) || DEFAULT_ERROR_MESSAGE)
-    end
-
-    private
-
-    def format_message(response)
-      return unless response.is_a?(Hash)
-
-      message = [response[:error], response[:message]].compact.join(': ')
-      message.empty? ? nil : message
-    end
-  end
-
-  class InvalidRequestError < ErrorResponse
-  end
-
-  class TimeoutError < ErrorResponse
-  end
-
   FREDDY_TOPIC_EXCHANGE_NAME = 'freddy-topic'.freeze
 
-  def self.format_backtrace(backtrace)
-    backtrace.map{ |x|
-      x.match(/^(.+?):(\d+)(|:in `(.+)')$/);
-      [$1,$2,$4]
-    }.join "\n"
-  end
-
-  def self.format_exception(exception)
-    "#{exception.exception}\n#{format_backtrace(exception.backtrace)}"
-  end
-
-  def self.notify(name, message, parameters={})
-    if defined? Airbrake
-      Airbrake.notify_or_ignore({
-        error_class: name,
-        error_message: message,
-        cgi_data: ENV.to_hash,
-        parameters: parameters
-      })
-    end
-  end
-
-  def self.notify_exception(exception, parameters={})
-    if defined? Airbrake
-      Airbrake.notify_or_ignore(exception, cgi_data: ENV.to_hash, parameters: parameters)
-    end
-  end
-
-  def self.build(logger = Logger.new(STDOUT), config)
+  # Creates a new freddy instance
+  #
+  # @param [Logger] logger
+  #   instance of a logger, defaults to the STDOUT logger
+  # @param [Hash] config
+  #   rabbitmq connection information
+  # @option config [String] :host ('localhost')
+  # @option config [Integer] :port (5672)
+  # @option config [String] :user ('guest')
+  # @option config [String] :pass ('guest')
+  #
+  # @return [Freddy]
+  #
+  # @example
+  #   Freddy.build(Logger.new(STDOUT), user: 'thumper', pass: 'howdy')
+  def self.build(logger = Logger.new(STDOUT), config = {})
     if RUBY_PLATFORM == 'java'
       connection = MarchHare.connect(config)
     else
@@ -101,6 +66,27 @@ class Freddy
     @consumer.tap_into pattern, &callback
   end
 
+  # Sends a message to given destination
+  #
+  # This is *send and forget* type of delivery. It sends a message to given
+  # destination and does not wait for response. This is useful when there are
+  # multiple consumers that are using #tap_into or you just do not care about
+  # the response.
+  #
+  # @param [String] destination
+  #   the queue name
+  # @param [Hash] payload
+  #   the payload that can be serialized to json
+  # @param [Hash] options
+  #   the options for delivery
+  # @option options [Integer] :timeout (0)
+  #   discards the message after given seconds if nobody consumes it. Message
+  #   won't be discarded if timeout it set to 0 (default).
+  #
+  # @return [void]
+  #
+  # @example
+  #   freddy.deliver 'Metrics', user_id: 5, metric: 'signed_in'
   def deliver(destination, payload, options = {})
     timeout = options.fetch(:timeout, 0)
     opts = {}
@@ -109,6 +95,35 @@ class Freddy
     @producer.produce destination, payload, opts
   end
 
+  # Sends a message and waits for the response
+  #
+  # @param [String] destination
+  #   the queue name
+  # @param [Hash] payload
+  #   the payload that can be serialized to json
+  # @param [Hash] options
+  #   the options for delivery
+  # @option options [Integer] :timeout (3)
+  #   throws a time out exception after given seconds when there is no response
+  # @option options [Boolean] :delete_on_timeout (true)
+  #   discards the message when timeout error is raised
+  #
+  # @raise [Freddy::TimeoutError]
+  #   if nobody responded to the request
+  # @raise [Freddy::InvalidRequestError]
+  #   if the responder responded with an error response
+  #
+  # @return [Hash] the response
+  #
+  # @example
+  #   begin
+  #     response = freddy.deliver_with_response 'Users', type: 'fetch_all'
+  #     puts "Got response #{response}"
+  #   rescue Freddy::TimeoutError
+  #     puts "Service unavailable"
+  #   rescue Freddy::InvalidRequestError => e
+  #     puts "Got error response: #{e.response}"
+  #   end
   def deliver_with_response(destination, payload, options = {})
     timeout = options.fetch(:timeout, 3)
     delete_on_timeout = options.fetch(:delete_on_timeout, true)
