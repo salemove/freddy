@@ -55,7 +55,7 @@ class Freddy
     end
 
     def create_queue(destination, options={})
-      AdaptiveQueue.new(@channel.queue(destination, options))
+      @channel.queue(destination, options)
     end
 
     def log_receive_event(queue_name, payload, correlation_id)

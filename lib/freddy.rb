@@ -1,13 +1,7 @@
-if RUBY_PLATFORM == 'java'
-  require 'march_hare'
-else
-  require 'bunny'
-end
-
 require 'json'
 require 'thread/pool'
 
-require_relative 'freddy/adaptive_queue'
+require_relative 'freddy/adapters'
 require_relative 'freddy/consumer'
 require_relative 'freddy/producer'
 require_relative 'freddy/request'
@@ -36,13 +30,7 @@ class Freddy
   # @example
   #   Freddy.build(Logger.new(STDOUT), user: 'thumper', pass: 'howdy')
   def self.build(logger = Logger.new(STDOUT), config = {})
-    if RUBY_PLATFORM == 'java'
-      connection = MarchHare.connect(config)
-    else
-      connection = Bunny.new(config)
-      connection.start
-      connection
-    end
+    connection = Adapters.determine.connect(config)
 
     new(connection, logger, config.fetch(:max_concurrency, 4))
   end
@@ -57,6 +45,7 @@ class Freddy
     @producer = Producer.new channel, logger
     @request  = Request.new channel, logger, @producer, @consumer
   end
+  private :initialize
 
   def respond_to(destination, &callback)
     @request.respond_to destination, &callback
@@ -133,6 +122,12 @@ class Freddy
     }
   end
 
+  # Closes the connection with message queue
+  #
+  # @return [void]
+  #
+  # @example
+  #   freddy.close
   def close
     @connection.close
   end

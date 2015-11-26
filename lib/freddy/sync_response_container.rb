@@ -1,4 +1,5 @@
 require 'thread'
+require 'timeout'
 
 class Freddy
   class SyncResponseContainer
