@@ -45,6 +45,7 @@ class Freddy
     @producer = Producer.new channel, logger
     @request  = Request.new channel, logger, @producer, @consumer
   end
+  private :initialize
 
   def respond_to(destination, &callback)
     @request.respond_to destination, &callback
