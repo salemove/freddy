@@ -78,6 +78,27 @@ class Freddy
     @consumer.tap_into pattern, &callback
   end
 
+  # Sends a message to given destination
+  #
+  # This is *send and forget* type of delivery. It sends a message to given
+  # destination and does not wait for response. This is useful when there are
+  # multiple consumers that are using #tap_into or you just do not care about
+  # the response.
+  #
+  # @param [String] destination
+  #   the queue name
+  # @param [Hash] payload
+  #   the payload that can be serialized to json
+  # @param [Hash] options
+  #   the options for delivery
+  # @option options [Integer] :timeout (0)
+  #   discards the message after given seconds if nobody consumes it. Message
+  #   won't be discarded if timeout it set to 0 (default).
+  #
+  # @return [void]
+  #
+  # @example
+  #   freddy.deliver 'Metrics', user_id: 5, metric: 'signed_in'
   def deliver(destination, payload, options = {})
     timeout = options.fetch(:timeout, 0)
     opts = {}
@@ -86,6 +107,35 @@ class Freddy
     @producer.produce destination, payload, opts
   end
 
+  # Sends a message and waits for the response
+  #
+  # @param [String] destination
+  #   the queue name
+  # @param [Hash] payload
+  #   the payload that can be serialized to json
+  # @param [Hash] options
+  #   the options for delivery
+  # @option options [Integer] :timeout (3)
+  #   throws a time out exception after given seconds when there is no response
+  # @option options [Boolean] :delete_on_timeout (true)
+  #   discards the message when timeout error is raised
+  #
+  # @raise [Freddy::TimeoutError]
+  #   if nobody responded to the request
+  # @raise [Freddy::InvalidRequestError]
+  #   if the responder responded with an error response
+  #
+  # @return [Hash] the response
+  #
+  # @example
+  #   begin
+  #     response = freddy.deliver_with_response 'Users', type: 'fetch_all'
+  #     puts "Got response #{response}"
+  #   rescue Freddy::TimeoutError
+  #     puts "Service unavailable"
+  #   rescue Freddy::InvalidRequestError => e
+  #     puts "Got error response: #{e.response}"
+  #   end
   def deliver_with_response(destination, payload, options = {})
     timeout = options.fetch(:timeout, 3)
     delete_on_timeout = options.fetch(:delete_on_timeout, true)
