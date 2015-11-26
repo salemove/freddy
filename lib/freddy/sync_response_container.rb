@@ -1,18 +1,26 @@
-require 'timeout'
+require 'thread'
 
 class Freddy
   class SyncResponseContainer
+    def initialize
+      @mutex = Mutex.new
+    end
+
     def call(response, delivery)
       @response = response
       @delivery = delivery
+      @mutex.synchronize { @waiting.wakeup }
     end
 
     def wait_for_response(timeout)
-      Timeout::timeout(timeout) do
-        sleep 0.001 until filled?
+      @mutex.synchronize do
+        @waiting = Thread.current
+        @mutex.sleep(timeout)
       end
 
-      if @response[:error] == 'RequestTimeout'
+      if @response.nil?
+        raise Timeout::Error, 'execution expired'
+      elsif @response[:error] == 'RequestTimeout'
         raise TimeoutError.new(@response)
       elsif !@delivery || @delivery.metadata.type == 'error'
         raise InvalidRequestError.new(@response)
