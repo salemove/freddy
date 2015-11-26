@@ -12,34 +12,11 @@ require_relative 'freddy/consumer'
 require_relative 'freddy/producer'
 require_relative 'freddy/request'
 require_relative 'freddy/payload'
+require_relative 'freddy/error_response'
+require_relative 'freddy/invalid_request_error'
+require_relative 'freddy/timeout_error'
 
 class Freddy
-  class ErrorResponse < StandardError
-    DEFAULT_ERROR_MESSAGE = 'Use #response to get the error response'
-
-    attr_reader :response
-
-    def initialize(response)
-      @response = response
-      super(format_message(response) || DEFAULT_ERROR_MESSAGE)
-    end
-
-    private
-
-    def format_message(response)
-      return unless response.is_a?(Hash)
-
-      message = [response[:error], response[:message]].compact.join(': ')
-      message.empty? ? nil : message
-    end
-  end
-
-  class InvalidRequestError < ErrorResponse
-  end
-
-  class TimeoutError < ErrorResponse
-  end
-
   FREDDY_TOPIC_EXCHANGE_NAME = 'freddy-topic'.freeze
 
   def self.format_backtrace(backtrace)
