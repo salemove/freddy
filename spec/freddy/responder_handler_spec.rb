@@ -8,15 +8,49 @@ describe Freddy::ResponderHandler do
 
   after { freddy.close }
 
-  it 'can cancel listening for messages' do
-    consumer_handler = freddy.respond_to destination do
-      @messages_count ||= 0
-      @messages_count += 1
-    end
-    deliver
-    consumer_handler.cancel
-    deliver
+  describe '#shutdown' do
+    it 'lets ongoing workers to finish' do
+      count = 0
 
-    expect(@messages_count).to eq 1
+      consumer_handler = freddy.respond_to destination do
+        sleep 0.1
+        count += 1
+      end
+      deliver
+
+      sleep 0.05
+      consumer_handler.shutdown
+
+      expect(count).to eq(1)
+    end
+
+    it 'does not accept new jobs' do
+      count = 0
+
+      consumer_handler = freddy.respond_to destination do
+        count += 1
+      end
+
+      consumer_handler.shutdown
+      deliver
+
+      expect(count).to eq(0)
+    end
+
+    it 'does not touch other handlers' do
+      count = 0
+
+      freddy.respond_to destination do
+        count += 1
+      end
+
+      consumer_handler2 = freddy.respond_to random_destination do
+        count += 1
+      end
+      consumer_handler2.shutdown
+
+      deliver
+      expect(count).to eq(1)
+    end
   end
 end
