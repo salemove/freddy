@@ -14,8 +14,8 @@ class Freddy
       def handle_message(payload, msg_handler, &block)
         block.call payload, msg_handler
       rescue Exception => e
-        @logger.error "Exception occured while processing message from #{Freddy.format_exception(e)}"
-        Freddy.notify_exception(e, destination: @destination)
+        @logger.error "Exception occured while processing message from #{Utils.format_exception(e)}"
+        Utils.notify_exception(e, destination: @destination)
       end
 
       def success(*)
@@ -39,13 +39,13 @@ class Freddy
 
         if !@correlation_id
           @logger.error "Received request without correlation_id"
-          Freddy.notify_exception(e)
+          Utils.notify_exception(e)
         else
           block.call payload, msg_handler
         end
       rescue Exception => e
-        @logger.error "Exception occured while handling the request with correlation_id #{@correlation_id}: #{Freddy.format_exception(e)}"
-        Freddy.notify_exception(e, correlation_id: @correlation_id, destination: @destination)
+        @logger.error "Exception occured while handling the request with correlation_id #{@correlation_id}: #{Utils.format_exception(e)}"
+        Utils.notify_exception(e, correlation_id: @correlation_id, destination: @destination)
       end
 
       def success(reply_to, response)

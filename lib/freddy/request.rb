@@ -92,12 +92,12 @@ class Freddy
         request[:callback].call payload, delivery
       else
         @logger.warn "Got rpc response for correlation_id #{correlation_id} but there is no requester"
-        Freddy.notify 'NoRequesterForResponse', "Got rpc response but there is no requester", correlation_id: correlation_id
+        Utils.notify 'NoRequesterForResponse', "Got rpc response but there is no requester", correlation_id: correlation_id
       end
     rescue Exception => e
       destination_report = request ? "to #{request[:destination]}" : ''
-      @logger.error "Exception occured while handling the response of request made #{destination_report} with correlation_id #{correlation_id}: #{Freddy.format_exception e}"
-      Freddy.notify_exception(e, destination: request[:destination], correlation_id: correlation_id)
+      @logger.error "Exception occured while handling the response of request made #{destination_report} with correlation_id #{correlation_id}: #{Utils.format_exception e}"
+      Utils.notify_exception(e, destination: request[:destination], correlation_id: correlation_id)
     end
 
     def ensure_response_queue_exists

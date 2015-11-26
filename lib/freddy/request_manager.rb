@@ -33,7 +33,7 @@ class Freddy
       @requests.delete correlation_id
 
       @logger.warn "Request timed out waiting response from #{request[:destination]}, correlation id #{correlation_id}"
-      Freddy.notify 'RequestTimeout', "Request timed out waiting for response from #{request[:destination]}", {
+      Utils.notify 'RequestTimeout', "Request timed out waiting for response from #{request[:destination]}", {
         correlation_id: correlation_id,
         destination: request[:destination],
         timeout: request[:timeout]

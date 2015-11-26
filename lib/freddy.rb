@@ -15,37 +15,10 @@ require_relative 'freddy/payload'
 require_relative 'freddy/error_response'
 require_relative 'freddy/invalid_request_error'
 require_relative 'freddy/timeout_error'
+require_relative 'freddy/utils'
 
 class Freddy
   FREDDY_TOPIC_EXCHANGE_NAME = 'freddy-topic'.freeze
-
-  def self.format_backtrace(backtrace)
-    backtrace.map{ |x|
-      x.match(/^(.+?):(\d+)(|:in `(.+)')$/);
-      [$1,$2,$4]
-    }.join "\n"
-  end
-
-  def self.format_exception(exception)
-    "#{exception.exception}\n#{format_backtrace(exception.backtrace)}"
-  end
-
-  def self.notify(name, message, parameters={})
-    if defined? Airbrake
-      Airbrake.notify_or_ignore({
-        error_class: name,
-        error_message: message,
-        cgi_data: ENV.to_hash,
-        parameters: parameters
-      })
-    end
-  end
-
-  def self.notify_exception(exception, parameters={})
-    if defined? Airbrake
-      Airbrake.notify_or_ignore(exception, cgi_data: ENV.to_hash, parameters: parameters)
-    end
-  end
 
   def self.build(logger = Logger.new(STDOUT), config)
     if RUBY_PLATFORM == 'java'
