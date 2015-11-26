@@ -20,7 +20,22 @@ require_relative 'freddy/utils'
 class Freddy
   FREDDY_TOPIC_EXCHANGE_NAME = 'freddy-topic'.freeze
 
-  def self.build(logger = Logger.new(STDOUT), config)
+  # Creates a new freddy instance
+  #
+  # @param [Logger] logger
+  #   instance of a logger, defaults to the STDOUT logger
+  # @param [Hash] config
+  #   rabbitmq connection information
+  # @option config [String] :host ('localhost')
+  # @option config [Integer] :port (5672)
+  # @option config [String] :user ('guest')
+  # @option config [String] :pass ('guest')
+  #
+  # @return [Freddy]
+  #
+  # @example
+  #   Freddy.build(Logger.new(STDOUT), user: 'thumper', pass: 'howdy')
+  def self.build(logger = Logger.new(STDOUT), config = {})
     if RUBY_PLATFORM == 'java'
       connection = MarchHare.connect(config)
     else
