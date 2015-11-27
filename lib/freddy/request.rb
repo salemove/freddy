@@ -27,7 +27,6 @@ class Freddy
       end
 
       @listening_for_responses_lock = Mutex.new
-      @response_queue_lock = Mutex.new
     end
 
     def sync_request(destination, payload, opts)
@@ -62,10 +61,6 @@ class Freddy
 
     private
 
-    def create_response_queue
-      @channel.queue("", exclusive: true)
-    end
-
     def handle_response(payload, delivery)
       correlation_id = delivery.metadata.correlation_id
       request = @request_map[correlation_id]
@@ -83,24 +78,14 @@ class Freddy
       Utils.notify_exception(e, destination: request[:destination], correlation_id: correlation_id)
     end
 
-    def ensure_response_queue_exists
-      @response_queue_lock.synchronize do
-        @response_queue ||= create_response_queue
-      end
-    end
-
     def ensure_listening_to_responses
+      return @listening_for_responses if defined?(@listening_for_responses)
+
       @listening_for_responses_lock.synchronize do
-        if @listening_for_responses
-          true
-        else
-          ensure_response_queue_exists
-          @request_manager.start
-          @consumer.response_consume @response_queue do |payload, delivery|
-            handle_response payload, delivery
-          end
-          @listening_for_responses = true
-        end
+        @response_queue ||= @channel.queue("", exclusive: true)
+        @request_manager.start
+        @consumer.response_consume(@response_queue, &method(:handle_response))
+        @listening_for_responses = true
       end
     end
   end
