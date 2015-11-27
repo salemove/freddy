@@ -41,14 +41,14 @@ class Freddy
     @connection = connection
     @channel  = connection.create_channel
     @consume_thread_pool = Thread.pool(max_concurrency)
-    @consumer = Consumer.new channel, logger, @consume_thread_pool
     @producer = Producer.new channel, logger
+    @consumer = Consumer.new channel, logger, @consume_thread_pool, @producer
     @request  = Request.new channel, logger, @producer, @consumer
   end
   private :initialize
 
   def respond_to(destination, &callback)
-    @request.respond_to destination, &callback
+    @consumer.respond_to destination, &callback
   end
 
   def tap_into(pattern, &callback)

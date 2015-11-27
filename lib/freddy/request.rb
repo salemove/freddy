@@ -14,9 +14,6 @@ class Freddy
     class EmptyRequest < Exception
     end
 
-    class EmptyResponder < Exception
-    end
-
     def initialize(channel, logger, producer, consumer)
       @channel, @logger = channel, logger
       @producer, @consumer = producer, consumer
@@ -61,20 +58,6 @@ class Freddy
         correlation_id: correlation_id, reply_to: @response_queue.name,
         mandatory: true, type: 'request'
       )
-    end
-
-    def respond_to(destination, &block)
-      raise EmptyResponder unless block
-
-      ensure_response_queue_exists
-      @logger.info "Listening for requests on #{destination}"
-      responder_handler = @consumer.consume destination do |payload, delivery|
-        handler = MessageHandlers.for_type(delivery.metadata.type).new(@producer, destination, @logger)
-
-        msg_handler = MessageHandler.new(handler, delivery)
-        handler.handle_message payload, msg_handler, &block
-      end
-      responder_handler
     end
 
     private

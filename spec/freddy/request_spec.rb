@@ -10,10 +10,6 @@ describe Freddy::Request do
 
   after { freddy.close }
 
-  it 'raises empty responder exception when responding without callback' do
-    expect {@responder = request.respond_to destination }.to raise_error described_class::EmptyResponder
-  end
-
   context 'requesting from multiple threads' do
     let(:nr_of_threads) { 50 }
 

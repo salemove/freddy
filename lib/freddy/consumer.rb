@@ -2,31 +2,30 @@ require_relative 'responder_handler'
 require_relative 'message_handler'
 require_relative 'delivery'
 require_relative 'consumers/tap_into_consumer'
+require_relative 'consumers/respond_to_consumer'
 
 class Freddy
   class Consumer
-
     class EmptyConsumer < Exception
     end
 
-    def initialize(channel, logger, consume_thread_pool)
+    def initialize(channel, logger, consume_thread_pool, producer)
       @channel, @logger = channel, logger
-      @consume_thread_pool = consume_thread_pool
       @dedicated_thread_pool = Thread.pool(1) # used only internally
       @tap_into_consumer = Consumers::TapIntoConsumer.new(consume_thread_pool, channel)
-    end
-
-    def consume(destination, options = {}, &block)
-      raise EmptyConsumer unless block
-      consume_from_queue create_queue(destination), options, &block
-    end
-
-    def consume_from_queue(queue, options = {}, &block)
-      consume_using_pool(queue, options, @consume_thread_pool, &block)
+      @respond_to_consumer = Consumers::RespondToConsumer.new(consume_thread_pool, channel, producer, @logger)
     end
 
     def dedicated_consume(queue, &block)
-      consume_using_pool(queue, {}, @dedicated_thread_pool, &block)
+      consumer = queue.subscribe do |payload, delivery|
+        @dedicated_thread_pool.process do
+          parsed_payload = Payload.parse(payload)
+          log_receive_event(queue.name, parsed_payload, delivery.correlation_id)
+          block.call parsed_payload, delivery
+        end
+      end
+      @logger.debug "Consuming messages on #{queue.name}"
+      ResponderHandler.new consumer, @dedicated_thread_pool
     end
 
     def tap_into(pattern, &block)
@@ -34,19 +33,12 @@ class Freddy
       @tap_into_consumer.consume(pattern, &block)
     end
 
-    private
-
-    def consume_using_pool(queue, options, pool, &block)
-      consumer = queue.subscribe do |payload, delivery|
-        pool.process do
-          parsed_payload = Payload.parse(payload)
-          log_receive_event(queue.name, parsed_payload, delivery.correlation_id)
-          block.call parsed_payload, delivery
-        end
-      end
-      @logger.debug "Consuming messages on #{queue.name}"
-      ResponderHandler.new consumer, pool
+    def respond_to(destination, &block)
+      @logger.info "Listening for requests on #{destination}"
+      @respond_to_consumer.consume(destination, &block)
     end
+
+    private
 
     def create_queue(destination, options={})
       @channel.queue(destination, options)
