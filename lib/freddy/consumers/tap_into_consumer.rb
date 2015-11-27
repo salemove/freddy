@@ -8,8 +8,8 @@ class Freddy
       end
 
       def consume(pattern, &block)
-        consumer = create_queue(pattern).subscribe do |payload, delivery|
-          process_message(payload, delivery, &block)
+        consumer = create_queue(pattern).subscribe do |delivery|
+          process_message(delivery, &block)
         end
 
         ResponderHandler.new(consumer, @consume_thread_pool)
@@ -23,9 +23,9 @@ class Freddy
           .bind(@topic_exchange, routing_key: pattern)
       end
 
-      def process_message(payload, delivery, &block)
+      def process_message(delivery, &block)
         @consume_thread_pool.process do
-          block.call Payload.parse(payload), delivery.routing_key
+          block.call delivery.payload, delivery.routing_key
         end
       end
     end

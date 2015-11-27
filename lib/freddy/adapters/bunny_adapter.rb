@@ -48,7 +48,8 @@ class Freddy
 
         def subscribe(&block)
           @queue.subscribe do |info, properties, payload|
-            block.call(payload, Delivery.new(properties, info.routing_key))
+            parsed_payload = Payload.parse(payload)
+            block.call(Delivery.new(parsed_payload, properties, info.routing_key))
           end
         end
 

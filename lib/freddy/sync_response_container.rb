@@ -23,7 +23,7 @@ class Freddy
         raise Timeout::Error, 'execution expired'
       elsif @response[:error] == 'RequestTimeout'
         raise TimeoutError.new(@response)
-      elsif !@delivery || @delivery.metadata.type == 'error'
+      elsif !@delivery || @delivery.type == 'error'
         raise InvalidRequestError.new(@response)
       else
         @response
