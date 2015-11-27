@@ -23,7 +23,6 @@ describe 'Logging' do
 
   it 'logs all consumed messages' do
     expect(logger1).to have_received(:info).with(/Listening for requests on \S+/)
-    expect(logger1).to have_received(:debug).with(/Consuming messages on \S+/)
     expect(logger1).to have_received(:debug).with(/Received message on \S+ with payload {:pay=>"load"}/)
   end
 

@@ -14,9 +14,6 @@ class Freddy
     class EmptyRequest < Exception
     end
 
-    class EmptyResponder < Exception
-    end
-
     def initialize(channel, logger, producer, consumer)
       @channel, @logger = channel, logger
       @producer, @consumer = producer, consumer
@@ -30,7 +27,6 @@ class Freddy
       end
 
       @listening_for_responses_lock = Mutex.new
-      @response_queue_lock = Mutex.new
     end
 
     def sync_request(destination, payload, opts)
@@ -63,25 +59,7 @@ class Freddy
       )
     end
 
-    def respond_to(destination, &block)
-      raise EmptyResponder unless block
-
-      ensure_response_queue_exists
-      @logger.info "Listening for requests on #{destination}"
-      responder_handler = @consumer.consume destination do |payload, delivery|
-        handler = MessageHandlers.for_type(delivery.metadata.type).new(@producer, destination, @logger)
-
-        msg_handler = MessageHandler.new(handler, delivery)
-        handler.handle_message payload, msg_handler, &block
-      end
-      responder_handler
-    end
-
     private
-
-    def create_response_queue
-      @channel.queue("", exclusive: true)
-    end
 
     def handle_response(payload, delivery)
       correlation_id = delivery.metadata.correlation_id
@@ -100,24 +78,14 @@ class Freddy
       Utils.notify_exception(e, destination: request[:destination], correlation_id: correlation_id)
     end
 
-    def ensure_response_queue_exists
-      @response_queue_lock.synchronize do
-        @response_queue ||= create_response_queue
-      end
-    end
-
     def ensure_listening_to_responses
+      return @listening_for_responses if defined?(@listening_for_responses)
+
       @listening_for_responses_lock.synchronize do
-        if @listening_for_responses
-          true
-        else
-          ensure_response_queue_exists
-          @request_manager.start
-          @consumer.dedicated_consume @response_queue do |payload, delivery|
-            handle_response payload, delivery
-          end
-          @listening_for_responses = true
-        end
+        @response_queue ||= @channel.queue("", exclusive: true)
+        @request_manager.start
+        @consumer.response_consume(@response_queue, &method(:handle_response))
+        @listening_for_responses = true
       end
     end
   end

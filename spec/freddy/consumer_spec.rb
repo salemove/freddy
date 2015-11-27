@@ -10,12 +10,8 @@ describe Freddy::Consumer do
 
   after { freddy.close }
 
-  it 'raises exception when no consumer is provided' do
-    expect { consumer.consume destination }.to raise_error described_class::EmptyConsumer
-  end
-
   it "doesn't call passed block without any messages" do
-    consumer.consume destination do
+    consumer.respond_to destination do
       @message_received = true
     end
     default_sleep
