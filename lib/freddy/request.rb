@@ -96,7 +96,7 @@ class Freddy
         else
           ensure_response_queue_exists
           @request_manager.start
-          @consumer.dedicated_consume @response_queue do |payload, delivery|
+          @consumer.response_consume @response_queue do |payload, delivery|
             handle_response payload, delivery
           end
           @listening_for_responses = true
