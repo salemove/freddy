@@ -1,7 +1,7 @@
 require_relative 'responder_handler'
 require_relative 'message_handler'
-require_relative 'request'
 require_relative 'delivery'
+require_relative 'consumers/tap_into_consumer'
 
 class Freddy
   class Consumer
@@ -11,9 +11,9 @@ class Freddy
 
     def initialize(channel, logger, consume_thread_pool)
       @channel, @logger = channel, logger
-      @topic_exchange = @channel.topic Freddy::FREDDY_TOPIC_EXCHANGE_NAME
       @consume_thread_pool = consume_thread_pool
       @dedicated_thread_pool = Thread.pool(1) # used only internally
+      @tap_into_consumer = Consumers::TapIntoConsumer.new(consume_thread_pool, channel)
     end
 
     def consume(destination, options = {}, &block)
@@ -30,14 +30,8 @@ class Freddy
     end
 
     def tap_into(pattern, &block)
-      queue = create_queue('', exclusive: true).bind(@topic_exchange, routing_key: pattern)
-      consumer = queue.subscribe do |payload, delivery|
-        @consume_thread_pool.process do
-          block.call Payload.parse(payload), delivery.routing_key
-        end
-      end
       @logger.debug "Tapping into messages that match #{pattern}"
-      ResponderHandler.new consumer, @consume_thread_pool
+      @tap_into_consumer.consume(pattern, &block)
     end
 
     private
