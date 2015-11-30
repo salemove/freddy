@@ -11,9 +11,6 @@ class Freddy
   class Request
     NO_ROUTE = 312
 
-    class EmptyRequest < Exception
-    end
-
     def initialize(channel, logger, producer, consumer)
       @channel, @logger = channel, logger
       @producer, @consumer = producer, consumer
@@ -61,13 +58,12 @@ class Freddy
 
     private
 
-    def handle_response(payload, delivery)
-      correlation_id = delivery.metadata.correlation_id
-      request = @request_map[correlation_id]
-      if request
+    def handle_response(delivery)
+      correlation_id = delivery.correlation_id
+
+      if request = @request_map.delete(correlation_id)
         @logger.debug "Got response for request to #{request[:destination]} with correlation_id #{correlation_id}"
-        @request_map.delete correlation_id
-        request[:callback].call payload, delivery
+        request[:callback].call delivery.payload, delivery
       else
         @logger.warn "Got rpc response for correlation_id #{correlation_id} but there is no requester"
         Utils.notify 'NoRequesterForResponse', "Got rpc response but there is no requester", correlation_id: correlation_id

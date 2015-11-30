@@ -4,9 +4,7 @@ describe Freddy::MessageHandler do
   subject(:handler) { described_class.new(adapter, delivery) }
 
   let(:adapter) { double }
-  let(:delivery) { double(metadata: metadata) }
-  let(:metadata) { double(reply_to: reply_to, correlation_id: 'abc') }
-
+  let(:delivery) { double(reply_to: reply_to, correlation_id: 'abc') }
   let(:reply_to) { double }
 
   describe '#success' do
