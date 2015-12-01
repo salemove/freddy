@@ -23,7 +23,7 @@ class Freddy
 
     class OjAdapter
       def self.parse(payload)
-        Oj.load(payload, symbol_keys: true)
+        Oj.strict_load(payload, symbol_keys: true)
       end
 
       def self.dump(payload)
