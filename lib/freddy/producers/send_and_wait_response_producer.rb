@@ -35,12 +35,7 @@ class Freddy
 
       private
 
-      def async_request(destination, payload, properties, &block)
-        timeout = properties.fetch(:timeout)
-        delete_on_timeout = properties.fetch(:delete_on_timeout)
-        properties.delete(:timeout)
-        properties.delete(:delete_on_timeout)
-
+      def async_request(destination, payload, timeout:, delete_on_timeout:, **properties, &block)
         correlation_id = SecureRandom.uuid
         @request_manager.store(correlation_id, callback: block, destination: destination, timeout: Time.now + timeout)
 
@@ -57,7 +52,7 @@ class Freddy
 
         @logger.debug "Publishing request with payload #{payload.inspect} to #{destination}, waiting for response on #{@response_queue.name} with correlation_id #{correlation_id}"
 
-        # Connection adepters handle thread safety for #publish themselves. No
+        # Connection adapters handle thread safety for #publish themselves. No
         # need to lock these.
         @topic_exchange.publish json_payload, properties.dup
         @exchange.publish json_payload, properties.dup
