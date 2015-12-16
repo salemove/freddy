@@ -8,6 +8,10 @@ describe Freddy::Consumers::RespondToConsumer do
   let(:destination) { random_destination }
   let(:payload)     { {pay: 'load'} }
 
+  after do
+    connection.close
+  end
+
   it "doesn't call passed block without any messages" do
     consumer.consume destination, connection.create_channel do
       @message_received = true
