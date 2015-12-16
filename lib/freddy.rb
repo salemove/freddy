@@ -3,7 +3,6 @@ require 'thread/pool'
 require 'hamster/mutable_hash'
 
 require_relative 'freddy/adapters'
-require_relative 'freddy/consumer'
 require_relative 'freddy/producer'
 require_relative 'freddy/payload'
 require_relative 'freddy/error_response'
@@ -50,17 +49,21 @@ class Freddy
     @connection = connection
     @logger = logger
 
-    @consumer = Consumer.new(logger, consume_thread_pool, @connection)
     @producer = Producer.new(logger, @connection)
+
+    @tap_into_consumer = Consumers::TapIntoConsumer.new(consume_thread_pool)
+    @respond_to_consumer = Consumers::RespondToConsumer.new(consume_thread_pool, @logger)
   end
   private :initialize
 
   def respond_to(destination, &callback)
-    @consumer.respond_to destination, &callback
+    @logger.info "Listening for requests on #{destination}"
+    @respond_to_consumer.consume(destination, @connection.create_channel, &callback)
   end
 
   def tap_into(pattern, &callback)
-    @consumer.tap_into pattern, &callback
+    @logger.debug "Tapping into messages that match #{pattern}"
+    @tap_into_consumer.consume(pattern, @connection.create_channel, &callback)
   end
 
   # Sends a message to given destination
