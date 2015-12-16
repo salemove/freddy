@@ -2,23 +2,9 @@ require 'json'
 require 'thread/pool'
 require 'hamster/mutable_hash'
 
-require_relative 'freddy/adapters'
-require_relative 'freddy/producer'
-require_relative 'freddy/payload'
-require_relative 'freddy/error_response'
-require_relative 'freddy/invalid_request_error'
-require_relative 'freddy/timeout_error'
-require_relative 'freddy/utils'
-require_relative 'freddy/request_manager'
-require_relative 'freddy/sync_response_container'
-require_relative 'freddy/message_handlers'
-require_relative 'freddy/responder_handler'
-require_relative 'freddy/message_handler'
-require_relative 'freddy/delivery'
-require_relative 'freddy/consumers/tap_into_consumer'
-require_relative 'freddy/consumers/respond_to_consumer'
-require_relative 'freddy/consumers/response_consumer'
-
+Dir[File.dirname(__FILE__) + '/freddy/*.rb'].each(&method(:require))
+Dir[File.dirname(__FILE__) + '/freddy/consumers/*.rb'].each(&method(:require))
+Dir[File.dirname(__FILE__) + '/freddy/producers/*.rb'].each(&method(:require))
 
 class Freddy
   FREDDY_TOPIC_EXCHANGE_NAME = 'freddy-topic'.freeze
@@ -49,10 +35,15 @@ class Freddy
     @connection = connection
     @logger = logger
 
-    @producer = Producer.new(logger, @connection)
-
     @tap_into_consumer = Consumers::TapIntoConsumer.new(consume_thread_pool)
     @respond_to_consumer = Consumers::RespondToConsumer.new(consume_thread_pool, @logger)
+
+    @send_and_forget_producer = Producers::SendAndForgetProducer.new(
+      connection.create_channel, logger
+    )
+    @send_and_wait_response_producer = Producers::SendAndWaitResponseProducer.new(
+      connection.create_channel, logger
+    )
   end
   private :initialize
 
@@ -92,7 +83,7 @@ class Freddy
     opts = {}
     opts[:expiration] = (timeout * 1000).to_i if timeout > 0
 
-    @producer.produce(destination, payload, opts)
+    @send_and_forget_producer.produce(destination, payload, opts)
   end
 
   # Sends a message and waits for the response
@@ -128,7 +119,7 @@ class Freddy
     timeout = options.fetch(:timeout, 3)
     delete_on_timeout = options.fetch(:delete_on_timeout, true)
 
-    @producer.produce_and_wait_response destination, payload, {
+    @send_and_wait_response_producer.produce destination, payload, {
       timeout: timeout, delete_on_timeout: delete_on_timeout
     }
   end
