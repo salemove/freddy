@@ -8,9 +8,7 @@ class Freddy
         @logger = logger
         @channel = channel
 
-        @response_consumer = Consumers::ResponseConsumer.new(@logger)
-        @request_map = Hamster.mutable_hash
-        @request_manager = RequestManager.new @request_map, @logger
+        @request_manager = RequestManager.new(@logger)
 
         @exchange = @channel.default_exchange
         @topic_exchange = @channel.topic Freddy::FREDDY_TOPIC_EXCHANGE_NAME
@@ -21,7 +19,11 @@ class Freddy
           end
         end
 
-        @listening_for_responses_lock = Mutex.new
+        @response_queue = @channel.queue("", exclusive: true)
+        @request_manager.start
+
+        @response_consumer = Consumers::ResponseConsumer.new(@logger)
+        @response_consumer.consume(@response_queue, &method(:handle_response))
       end
 
       def produce(destination, payload, properties)
@@ -39,11 +41,8 @@ class Freddy
         properties.delete(:timeout)
         properties.delete(:delete_on_timeout)
 
-        ensure_listening_to_responses
-
         correlation_id = SecureRandom.uuid
-        @request_map.store(correlation_id, callback: block, destination: destination, timeout: Time.now + timeout)
-
+        @request_manager.store(correlation_id, callback: block, destination: destination, timeout: Time.now + timeout)
 
         if delete_on_timeout
           properties[:expiration] = (timeout * 1000).to_i
@@ -67,7 +66,7 @@ class Freddy
       def handle_response(delivery)
         correlation_id = delivery.correlation_id
 
-        if request = @request_map.delete(correlation_id)
+        if request = @request_manager.delete(correlation_id)
           @logger.debug "Got response for request to #{request[:destination]} with correlation_id #{correlation_id}"
           request[:callback].call delivery.payload, delivery
         else
@@ -78,17 +77,6 @@ class Freddy
         destination_report = request ? "to #{request[:destination]}" : ''
         @logger.error "Exception occured while handling the response of request made #{destination_report} with correlation_id #{correlation_id}: #{Utils.format_exception e}"
         Utils.notify_exception(e, destination: request[:destination], correlation_id: correlation_id)
-      end
-
-      def ensure_listening_to_responses
-        return @listening_for_responses if defined?(@listening_for_responses)
-
-        @listening_for_responses_lock.synchronize do
-          @response_queue ||= @channel.queue("", exclusive: true)
-          @request_manager.start
-          @response_consumer.consume(@response_queue, &method(:handle_response))
-          @listening_for_responses = true
-        end
       end
     end
   end
