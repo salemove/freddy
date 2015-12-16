@@ -1,3 +1,5 @@
+require 'thread'
+
 class Freddy
   module Consumers
     class TapIntoConsumer
@@ -5,17 +7,25 @@ class Freddy
         @consume_thread_pool = consume_thread_pool
         @channel = channel
         @topic_exchange = @channel.topic(Freddy::FREDDY_TOPIC_EXCHANGE_NAME)
+        @mutex = Mutex.new
       end
 
       def consume(pattern, &block)
-        consumer = create_queue(pattern).subscribe do |delivery|
-          process_message(delivery, &block)
+        consumer = @mutex.synchronize do
+          create_consumer(pattern, &block)
         end
 
         ResponderHandler.new(consumer, @consume_thread_pool)
       end
 
       private
+
+
+      def create_consumer(pattern, &block)
+        create_queue(pattern).subscribe do |delivery|
+          process_message(delivery, &block)
+        end
+      end
 
       def create_queue(pattern)
         @channel

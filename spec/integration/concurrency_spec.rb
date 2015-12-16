@@ -62,4 +62,15 @@ describe 'Concurrency' do
     expect(received1).to be(true)
     expect(received2).to be(true)
   end
+
+  it 'supports adding multiple #tap_into listeners' do
+    results = 10.times.map do |id|
+      Thread.new do
+        freddy1.tap_into "tap_into.listener.#{id}" do
+        end
+      end
+    end.map(&:join)
+
+    expect(results.count).to eq(10)
+  end
 end
