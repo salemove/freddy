@@ -2,6 +2,7 @@ require 'pry'
 require 'securerandom'
 require 'freddy'
 require 'logger'
+require 'hamster/experimental/mutable_set'
 
 Thread.abort_on_exception = true
 

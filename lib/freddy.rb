@@ -1,15 +1,25 @@
 require 'json'
 require 'thread/pool'
+require 'hamster/mutable_hash'
 
 require_relative 'freddy/adapters'
 require_relative 'freddy/consumer'
 require_relative 'freddy/producer'
-require_relative 'freddy/request'
 require_relative 'freddy/payload'
 require_relative 'freddy/error_response'
 require_relative 'freddy/invalid_request_error'
 require_relative 'freddy/timeout_error'
 require_relative 'freddy/utils'
+require_relative 'freddy/request_manager'
+require_relative 'freddy/sync_response_container'
+require_relative 'freddy/message_handlers'
+require_relative 'freddy/responder_handler'
+require_relative 'freddy/message_handler'
+require_relative 'freddy/delivery'
+require_relative 'freddy/consumers/tap_into_consumer'
+require_relative 'freddy/consumers/respond_to_consumer'
+require_relative 'freddy/consumers/response_consumer'
+
 
 class Freddy
   FREDDY_TOPIC_EXCHANGE_NAME = 'freddy-topic'.freeze
@@ -29,21 +39,19 @@ class Freddy
   #
   # @example
   #   Freddy.build(Logger.new(STDOUT), user: 'thumper', pass: 'howdy')
-  def self.build(logger = Logger.new(STDOUT), config = {})
+  def self.build(logger = Logger.new(STDOUT), max_concurrency: 4, **config)
     connection = Adapters.determine.connect(config)
+    consume_thread_pool = Thread.pool(max_concurrency)
 
-    new(connection, logger, config.fetch(:max_concurrency, 4))
+    new(connection, logger, consume_thread_pool)
   end
 
-  attr_reader :channel, :consumer, :producer, :request
-
-  def initialize(connection, logger, max_concurrency)
+  def initialize(connection, logger, consume_thread_pool)
     @connection = connection
-    @channel  = connection.create_channel
-    @consume_thread_pool = Thread.pool(max_concurrency)
-    @producer = Producer.new channel, logger
-    @consumer = Consumer.new logger, @consume_thread_pool, @producer, @connection
-    @request  = Request.new channel, logger, @producer, @consumer
+    @logger = logger
+
+    @consumer = Consumer.new(logger, consume_thread_pool, @connection)
+    @producer = Producer.new(logger, @connection)
   end
   private :initialize
 
@@ -81,7 +89,7 @@ class Freddy
     opts = {}
     opts[:expiration] = (timeout * 1000).to_i if timeout > 0
 
-    @producer.produce destination, payload, opts
+    @producer.produce(destination, payload, opts)
   end
 
   # Sends a message and waits for the response
@@ -117,7 +125,7 @@ class Freddy
     timeout = options.fetch(:timeout, 3)
     delete_on_timeout = options.fetch(:delete_on_timeout, true)
 
-    @request.sync_request destination, payload, {
+    @producer.produce_and_wait_response destination, payload, {
       timeout: timeout, delete_on_timeout: delete_on_timeout
     }
   end

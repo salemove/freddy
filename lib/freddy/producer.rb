@@ -1,26 +1,26 @@
-require_relative 'request'
+require_relative 'producers/send_and_forget_producer'
+require_relative 'producers/send_and_wait_response_producer'
 require 'json'
 
 class Freddy
   class Producer
-    OnReturnNotImplemented = Class.new(NoMethodError)
-
-    CONTENT_TYPE = 'application/json'.freeze
-
-    def initialize(channel, logger)
-      @channel, @logger = channel, logger
-      @exchange = @channel.default_exchange
-      @topic_exchange = @channel.topic Freddy::FREDDY_TOPIC_EXCHANGE_NAME
+    def initialize(logger, connection)
+      @logger = logger
+      @connection = connection
+      @send_and_forget_producer = Producers::SendAndForgetProducer.new(
+        connection.create_channel, logger
+      )
+      @send_and_wait_response_producer = Producers::SendAndWaitResponseProducer.new(
+        connection.create_channel, logger
+      )
     end
 
-    def produce(destination, payload, properties={})
-      @logger.debug "Producing message #{payload.inspect} to #{destination}"
+    def produce(destination, payload, properties = {})
+      @send_and_forget_producer.produce(destination, payload, properties)
+    end
 
-      properties = properties.merge(routing_key: destination, content_type: CONTENT_TYPE)
-      json_payload = Payload.dump(payload)
-
-      @topic_exchange.publish json_payload, properties.dup
-      @exchange.publish json_payload, properties.dup
+    def produce_and_wait_response(destination, payload, properties = {})
+      @send_and_wait_response_producer.produce(destination, payload, properties)
     end
   end
 end

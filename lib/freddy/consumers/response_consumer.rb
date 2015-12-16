@@ -7,6 +7,7 @@ class Freddy
       end
 
       def consume(queue, &block)
+        @logger.debug "Consuming messages on #{queue.name}"
         consumer = queue.subscribe do |delivery|
           process_message(queue, delivery, &block)
         end

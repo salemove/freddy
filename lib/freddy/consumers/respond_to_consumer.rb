@@ -1,18 +1,19 @@
 class Freddy
   module Consumers
     class RespondToConsumer
-      def initialize(consume_thread_pool, producer, logger)
+      def initialize(consume_thread_pool, logger)
         @consume_thread_pool = consume_thread_pool
-        @producer = producer
         @logger = logger
       end
 
       def consume(destination, channel, &block)
+        producer = Producers::SendAndForgetProducer.new(channel, @logger)
+
         consumer = consume_from_destination(destination, channel) do |delivery|
           log_receive_event(destination, delivery)
 
           handler_class = MessageHandlers.for_type(delivery.type)
-          handler = handler_class.new(@producer, destination, @logger)
+          handler = handler_class.new(producer, destination, @logger)
 
           msg_handler = MessageHandler.new(handler, delivery)
           handler.handle_message delivery.payload, msg_handler, &block

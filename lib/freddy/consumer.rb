@@ -1,23 +1,10 @@
-require_relative 'responder_handler'
-require_relative 'message_handler'
-require_relative 'delivery'
-require_relative 'consumers/tap_into_consumer'
-require_relative 'consumers/respond_to_consumer'
-require_relative 'consumers/response_consumer'
-
 class Freddy
   class Consumer
-    def initialize(logger, consume_thread_pool, producer, connection)
+    def initialize(logger, consume_thread_pool, connection)
       @logger = logger
       @connection = connection
       @tap_into_consumer = Consumers::TapIntoConsumer.new(consume_thread_pool)
-      @respond_to_consumer = Consumers::RespondToConsumer.new(consume_thread_pool, producer, @logger)
-      @response_consumer = Consumers::ResponseConsumer.new(@logger)
-    end
-
-    def response_consume(queue, &block)
-      @logger.debug "Consuming messages on #{queue.name}"
-      @response_consumer.consume(queue, &block)
+      @respond_to_consumer = Consumers::RespondToConsumer.new(consume_thread_pool, @logger)
     end
 
     def tap_into(pattern, &block)

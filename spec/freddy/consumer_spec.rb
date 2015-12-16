@@ -1,14 +1,13 @@
 require 'spec_helper'
 
 describe Freddy::Consumer do
-  let(:freddy) { Freddy.build(logger, config) }
+  let(:consumer) { described_class.new(logger, thread_pool, connection) }
+
+  let(:connection) { Freddy::Adapters.determine.connect(config) }
+  let(:thread_pool) { Thread.pool(1) }
 
   let(:destination) { random_destination }
   let(:payload)     { {pay: 'load'} }
-
-  let(:consumer) { freddy.consumer }
-
-  after { freddy.close }
 
   it "doesn't call passed block without any messages" do
     consumer.respond_to destination do
