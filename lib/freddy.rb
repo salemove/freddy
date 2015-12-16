@@ -42,7 +42,7 @@ class Freddy
     @channel  = connection.create_channel
     @consume_thread_pool = Thread.pool(max_concurrency)
     @producer = Producer.new channel, logger
-    @consumer = Consumer.new channel, logger, @consume_thread_pool, @producer
+    @consumer = Consumer.new logger, @consume_thread_pool, @producer, @connection
     @request  = Request.new channel, logger, @producer, @consumer
   end
   private :initialize

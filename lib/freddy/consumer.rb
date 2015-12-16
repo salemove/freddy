@@ -7,10 +7,11 @@ require_relative 'consumers/response_consumer'
 
 class Freddy
   class Consumer
-    def initialize(channel, logger, consume_thread_pool, producer)
-      @channel, @logger = channel, logger
-      @tap_into_consumer = Consumers::TapIntoConsumer.new(consume_thread_pool, channel)
-      @respond_to_consumer = Consumers::RespondToConsumer.new(consume_thread_pool, channel, producer, @logger)
+    def initialize(logger, consume_thread_pool, producer, connection)
+      @logger = logger
+      @connection = connection
+      @tap_into_consumer = Consumers::TapIntoConsumer.new(consume_thread_pool)
+      @respond_to_consumer = Consumers::RespondToConsumer.new(consume_thread_pool, producer, @logger)
       @response_consumer = Consumers::ResponseConsumer.new(@logger)
     end
 
@@ -21,12 +22,12 @@ class Freddy
 
     def tap_into(pattern, &block)
       @logger.debug "Tapping into messages that match #{pattern}"
-      @tap_into_consumer.consume(pattern, &block)
+      @tap_into_consumer.consume(pattern, @connection.create_channel, &block)
     end
 
     def respond_to(destination, &block)
       @logger.info "Listening for requests on #{destination}"
-      @respond_to_consumer.consume(destination, &block)
+      @respond_to_consumer.consume(destination, @connection.create_channel, &block)
     end
   end
 end
