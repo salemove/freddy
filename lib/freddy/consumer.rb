@@ -7,11 +7,11 @@ require_relative 'consumers/response_consumer'
 
 class Freddy
   class Consumer
-    def initialize(channel, logger, consume_thread_pool, producer, connection)
-      @channel, @logger = channel, logger
+    def initialize(logger, consume_thread_pool, producer, connection)
+      @logger = logger
       @connection = connection
       @tap_into_consumer = Consumers::TapIntoConsumer.new(consume_thread_pool)
-      @respond_to_consumer = Consumers::RespondToConsumer.new(consume_thread_pool, channel, producer, @logger)
+      @respond_to_consumer = Consumers::RespondToConsumer.new(consume_thread_pool, producer, @logger)
       @response_consumer = Consumers::ResponseConsumer.new(@logger)
     end
 
@@ -27,7 +27,7 @@ class Freddy
 
     def respond_to(destination, &block)
       @logger.info "Listening for requests on #{destination}"
-      @respond_to_consumer.consume(destination, &block)
+      @respond_to_consumer.consume(destination, @connection.create_channel, &block)
     end
   end
 end

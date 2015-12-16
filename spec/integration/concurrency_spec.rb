@@ -73,4 +73,15 @@ describe 'Concurrency' do
 
     expect(results.count).to eq(10)
   end
+
+  it 'supports adding multiple #respond_to listeners' do
+    results = 10.times.map do |id|
+      Thread.new do
+        freddy1.respond_to "respond_to.listener.#{id}" do
+        end
+      end
+    end.map(&:join)
+
+    expect(results.count).to eq(10)
+  end
 end
