@@ -18,7 +18,8 @@ describe Freddy do
       it 'removes the message from the queue after the timeout' do
         # Assume that there already is a queue. Otherwise will get an early
         # return.
-        freddy.channel.queue(destination)
+        consumer = freddy.respond_to(destination) { }
+        consumer.shutdown
 
         freddy.deliver(destination, {}, timeout: 0.1)
         sleep 0.2
@@ -35,7 +36,8 @@ describe Freddy do
       it 'keeps the message in the queue' do
         # Assume that there already is a queue. Otherwise will get an early
         # return.
-        freddy.channel.queue(destination)
+        consumer = freddy.respond_to(destination) { }
+        consumer.shutdown
 
         freddy.deliver(destination, {})
         default_sleep # to ensure everything is properly cleaned
@@ -67,21 +69,6 @@ describe Freddy do
       }
     end
 
-    it 'does not leak consumers' do
-      respond_to { |payload, msg_handler| msg_handler.success(res: 'yey') }
-
-      old_count = freddy.channel.consumers.keys.count
-
-      response1 = freddy.deliver_with_response(destination, {a: 'b'})
-      response2 = freddy.deliver_with_response(destination, {a: 'b'})
-
-      expect(response1).to eq(res: 'yey')
-      expect(response2).to eq(res: 'yey')
-
-      new_count = freddy.channel.consumers.keys.count
-      expect(new_count).to be(old_count + 1)
-    end
-
     it 'responds to the correct requester' do
       respond_to { |payload, msg_handler| msg_handler.success(res: 'yey') }
 
@@ -95,17 +82,11 @@ describe Freddy do
 
     context 'when queue does not exist' do
       it 'gives a no route error' do
-        begin
-          Timeout::timeout(0.5) do
-            expect {
-              freddy.deliver_with_response(destination, {a: 'b'}, timeout: 3)
-            }.to raise_error(Freddy::InvalidRequestError) {|error|
-              expect(error.response).to eq(error: 'Specified queue does not exist')
-            }
-          end
-        rescue Timeout::Error
-          fail('Received a timeout error instead of the no route error')
-        end
+        expect {
+          freddy.deliver_with_response(destination, {a: 'b'}, timeout: 1)
+        }.to raise_error(Freddy::InvalidRequestError) {|error|
+          expect(error.response).to eq(error: 'Specified queue does not exist')
+        }
       end
     end
 
@@ -124,7 +105,8 @@ describe Freddy do
         it 'removes the message from the queue' do
           # Assume that there already is a queue. Otherwise will get an early
           # return.
-          freddy.channel.queue(destination)
+          consumer = freddy.respond_to(destination) { }
+          consumer.shutdown
 
           expect {
             freddy.deliver_with_response(destination, {}, timeout: 0.1)
@@ -143,7 +125,8 @@ describe Freddy do
         it 'removes the message from the queue' do
           # Assume that there already is a queue. Otherwise will get an early
           # return.
-          freddy.channel.queue(destination)
+          consumer = freddy.respond_to(destination) { }
+          consumer.shutdown
 
           expect {
             freddy.deliver_with_response(destination, {}, timeout: 0.1, delete_on_timeout: false)

@@ -2,6 +2,7 @@ require 'pry'
 require 'securerandom'
 require 'freddy'
 require 'logger'
+require 'hamster/experimental/mutable_set'
 
 Thread.abort_on_exception = true
 
@@ -37,4 +38,10 @@ end
 
 def config
   {host: 'localhost', port: 5672, user: 'guest', pass: 'guest'}
+end
+
+def spawn_echo_responder(freddy, queue_name)
+  freddy.respond_to queue_name do |payload, msg_handler|
+    msg_handler.success(payload)
+  end
 end

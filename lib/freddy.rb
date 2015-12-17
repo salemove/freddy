@@ -1,18 +1,12 @@
 require 'json'
 require 'thread/pool'
+require 'hamster/mutable_hash'
 
-require_relative 'freddy/adapters'
-require_relative 'freddy/consumer'
-require_relative 'freddy/producer'
-require_relative 'freddy/request'
-require_relative 'freddy/payload'
-require_relative 'freddy/error_response'
-require_relative 'freddy/invalid_request_error'
-require_relative 'freddy/timeout_error'
-require_relative 'freddy/utils'
+Dir[File.dirname(__FILE__) + '/freddy/*.rb'].each(&method(:require))
 
 class Freddy
   FREDDY_TOPIC_EXCHANGE_NAME = 'freddy-topic'.freeze
+  DEFAULT_MAX_CONCURRENCY = 4
 
   # Creates a new freddy instance
   #
@@ -29,30 +23,84 @@ class Freddy
   #
   # @example
   #   Freddy.build(Logger.new(STDOUT), user: 'thumper', pass: 'howdy')
-  def self.build(logger = Logger.new(STDOUT), config = {})
+  def self.build(logger = Logger.new(STDOUT), max_concurrency: DEFAULT_MAX_CONCURRENCY, **config)
     connection = Adapters.determine.connect(config)
+    consume_thread_pool = Thread.pool(max_concurrency)
 
-    new(connection, logger, config.fetch(:max_concurrency, 4))
+    new(connection, logger, consume_thread_pool)
   end
 
-  attr_reader :channel, :consumer, :producer, :request
-
-  def initialize(connection, logger, max_concurrency)
+  def initialize(connection, logger, consume_thread_pool)
     @connection = connection
-    @channel  = connection.create_channel
-    @consume_thread_pool = Thread.pool(max_concurrency)
-    @producer = Producer.new channel, logger
-    @consumer = Consumer.new logger, @consume_thread_pool, @producer, @connection
-    @request  = Request.new channel, logger, @producer, @consumer
+    @logger = logger
+
+    @tap_into_consumer = Consumers::TapIntoConsumer.new(consume_thread_pool)
+    @respond_to_consumer = Consumers::RespondToConsumer.new(consume_thread_pool, @logger)
+
+    @send_and_forget_producer = Producers::SendAndForgetProducer.new(
+      connection.create_channel, logger
+    )
+    @send_and_wait_response_producer = Producers::SendAndWaitResponseProducer.new(
+      connection.create_channel, logger
+    )
   end
   private :initialize
 
+  # Listens and responds to messages
+  #
+  # This consumes messages on a given destination. It is useful for messages
+  # that have to be processed once and then a result must be sent.
+  #
+  # @param [String] destination
+  #   the queue name
+  #
+  # @yieldparam [Hash<Symbol => Object>] message
+  #   Received message as a ruby hash with symbolized keys
+  # @yieldparam [#success, #error] handler
+  #   Handler for responding to messages. Use handler#success for successful
+  #   respone and handler#error for error response.
+  #
+  # @return [#shutdown]
+  #
+  # @example
+  #   freddy.respond_to 'RegistrationService' do |attributes, handler|
+  #     if id = register(attributes)
+  #       handler.success(id: id)
+  #     else
+  #       handler.error(message: 'Can not do')
+  #     end
+  #   end
   def respond_to(destination, &callback)
-    @consumer.respond_to destination, &callback
+    @logger.info "Listening for requests on #{destination}"
+
+    channel = @connection.create_channel
+    producer = Producers::SendAndForgetProducer.new(channel, @logger)
+    handler_factory = MessageHandlers::Factory.new(producer, @logger)
+
+    @respond_to_consumer.consume(destination, channel, handler_factory, &callback)
   end
 
+  # Listens for messages without consuming them
+  #
+  # This listens for messages on a given destination or destinations without
+  # consuming them. It is useful for general messages that two or more clients
+  # are interested.
+  #
+  # @param [String] pattern
+  #   the destination pattern. Use `#` wildcard for matching 0 or more words.
+  #   Use `*` to match exactly one word.
+  #
+  # @yield [message] Yields received message to the block
+  #
+  # @return [#shutdown]
+  #
+  # @example
+  #   freddy.tap_into 'notifications.*' do |message|
+  #     puts "Notification showed #{message.inspect}"
+  #   end
   def tap_into(pattern, &callback)
-    @consumer.tap_into pattern, &callback
+    @logger.debug "Tapping into messages that match #{pattern}"
+    @tap_into_consumer.consume(pattern, @connection.create_channel, &callback)
   end
 
   # Sends a message to given destination
@@ -81,7 +129,7 @@ class Freddy
     opts = {}
     opts[:expiration] = (timeout * 1000).to_i if timeout > 0
 
-    @producer.produce destination, payload, opts
+    @send_and_forget_producer.produce(destination, payload, opts)
   end
 
   # Sends a message and waits for the response
@@ -117,8 +165,8 @@ class Freddy
     timeout = options.fetch(:timeout, 3)
     delete_on_timeout = options.fetch(:delete_on_timeout, true)
 
-    @request.sync_request destination, payload, {
-      timeout: timeout, delete_on_timeout: delete_on_timeout
+    @send_and_wait_response_producer.produce destination, payload, {
+      timeout_in_seconds: timeout, delete_on_timeout: delete_on_timeout
     }
   end
 
