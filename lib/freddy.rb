@@ -3,8 +3,6 @@ require 'thread/pool'
 require 'hamster/mutable_hash'
 
 Dir[File.dirname(__FILE__) + '/freddy/*.rb'].each(&method(:require))
-Dir[File.dirname(__FILE__) + '/freddy/consumers/*.rb'].each(&method(:require))
-Dir[File.dirname(__FILE__) + '/freddy/producers/*.rb'].each(&method(:require))
 
 class Freddy
   FREDDY_TOPIC_EXCHANGE_NAME = 'freddy-topic'.freeze
