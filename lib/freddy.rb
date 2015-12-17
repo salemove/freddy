@@ -46,6 +46,30 @@ class Freddy
   end
   private :initialize
 
+  # Listens and responds to messages
+  #
+  # This consumes messages on a given destination. It is useful for messages
+  # that have to be processed once and then a result must be sent.
+  #
+  # @param [String] destination
+  #   the queue name
+  #
+  # @yieldparam [Hash<Symbol => Object>] message
+  #   Received message as a ruby hash with symbolized keys
+  # @yieldparam [#success, #error] handler
+  #   Handler for responding to messages. Use handler#success for successful
+  #   respone and handler#error for error response.
+  #
+  # @return [#shutdown]
+  #
+  # @example
+  #   freddy.respond_to 'RegistrationService' do |attributes, handler|
+  #     if id = register(attributes)
+  #       handler.success(id: id)
+  #     else
+  #       handler.error(message: 'Can not do')
+  #     end
+  #   end
   def respond_to(destination, &callback)
     @logger.info "Listening for requests on #{destination}"
     @respond_to_consumer.consume(destination, @connection.create_channel, &callback)
