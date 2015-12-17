@@ -1,13 +1,23 @@
 class Freddy
   module MessageHandlers
-    def self.for_type(type)
-      type == 'request' ? RequestHandler : StandardMessageHandler
+    class Factory
+      def initialize(producer, logger)
+        @producer = producer
+        @logger = logger
+      end
+
+      def build(type, destination)
+        if type == 'request'
+          RequestHandler.new(@producer, destination, @logger)
+        else
+          StandardMessageHandler.new(destination, @logger)
+        end
+      end
     end
 
     class StandardMessageHandler
-      def initialize(producer, destination, logger)
+      def initialize(destination, logger)
         @destination = destination
-        @producer = producer
         @logger = logger
       end
 
@@ -39,7 +49,6 @@ class Freddy
 
         if !@correlation_id
           @logger.error "Received request without correlation_id"
-          Utils.notify_exception(e)
         else
           block.call payload, msg_handler
         end

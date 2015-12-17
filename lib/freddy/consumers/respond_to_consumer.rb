@@ -6,14 +6,11 @@ class Freddy
         @logger = logger
       end
 
-      def consume(destination, channel, &block)
-        producer = Producers::SendAndForgetProducer.new(channel, @logger)
-
+      def consume(destination, channel, handler_factory, &block)
         consumer = consume_from_destination(destination, channel) do |delivery|
           log_receive_event(destination, delivery)
 
-          handler_class = MessageHandlers.for_type(delivery.type)
-          handler = handler_class.new(producer, destination, @logger)
+          handler = handler_factory.build(delivery.type, destination)
 
           msg_handler = MessageHandler.new(handler, delivery)
           handler.handle_message delivery.payload, msg_handler, &block

@@ -72,7 +72,12 @@ class Freddy
   #   end
   def respond_to(destination, &callback)
     @logger.info "Listening for requests on #{destination}"
-    @respond_to_consumer.consume(destination, @connection.create_channel, &callback)
+
+    channel = @connection.create_channel
+    producer = Producers::SendAndForgetProducer.new(channel, @logger)
+    handler_factory = MessageHandlers::Factory.new(producer, @logger)
+
+    @respond_to_consumer.consume(destination, channel, handler_factory, &callback)
   end
 
   # Listens for messages without consuming them

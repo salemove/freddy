@@ -7,13 +7,14 @@ describe Freddy::Consumers::RespondToConsumer do
   let(:thread_pool) { Thread.pool(1) }
   let(:destination) { random_destination }
   let(:payload)     { {pay: 'load'} }
+  let(:msg_handler) { double }
 
   after do
     connection.close
   end
 
   it "doesn't call passed block without any messages" do
-    consumer.consume destination, connection.create_channel do
+    consumer.consume destination, connection.create_channel, msg_handler do
       @message_received = true
     end
     default_sleep
