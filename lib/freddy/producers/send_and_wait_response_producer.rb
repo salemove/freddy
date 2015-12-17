@@ -1,7 +1,6 @@
 class Freddy
   module Producers
     class SendAndWaitResponseProducer
-      NO_ROUTE = 312
       CONTENT_TYPE = 'application/json'.freeze
 
       def initialize(channel, logger)
@@ -13,10 +12,8 @@ class Freddy
         @exchange = @channel.default_exchange
         @topic_exchange = @channel.topic Freddy::FREDDY_TOPIC_EXCHANGE_NAME
 
-        @channel.on_return do |reply_code, correlation_id|
-          if reply_code == NO_ROUTE
-            @request_manager.no_route(correlation_id)
-          end
+        @channel.on_no_route do |correlation_id|
+          @request_manager.no_route(correlation_id)
         end
 
         @response_queue = @channel.queue("", exclusive: true)

@@ -24,6 +24,8 @@ class Freddy
       class Channel
         extend Forwardable
 
+        NO_ROUTE = 312
+
         def initialize(channel)
           @channel = channel
         end
@@ -34,9 +36,11 @@ class Freddy
           Queue.new(@channel.queue(*args))
         end
 
-        def on_return(&block)
+        def on_no_route(&block)
           default_exchange.on_return do |return_info, properties, content|
-            block.call(return_info[:reply_code], properties[:correlation_id])
+            if return_info[:reply_code] == NO_ROUTE
+              block.call(properties[:correlation_id])
+            end
           end
         end
       end
