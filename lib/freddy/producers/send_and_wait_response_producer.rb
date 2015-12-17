@@ -24,20 +24,24 @@ class Freddy
       end
 
       def produce(destination, payload, properties)
-        timeout_seconds = properties.fetch(:timeout)
+        timeout_in_seconds = properties.fetch(:timeout_in_seconds)
         container = SyncResponseContainer.new
         async_request destination, payload, properties, &container
-        container.wait_for_response(timeout_seconds + 0.1)
+        container.wait_for_response(timeout_in_seconds + 0.1)
       end
 
       private
 
-      def async_request(destination, payload, timeout:, delete_on_timeout:, **properties, &block)
+      def async_request(destination, payload, timeout_in_seconds:, delete_on_timeout:, **properties, &block)
         correlation_id = SecureRandom.uuid
-        @request_manager.store(correlation_id, callback: block, destination: destination, timeout: Time.now + timeout)
+        @request_manager.store(correlation_id,
+          callback: block,
+          destination: destination,
+          expires_at: Time.now + timeout_in_seconds
+        )
 
         if delete_on_timeout
-          properties[:expiration] = (timeout * 1000).to_i
+          properties[:expiration] = (timeout_in_seconds * 1000).to_i
         end
 
         properties = properties.merge(

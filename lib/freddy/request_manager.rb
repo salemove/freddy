@@ -34,7 +34,7 @@ class Freddy
 
     def clear_timeouts(now)
       @requests.each do |key, value|
-        timeout(key, value) if now > value[:timeout]
+        timeout(key, value) if now > value[:expires_at]
       end
     end
 
@@ -45,7 +45,7 @@ class Freddy
       Utils.notify 'RequestTimeout', "Request timed out waiting for response from #{request[:destination]}", {
         correlation_id: correlation_id,
         destination: request[:destination],
-        timeout: request[:timeout]
+        expires_at: request[:expires_at]
       }
 
       request[:callback].call({error: 'RequestTimeout', message: 'Timed out waiting for response'}, nil)

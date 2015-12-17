@@ -161,7 +161,7 @@ class Freddy
     delete_on_timeout = options.fetch(:delete_on_timeout, true)
 
     @send_and_wait_response_producer.produce destination, payload, {
-      timeout: timeout, delete_on_timeout: delete_on_timeout
+      timeout_in_seconds: timeout, delete_on_timeout: delete_on_timeout
     }
   end
 
