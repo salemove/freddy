@@ -8,6 +8,7 @@ Dir[File.dirname(__FILE__) + '/freddy/producers/*.rb'].each(&method(:require))
 
 class Freddy
   FREDDY_TOPIC_EXCHANGE_NAME = 'freddy-topic'.freeze
+  DEFAULT_MAX_CONCURRENCY = 4
 
   # Creates a new freddy instance
   #
@@ -24,7 +25,7 @@ class Freddy
   #
   # @example
   #   Freddy.build(Logger.new(STDOUT), user: 'thumper', pass: 'howdy')
-  def self.build(logger = Logger.new(STDOUT), max_concurrency: 4, **config)
+  def self.build(logger = Logger.new(STDOUT), max_concurrency: DEFAULT_MAX_CONCURRENCY, **config)
     connection = Adapters.determine.connect(config)
     consume_thread_pool = Thread.pool(max_concurrency)
 
