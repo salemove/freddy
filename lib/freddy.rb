@@ -51,6 +51,24 @@ class Freddy
     @respond_to_consumer.consume(destination, @connection.create_channel, &callback)
   end
 
+  # Listens for messages without consuming them
+  #
+  # This listens for messages on a given destination or destinations without
+  # consuming them. It is useful for general messages that two or more clients
+  # are interested.
+  #
+  # @param [String] pattern
+  #   the destination pattern. Use `#` wildcard for matching 0 or more words.
+  #   Use `*` to match exactly one word.
+  #
+  # @yield [message] Yields received message to the block
+  #
+  # @return [#shutdown]
+  #
+  # @example
+  #   freddy.tap_into 'notifications.*' do |message|
+  #     puts "Notification showed #{message.inspect}"
+  #   end
   def tap_into(pattern, &callback)
     @logger.debug "Tapping into messages that match #{pattern}"
     @tap_into_consumer.consume(pattern, @connection.create_channel, &callback)
