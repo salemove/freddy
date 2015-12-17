@@ -82,17 +82,11 @@ describe Freddy do
 
     context 'when queue does not exist' do
       it 'gives a no route error' do
-        begin
-          Timeout::timeout(0.5) do
-            expect {
-              freddy.deliver_with_response(destination, {a: 'b'}, timeout: 3)
-            }.to raise_error(Freddy::InvalidRequestError) {|error|
-              expect(error.response).to eq(error: 'Specified queue does not exist')
-            }
-          end
-        rescue Timeout::Error
-          fail('Received a timeout error instead of the no route error')
-        end
+        expect {
+          freddy.deliver_with_response(destination, {a: 'b'}, timeout: 1)
+        }.to raise_error(Freddy::InvalidRequestError) {|error|
+          expect(error.response).to eq(error: 'Specified queue does not exist')
+        }
       end
     end
 
