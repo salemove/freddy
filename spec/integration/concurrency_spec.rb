@@ -85,21 +85,20 @@ describe 'Concurrency' do
     expect(results.count).to eq(10)
   end
 
-  context 'requesting from multiple threads' do
+  context 'concurrent executions of deliver_with_response' do
     let(:nr_of_threads) { 50 }
     let(:payload) { {pay: 'load'} }
+    let(:msg_counter) { Hamster.mutable_set }
+    let(:queue_name) { random_destination }
 
     before do
-      freddy1.respond_to 'thread-queue' do |payload, msg_handler|
-        msg_handler.success(payload)
-      end
+      spawn_echo_responder(freddy1, queue_name)
     end
 
-    it 'is thread safe' do
-      msg_counter = Hamster.mutable_set
+    it 'is supported' do
       nr_of_threads.times.map do |index|
         Thread.new do
-          response = freddy1.deliver_with_response 'thread-queue', payload
+          response = freddy1.deliver_with_response(queue_name, payload)
           msg_counter << index
           expect(response).to eq(payload)
         end

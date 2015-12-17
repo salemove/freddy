@@ -39,3 +39,9 @@ end
 def config
   {host: 'localhost', port: 5672, user: 'guest', pass: 'guest'}
 end
+
+def spawn_echo_responder(freddy, queue_name)
+  freddy.respond_to queue_name do |payload, msg_handler|
+    msg_handler.success(payload)
+  end
+end
