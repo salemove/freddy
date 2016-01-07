@@ -74,7 +74,7 @@ class Freddy
     @logger.info "Listening for requests on #{destination}"
 
     channel = @connection.create_channel
-    producer = Producers::SendAndForgetProducer.new(channel, @logger)
+    producer = Producers::ReplyProducer.new(channel, @logger)
     handler_factory = MessageHandlers::Factory.new(producer, @logger)
 
     @respond_to_consumer.consume(destination, channel, handler_factory, &callback)
