@@ -10,4 +10,21 @@ describe Freddy::SyncResponseContainer do
       expect { subject }.to raise_error(Timeout::Error, 'execution expired')
     end
   end
+
+  context 'when nil resonse' do
+    let(:delivery) { {} }
+
+    before do
+      Thread.new do
+        default_sleep
+        container.call(nil, delivery)
+      end
+    end
+
+    it 'raises timeout error' do
+      expect {
+        container.wait_for_response(2)
+      }.to raise_error(StandardError, 'unexpected nil value for response')
+    end
+  end
 end
