@@ -19,8 +19,10 @@ class Freddy
         @mutex.sleep(timeout)
       end
 
-      if @response.nil?
+      if !defined?(@response)
         raise Timeout::Error, 'execution expired'
+      elsif @response.nil?
+        raise StandardError, 'unexpected nil value for response'
       elsif @response[:error] == 'RequestTimeout'
         raise TimeoutError.new(@response)
       elsif !@delivery || @delivery.type == 'error'
@@ -34,10 +36,6 @@ class Freddy
 
     def to_proc
       Proc.new {|*args| self.call(*args)}
-    end
-
-    def filled?
-      !@response.nil?
     end
   end
 end
