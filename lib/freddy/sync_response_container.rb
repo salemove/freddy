@@ -13,6 +13,10 @@ class Freddy
       @mutex.synchronize { @waiting.wakeup }
     end
 
+    def on_timeout(&block)
+      @on_timeout = block
+    end
+
     def wait_for_response(timeout)
       @mutex.synchronize do
         @waiting = Thread.current
@@ -20,22 +24,18 @@ class Freddy
       end
 
       if !defined?(@response)
-        raise Timeout::Error, 'execution expired'
+        @on_timeout.call
+        raise TimeoutError.new(
+          error: 'RequestTimeout',
+          message: 'Timed out waiting for response'
+        )
       elsif @response.nil?
         raise StandardError, 'unexpected nil value for response'
-      elsif @response[:error] == 'RequestTimeout'
-        raise TimeoutError.new(@response)
       elsif !@delivery || @delivery.type == 'error'
         raise InvalidRequestError.new(@response)
       else
         @response
       end
-    end
-
-    private
-
-    def to_proc
-      Proc.new {|*args| self.call(*args)}
     end
   end
 end

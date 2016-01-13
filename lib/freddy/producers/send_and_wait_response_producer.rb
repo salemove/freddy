@@ -17,7 +17,6 @@ class Freddy
         end
 
         @response_queue = @channel.queue("", exclusive: true)
-        @request_manager.start
 
         @response_consumer = Consumers::ResponseConsumer.new(@logger)
         @response_consumer.consume(@response_queue, &method(:handle_response))
@@ -26,19 +25,29 @@ class Freddy
       def produce(destination, payload, properties)
         timeout_in_seconds = properties.fetch(:timeout_in_seconds)
         container = SyncResponseContainer.new
-        async_request destination, payload, properties, &container
-        container.wait_for_response(timeout_in_seconds + 0.1)
+        async_request destination, payload, container, properties
+        container.wait_for_response(timeout_in_seconds)
       end
 
       private
 
-      def async_request(destination, payload, timeout_in_seconds:, delete_on_timeout:, **properties, &block)
+      def async_request(destination, payload, container, timeout_in_seconds:, delete_on_timeout:, **properties)
         correlation_id = SecureRandom.uuid
+
         @request_manager.store(correlation_id,
-          callback: block,
-          destination: destination,
-          expires_at: Time.now + timeout_in_seconds
+          callback: container,
+          destination: destination
         )
+
+        container.on_timeout do
+          @logger.warn "Request timed out waiting response from #{destination}, correlation id #{correlation_id}"
+          Utils.notify 'RequestTimeout', "Request timed out waiting for response from #{destination}", {
+            correlation_id: correlation_id,
+            destination: destination,
+            timeout_in_seconds: timeout_in_seconds
+          }
+          @request_manager.delete(correlation_id)
+        end
 
         if delete_on_timeout
           properties[:expiration] = (timeout_in_seconds * 1000).to_i
