@@ -1,8 +1,7 @@
-source "https://rubygems.org"
+source 'https://rubygems.org'
 
-group :test, :development do
-  gem 'rspec'
-  gem 'pry'
-end
+gem 'rspec'
+gem 'pry'
+gem 'codeclimate-test-reporter'
 
 gemspec

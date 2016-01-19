@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.org/salemove/freddy.svg?branch=master)](https://travis-ci.org/salemove/freddy)
 [![Code Climate](https://codeclimate.com/github/salemove/freddy/badges/gpa.svg)](https://codeclimate.com/github/salemove/freddy)
+[![Test Coverage](https://codeclimate.com/github/salemove/freddy/badges/coverage.svg)](https://codeclimate.com/github/salemove/freddy/coverage)
 
 ## Setup
 

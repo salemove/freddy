@@ -1,3 +1,10 @@
+require 'rubygems'
+require 'bundler'
+Bundler.setup
+
+require 'codeclimate-test-reporter'
+CodeClimate::TestReporter.start
+
 require 'pry'
 require 'securerandom'
 require 'freddy'
