@@ -39,6 +39,7 @@ describe Freddy::SyncResponseContainer do
   end
 
   describe '#wait_for_response' do
+    let(:timeout) { 2 }
     let(:response) { {msg: 'response'} }
     let(:delivery) { OpenStruct.new(type: 'success') }
 
@@ -48,7 +49,7 @@ describe Freddy::SyncResponseContainer do
       end
 
       it 'returns response' do
-        expect(container.wait_for_response(2)).to eq(response)
+        expect(container.wait_for_response(timeout)).to eq(response)
       end
     end
   end
