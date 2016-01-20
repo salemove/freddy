@@ -1,12 +1,10 @@
 class Freddy
   class Utils
     def self.format_exception(exception)
-      backtrace = exception.backtrace.map do |x|
-        x.match(/^(.+?):(\d+)(|:in `(.+)')$/);
-        [$1, $2, $4]
-      end.join("\n")
+      message = exception.message
+      backtrace = exception.backtrace.join("\n")
 
-      "#{exception.exception}\n#{backtrace}"
+      "#{message}\n#{backtrace}"
     end
 
     def self.notify(name, message, parameters={})
