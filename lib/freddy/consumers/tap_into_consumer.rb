@@ -1,8 +1,6 @@
-require_relative 'consumer'
-
 class Freddy
   module Consumers
-    class TapIntoConsumer < Consumer
+    class TapIntoConsumer
       def initialize(consume_thread_pool, logger)
         @logger = logger
         @consume_thread_pool = consume_thread_pool
@@ -30,7 +28,7 @@ class Freddy
 
       def process_message(queue, delivery, &block)
         @consume_thread_pool.process do
-          log_receive_event(queue.name, delivery)
+          Consumers.log_receive_event(@logger, queue.name, delivery)
           block.call delivery.payload, delivery.routing_key
         end
       end

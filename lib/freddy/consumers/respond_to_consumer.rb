@@ -1,8 +1,6 @@
-require_relative 'consumer'
-
 class Freddy
   module Consumers
-    class RespondToConsumer < Consumer
+    class RespondToConsumer
       def initialize(consume_thread_pool, logger)
         @consume_thread_pool = consume_thread_pool
         @logger = logger
@@ -10,7 +8,7 @@ class Freddy
 
       def consume(destination, channel, handler_factory, &block)
         consumer = consume_from_destination(destination, channel) do |delivery|
-          log_receive_event(destination, delivery)
+          Consumers.log_receive_event(@logger, destination, delivery)
 
           handler = handler_factory.build(delivery.type, destination)
 
