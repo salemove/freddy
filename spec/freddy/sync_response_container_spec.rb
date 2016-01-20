@@ -37,4 +37,20 @@ describe Freddy::SyncResponseContainer do
       }.to raise_error(StandardError, 'unexpected nil value for response')
     end
   end
+
+  describe '#wait_for_response' do
+    let(:timeout) { 2 }
+    let(:response) { {msg: 'response'} }
+    let(:delivery) { OpenStruct.new(type: 'success') }
+
+    context 'when called after #call' do
+      before do
+        container.call(response, delivery)
+      end
+
+      it 'returns response' do
+        expect(container.wait_for_response(timeout)).to eq(response)
+      end
+    end
+  end
 end
