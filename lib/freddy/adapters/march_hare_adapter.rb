@@ -44,25 +44,12 @@ class Freddy
         end
       end
 
-      class Queue
-        def initialize(queue)
-          @queue = queue
-        end
-
+      class Queue < Shared::Queue
         def subscribe(&block)
           @queue.subscribe do |meta, payload|
             parsed_payload = Payload.parse(payload)
             block.call(Delivery.new(parsed_payload, meta, meta.routing_key))
           end
-        end
-
-        def bind(*args)
-          @queue.bind(*args)
-          self
-        end
-
-        def name
-          @queue.name
         end
       end
     end

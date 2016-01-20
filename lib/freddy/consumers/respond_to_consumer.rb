@@ -8,7 +8,7 @@ class Freddy
 
       def consume(destination, channel, handler_factory, &block)
         consumer = consume_from_destination(destination, channel) do |delivery|
-          log_receive_event(destination, delivery)
+          Consumers.log_receive_event(@logger, destination, delivery)
 
           handler = handler_factory.build(delivery.type, destination)
 
@@ -30,14 +30,6 @@ class Freddy
       def process_message(delivery, &block)
         @consume_thread_pool.process do
           block.call(delivery)
-        end
-      end
-
-      def log_receive_event(destination, delivery)
-        if defined?(Logasm) && @logger.is_a?(Logasm)
-          @logger.debug "Received message", queue: destination, payload: delivery.payload, correlation_id: delivery.correlation_id
-        else
-          @logger.debug "Received message on #{destination} with payload #{delivery.payload} with correlation_id #{delivery.correlation_id}"
         end
       end
     end

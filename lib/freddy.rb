@@ -34,7 +34,7 @@ class Freddy
     @connection = connection
     @logger = logger
 
-    @tap_into_consumer = Consumers::TapIntoConsumer.new(consume_thread_pool)
+    @tap_into_consumer = Consumers::TapIntoConsumer.new(consume_thread_pool, @logger)
     @respond_to_consumer = Consumers::RespondToConsumer.new(consume_thread_pool, @logger)
 
     @send_and_forget_producer = Producers::SendAndForgetProducer.new(
