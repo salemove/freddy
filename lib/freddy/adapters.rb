@@ -9,5 +9,22 @@ class Freddy
         BunnyAdapter
       end
     end
+
+    module Shared
+      class Queue
+        def initialize(queue)
+          @queue = queue
+        end
+
+        def bind(*args)
+          @queue.bind(*args)
+          self
+        end
+
+        def name
+          @queue.name
+        end
+      end
+    end
   end
 end
