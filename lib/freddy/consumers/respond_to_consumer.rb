@@ -1,6 +1,8 @@
+require_relative 'consumer'
+
 class Freddy
   module Consumers
-    class RespondToConsumer
+    class RespondToConsumer < Consumer
       def initialize(consume_thread_pool, logger)
         @consume_thread_pool = consume_thread_pool
         @logger = logger
@@ -30,14 +32,6 @@ class Freddy
       def process_message(delivery, &block)
         @consume_thread_pool.process do
           block.call(delivery)
-        end
-      end
-
-      def log_receive_event(destination, delivery)
-        if defined?(Logasm) && @logger.is_a?(Logasm)
-          @logger.debug "Received message", queue: destination, payload: delivery.payload, correlation_id: delivery.correlation_id
-        else
-          @logger.debug "Received message on #{destination} with payload #{delivery.payload} with correlation_id #{delivery.correlation_id}"
         end
       end
     end
