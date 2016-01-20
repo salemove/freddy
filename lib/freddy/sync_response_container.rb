@@ -5,12 +5,13 @@ class Freddy
   class SyncResponseContainer
     def initialize
       @mutex = Mutex.new
+      @resource = ConditionVariable.new
     end
 
     def call(response, delivery)
       @response = response
       @delivery = delivery
-      @mutex.synchronize { @waiting.wakeup }
+      @mutex.synchronize { @resource.signal }
     end
 
     def on_timeout(&block)
@@ -18,10 +19,7 @@ class Freddy
     end
 
     def wait_for_response(timeout)
-      @mutex.synchronize do
-        @waiting = Thread.current
-        @mutex.sleep(timeout)
-      end
+      @mutex.synchronize { @resource.wait(@mutex, timeout) }
 
       if !defined?(@response)
         @on_timeout.call
