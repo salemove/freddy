@@ -15,4 +15,39 @@ describe Freddy::Utils do
         'line3'
     end
   end
+
+  describe '.notify' do
+    subject { described_class.notify(error_class, error_message, parameters) }
+
+    let(:env_attributes) { double }
+    let(:error_class)    { double }
+    let(:error_message)  { double }
+    let(:parameters)     { double }
+
+    context 'when Airbrake is defined' do
+      let(:airbrake) { double }
+
+      before do
+        allow(ENV).to receive(:to_hash) { env_attributes }
+        stub_const('::Airbrake', airbrake)
+      end
+
+      it 'notifies airbrake' do
+        expect(airbrake).to receive(:notify_or_ignore).with(
+          error_class: error_class,
+          error_message: error_message,
+          cgi_data: env_attributes,
+          parameters: parameters
+        )
+
+        subject
+      end
+    end
+
+    context 'when Airbrake is not defined' do
+      it 'does nothing' do
+        should eq(nil)
+      end
+    end
+  end
 end
