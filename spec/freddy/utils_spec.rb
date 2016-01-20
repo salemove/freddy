@@ -50,4 +50,34 @@ describe Freddy::Utils do
       end
     end
   end
+
+  describe '.notify_exception' do
+    subject { described_class.notify_exception(exception, {a: 'b'}) }
+
+    let(:exception) { double }
+
+    context 'when Airbrake is defined' do
+      let(:airbrake) { double }
+
+      before do
+        stub_const('::Airbrake', airbrake)
+      end
+
+      it 'notifies airbrake' do
+        expect(airbrake).to receive(:notify_or_ignore) do |ex, content|
+          expect(ex).to eq(exception)
+          expect(content[:cgi_data]).to be_instance_of(Hash)
+          expect(content[:parameters]).to eq(a: 'b')
+        end
+
+        subject
+      end
+    end
+
+    context 'when Airbrake is not defined' do
+      it 'does nothing' do
+        should eq(nil)
+      end
+    end
+  end
 end
