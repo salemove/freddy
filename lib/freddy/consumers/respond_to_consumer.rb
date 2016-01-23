@@ -6,14 +6,14 @@ class Freddy
         @logger = logger
       end
 
-      def consume(destination, channel, handler_factory, &block)
+      def consume(destination, channel, handler_adapter_factory, &block)
         consumer = consume_from_destination(destination, channel) do |delivery|
           Consumers.log_receive_event(@logger, destination, delivery)
 
-          handler = handler_factory.build(delivery.type, destination)
+          adapter = handler_adapter_factory.for(delivery)
 
-          msg_handler = MessageHandler.new(handler, delivery)
-          handler.handle_message delivery.payload, msg_handler, &block
+          msg_handler = MessageHandler.new(adapter, delivery)
+          block.call(delivery.payload, msg_handler)
         end
 
         ResponderHandler.new(consumer, @consume_thread_pool)
