@@ -87,11 +87,6 @@ class Freddy
         @logger.debug "Got response for request to #{request[:destination]} "\
                       "with correlation_id #{delivery.correlation_id}"
         request[:callback].call(delivery.payload, delivery)
-      rescue => e
-        @logger.error "Exception occured while handling the response of "\
-                      "request made to #{request[:destination]} with "\
-                      "correlation_id #{correlation_id}: #{Utils.format_exception(e)}"
-        Utils.notify_exception(e, destination: request[:destination], correlation_id: correlation_id)
       end
     end
   end
