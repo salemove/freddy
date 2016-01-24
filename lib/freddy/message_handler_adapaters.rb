@@ -2,7 +2,7 @@ class Freddy
   module MessageHandlerAdapters
     class Factory
       def initialize(producer)
-        @standard_message_handler = StandardMessageHandler.new
+        @no_op_handler = NoOpHandler.new
         @request_handler = RequestHandler.new(producer)
       end
 
@@ -10,12 +10,12 @@ class Freddy
         if delivery.type == 'request'
           @request_handler
         else
-          @standard_message_handler
+          @no_op_handler
         end
       end
     end
 
-    class StandardMessageHandler
+    class NoOpHandler
       def success(*)
         # NOP
       end
