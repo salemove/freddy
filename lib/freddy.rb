@@ -75,9 +75,11 @@ class Freddy
 
     channel = @connection.create_channel
     producer = Producers::ReplyProducer.new(channel, @logger)
-    handler_factory = MessageHandlers::Factory.new(producer, @logger)
+    handler_adapter_factory = MessageHandlerAdapters::Factory.new(producer)
 
-    @respond_to_consumer.consume(destination, channel, handler_factory, &callback)
+    @respond_to_consumer.consume(
+      destination, channel, handler_adapter_factory, &callback
+    )
   end
 
   # Listens for messages without consuming them
