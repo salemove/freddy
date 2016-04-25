@@ -9,9 +9,11 @@ class Freddy
     end
 
     def call(response, delivery)
-      @response = response
-      @delivery = delivery
-      @mutex.synchronize { @resource.signal }
+      @mutex.synchronize do
+        @response = response
+        @delivery = delivery
+        @resource.signal
+      end
     end
 
     def on_timeout(&block)
@@ -19,9 +21,11 @@ class Freddy
     end
 
     def wait_for_response(timeout)
-      @mutex.synchronize { @resource.wait(@mutex, timeout) }
+      @mutex.synchronize do
+        @resource.wait(@mutex, timeout) unless response_received?
+      end
 
-      if !defined?(@response)
+      if !response_received?
         @on_timeout.call
         raise TimeoutError.new(
           error: 'RequestTimeout',
@@ -34,6 +38,12 @@ class Freddy
       else
         @response
       end
+    end
+
+    private
+
+    def response_received?
+      defined?(@response)
     end
   end
 end

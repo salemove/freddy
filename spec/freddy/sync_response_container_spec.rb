@@ -44,12 +44,20 @@ describe Freddy::SyncResponseContainer do
     let(:delivery) { OpenStruct.new(type: 'success') }
 
     context 'when called after #call' do
+      let(:max_wait_time_in_seconds) { 0.5 }
+
       before do
         container.call(response, delivery)
       end
 
       it 'returns response' do
         expect(container.wait_for_response(timeout)).to eq(response)
+      end
+
+      it 'does not wait for timeout' do
+        expect {
+          container.wait_for_response(timeout)
+        }.to change(Time, :now).by_at_most(max_wait_time_in_seconds)
       end
     end
   end
