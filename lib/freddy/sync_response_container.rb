@@ -3,9 +3,10 @@ require 'timeout'
 
 class Freddy
   class SyncResponseContainer
-    def initialize
+    def initialize(on_timeout)
       @mutex = Mutex.new
       @resource = ConditionVariable.new
+      @on_timeout = on_timeout
     end
 
     def call(response, delivery)
@@ -14,10 +15,6 @@ class Freddy
         @delivery = delivery
         @resource.signal
       end
-    end
-
-    def on_timeout(&block)
-      @on_timeout = block
     end
 
     def wait_for_response(timeout)

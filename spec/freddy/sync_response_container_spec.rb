@@ -1,11 +1,8 @@
 require 'spec_helper'
 
 describe Freddy::SyncResponseContainer do
-  let(:container) { described_class.new }
-
-  before do
-    container.on_timeout {}
-  end
+  let(:container) { described_class.new(on_timeout) }
+  let(:on_timeout) { Proc.new {} }
 
   context 'when timeout' do
     subject { container.wait_for_response(0.01) }
