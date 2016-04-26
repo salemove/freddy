@@ -18,19 +18,12 @@ describe Freddy::SyncResponseContainer do
     end
   end
 
-  context 'when nil resonse' do
+  context 'when nil response' do
     let(:delivery) { {} }
-
-    before do
-      Thread.new do
-        default_sleep
-        container.call(nil, delivery)
-      end
-    end
 
     it 'raises timeout error' do
       expect {
-        container.wait_for_response(2)
+        container.call(nil, delivery)
       }.to raise_error(StandardError, 'unexpected nil value for response')
     end
   end
