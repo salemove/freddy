@@ -22,32 +22,17 @@ class Freddy
         @response_consumer.consume(@response_queue, &method(:handle_response))
       end
 
-      def produce(destination, payload, properties)
-        timeout_in_seconds = properties.fetch(:timeout_in_seconds)
-        container = SyncResponseContainer.new
-        async_request destination, payload, container, properties
-        container.wait_for_response(timeout_in_seconds)
-      end
-
-      private
-
-      def async_request(destination, payload, container, timeout_in_seconds:, delete_on_timeout:, **properties)
+      def produce(destination, payload, timeout_in_seconds:, delete_on_timeout:, **properties)
         correlation_id = SecureRandom.uuid
+
+        container = SyncResponseContainer.new(
+          on_timeout(correlation_id, destination, timeout_in_seconds)
+        )
 
         @request_manager.store(correlation_id,
           callback: container,
           destination: destination
         )
-
-        container.on_timeout do
-          @logger.warn "Request timed out waiting response from #{destination}, correlation id #{correlation_id}"
-          Utils.notify 'RequestTimeout', "Request timed out waiting for response from #{destination}", {
-            correlation_id: correlation_id,
-            destination: destination,
-            timeout_in_seconds: timeout_in_seconds
-          }
-          @request_manager.delete(correlation_id)
-        end
 
         if delete_on_timeout
           properties[:expiration] = (timeout_in_seconds * 1000).to_i
@@ -68,6 +53,8 @@ class Freddy
         # need to lock these.
         @topic_exchange.publish json_payload, properties.dup
         @exchange.publish json_payload, properties.dup
+
+        container.wait_for_response(timeout_in_seconds)
       end
 
       def handle_response(delivery)
@@ -87,6 +74,23 @@ class Freddy
         @logger.debug "Got response for request to #{request[:destination]} "\
                       "with correlation_id #{delivery.correlation_id}"
         request[:callback].call(delivery.payload, delivery)
+      end
+
+      def on_timeout(correlation_id, destination, timeout_in_seconds)
+        Proc.new do
+          @logger.warn "Request timed out waiting response from #{destination}"\
+                       ", correlation id #{correlation_id}"
+
+          Utils.notify 'RequestTimeout',
+            "Request timed out waiting for response from #{destination}",
+            {
+              correlation_id: correlation_id,
+              destination: destination,
+              timeout_in_seconds: timeout_in_seconds
+            }
+
+          @request_manager.delete(correlation_id)
+        end
       end
     end
   end
