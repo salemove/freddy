@@ -24,14 +24,21 @@ describe 'Logging' do
   it 'logs all consumed messages' do
     expect(logger1).to have_received(:info).with(/Listening for requests on \S+/)
     expect(logger1).to have_received(:debug).with(
-      /Received message on \S+ with payload {:pay=>"load"}/
+      message: 'Received message',
+      queue: destination,
+      payload: payload,
+      correlation_id: anything
     )
   end
 
   it 'logs all produced messages' do
     expect(logger2).to have_received(:debug).with(/Consuming messages on \S+/)
     expect(logger2).to have_received(:debug).with(
-      /Publishing request with payload {:pay=>"load"} to \S+, waiting for response on amq.gen-\S+ with correlation_id .*/
+      message: 'Publishing request',
+      queue: destination,
+      payload: payload,
+      response_queue: anything,
+      correlation_id: anything
     )
   end
 end

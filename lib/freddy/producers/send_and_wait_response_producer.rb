@@ -45,9 +45,13 @@ class Freddy
         )
         json_payload = Payload.dump(payload)
 
-        @logger.debug "Publishing request with payload #{payload.inspect} "\
-                      "to #{destination}, waiting for response on "\
-                      "#{@response_queue.name} with correlation_id #{correlation_id}"
+        @logger.debug(
+          message: 'Publishing request',
+          queue: destination,
+          payload: payload,
+          response_queue: @response_queue.name,
+          correlation_id: correlation_id
+        )
 
         # Connection adapters handle thread safety for #publish themselves. No
         # need to lock these.
