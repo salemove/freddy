@@ -10,7 +10,7 @@ class Freddy
       end
 
       def produce(destination, payload, properties)
-        @logger.debug "Sending message #{payload.inspect} to #{destination}"
+        Producers.log_send_event(@logger, payload, destination)
 
         properties = properties.merge(routing_key: destination, content_type: CONTENT_TYPE)
         json_payload = Payload.dump(payload)
