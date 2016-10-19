@@ -85,14 +85,6 @@ class Freddy
           @logger.warn "Request timed out waiting response from #{destination}"\
                        ", correlation id #{correlation_id}"
 
-          Utils.notify 'RequestTimeout',
-            "Request timed out waiting for response from #{destination}",
-            {
-              correlation_id: correlation_id,
-              destination: destination,
-              timeout_in_seconds: timeout_in_seconds
-            }
-
           @request_manager.delete(correlation_id)
         end
       end
