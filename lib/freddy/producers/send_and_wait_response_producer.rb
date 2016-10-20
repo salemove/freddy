@@ -67,10 +67,10 @@ class Freddy
         if request = @request_manager.delete(correlation_id)
           process_response(request, delivery)
         else
-          warning = "Got rpc response for correlation_id #{correlation_id} "\
+          message = "Got rpc response for correlation_id #{correlation_id} "\
                     "but there is no requester"
           @logger.warn message
-          Utils.notify 'NoRequesterForResponse', warning, correlation_id: correlation_id
+          Utils.notify 'NoRequesterForResponse', message, correlation_id: correlation_id
         end
       end
 
