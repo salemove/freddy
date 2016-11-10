@@ -32,5 +32,5 @@ Gem::Specification.new do |spec|
   end
 
   spec.add_dependency "hamster", "~> 1.0.1.pre.rc3"
-  spec.add_dependency "thread", "~> 0.2"
+  spec.add_dependency "thread", "~> 0.1"
 end
