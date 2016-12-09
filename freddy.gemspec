@@ -8,7 +8,7 @@ Gem::Specification.new do |spec|
   else
     spec.name          = "freddy"
   end
-  spec.version       = '0.6.2'
+  spec.version       = '0.6.3'
   spec.authors       = ["Urmas Talimaa"]
   spec.email         = ["urmas.talimaa@gmail.com"]
   spec.description   = %q{Messaging API}
@@ -31,6 +31,5 @@ Gem::Specification.new do |spec|
     spec.add_dependency "oj", "~> 2.13"
   end
 
-  spec.add_dependency "hamster", "~> 1.0.1.pre.rc3"
   spec.add_dependency "thread", "~> 0.1"
 end

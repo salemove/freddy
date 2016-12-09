@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'hamster/experimental/mutable_set'
 
 describe 'Concurrency' do
   let(:freddy1) { Freddy.build(logger, config) }
@@ -88,7 +89,7 @@ describe 'Concurrency' do
   context 'concurrent executions of deliver_with_response' do
     let(:nr_of_threads) { 50 }
     let(:payload) { {pay: 'load'} }
-    let(:msg_counter) { Hamster.mutable_set }
+    let(:msg_counter) { Hamster::MutableSet[] }
     let(:queue_name) { random_destination }
 
     before do
