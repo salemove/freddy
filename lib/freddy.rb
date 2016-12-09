@@ -1,6 +1,5 @@
 require 'json'
 require 'thread/pool'
-require 'hamster/mutable_hash'
 
 Dir[File.dirname(__FILE__) + '/freddy/*.rb'].each(&method(:require))
 
