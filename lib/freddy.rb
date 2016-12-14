@@ -90,6 +90,10 @@ class Freddy
   # @param [String] pattern
   #   the destination pattern. Use `#` wildcard for matching 0 or more words.
   #   Use `*` to match exactly one word.
+  # @param [Hash] options
+  # @option options [String] :group
+  #   only one of the listeners in given group will receive a message. All
+  #   listeners will receive a message if the group is not specified.
   #
   # @yield [message] Yields received message to the block
   #
@@ -99,9 +103,9 @@ class Freddy
   #   freddy.tap_into 'notifications.*' do |message|
   #     puts "Notification showed #{message.inspect}"
   #   end
-  def tap_into(pattern, &callback)
+  def tap_into(pattern, options = {}, &callback)
     @logger.debug "Tapping into messages that match #{pattern}"
-    @tap_into_consumer.consume(pattern, @connection.create_channel, &callback)
+    @tap_into_consumer.consume(pattern, @connection.create_channel, options, &callback)
   end
 
   # Sends a message to given destination

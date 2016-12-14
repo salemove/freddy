@@ -29,6 +29,10 @@ def random_destination
   SecureRandom.hex
 end
 
+def arbitrary_id
+  SecureRandom.hex
+end
+
 def default_sleep
   sleep 0.05
 end
