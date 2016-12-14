@@ -6,8 +6,8 @@ class Freddy
         @consume_thread_pool = consume_thread_pool
       end
 
-      def consume(pattern, channel, &block)
-        queue = create_queue(pattern, channel)
+      def consume(pattern, channel, options, &block)
+        queue = create_queue(pattern, channel, options)
 
         consumer = queue.subscribe do |delivery|
           process_message(queue, delivery, &block)
@@ -18,12 +18,18 @@ class Freddy
 
       private
 
-      def create_queue(pattern, channel)
+      def create_queue(pattern, channel, group: nil)
         topic_exchange = channel.topic(Freddy::FREDDY_TOPIC_EXCHANGE_NAME)
 
-        channel
-          .queue('', exclusive: true)
-          .bind(topic_exchange, routing_key: pattern)
+        if group
+          channel
+            .queue("groups.#{group}")
+            .bind(topic_exchange, routing_key: pattern)
+        else
+          channel
+            .queue('', exclusive: true)
+            .bind(topic_exchange, routing_key: pattern)
+        end
       end
 
       def process_message(queue, delivery, &block)
