@@ -13,8 +13,10 @@ class Freddy
         @bunny = bunny
       end
 
-      def create_channel
-        Channel.new(@bunny.create_channel)
+      def create_channel(prefetch: nil)
+        bunny_channel = @bunny.create_channel
+        bunny_channel.prefetch(prefetch) if prefetch
+        Channel.new(bunny_channel)
       end
 
       def close
@@ -30,7 +32,7 @@ class Freddy
           @channel = channel
         end
 
-        def_delegators :@channel, :topic, :default_exchange, :consumers
+        def_delegators :@channel, :topic, :default_exchange, :consumers, :acknowledge
 
         def queue(*args)
           Queue.new(@channel.queue(*args))
@@ -46,10 +48,13 @@ class Freddy
       end
 
       class Queue < Shared::Queue
-        def subscribe(&block)
-          @queue.subscribe do |info, properties, payload|
+        def subscribe(manual_ack: false, &block)
+          @queue.subscribe(manual_ack: manual_ack) do |info, properties, payload|
             parsed_payload = Payload.parse(payload)
-            block.call(Delivery.new(parsed_payload, properties, info.routing_key))
+            delivery = Delivery.new(
+              parsed_payload, properties, info.routing_key, info.delivery_tag
+            )
+            block.call(delivery)
           end
         end
       end
