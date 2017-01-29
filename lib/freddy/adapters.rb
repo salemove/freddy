@@ -24,6 +24,10 @@ class Freddy
         def name
           @queue.name
         end
+
+        def message_count
+          @queue.message_count
+        end
       end
     end
   end

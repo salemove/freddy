@@ -12,8 +12,10 @@ class Freddy
         @hare = hare
       end
 
-      def create_channel
-        Channel.new(@hare.create_channel)
+      def create_channel(prefetch: nil)
+        hare_channel = @hare.create_channel
+        hare_channel.basic_qos(prefetch) if prefetch
+        Channel.new(hare_channel)
       end
 
       def close
@@ -29,7 +31,7 @@ class Freddy
           @channel = channel
         end
 
-        def_delegators :@channel, :topic, :default_exchange, :consumers
+        def_delegators :@channel, :topic, :default_exchange, :consumers, :acknowledge
 
         def queue(*args)
           Queue.new(@channel.queue(*args))
@@ -45,10 +47,13 @@ class Freddy
       end
 
       class Queue < Shared::Queue
-        def subscribe(&block)
-          @queue.subscribe do |meta, payload|
+        def subscribe(manual_ack: false, &block)
+          @queue.subscribe(manual_ack: manual_ack) do |meta, payload|
             parsed_payload = Payload.parse(payload)
-            block.call(Delivery.new(parsed_payload, meta, meta.routing_key))
+            delivery = Delivery.new(
+              parsed_payload, meta, meta.routing_key, meta.delivery_tag
+            )
+            block.call(delivery)
           end
         end
       end

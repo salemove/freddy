@@ -19,7 +19,7 @@ class Freddy
         @response_queue = @channel.queue("", exclusive: true)
 
         @response_consumer = Consumers::ResponseConsumer.new(@logger)
-        @response_consumer.consume(@response_queue, &method(:handle_response))
+        @response_consumer.consume(@channel, @response_queue, &method(:handle_response))
       end
 
       def produce(destination, payload, timeout_in_seconds:, delete_on_timeout:, **properties)

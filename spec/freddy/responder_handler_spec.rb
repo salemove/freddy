@@ -13,12 +13,12 @@ describe Freddy::ResponderHandler do
       count = 0
 
       consumer_handler = freddy.respond_to destination do
-        sleep 0.1
+        sleep 0.3
         count += 1
       end
       deliver
 
-      sleep 0.05
+      sleep 0.15
       consumer_handler.shutdown
 
       expect(count).to eq(1)

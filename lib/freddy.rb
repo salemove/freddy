@@ -17,6 +17,7 @@ class Freddy
   # @option config [Integer] :port (5672)
   # @option config [String] :user ('guest')
   # @option config [String] :pass ('guest')
+  # @option config [Integer] :max_concurrency (4)
   #
   # @return [Freddy]
   #
@@ -24,17 +25,14 @@ class Freddy
   #   Freddy.build(Logger.new(STDOUT), user: 'thumper', pass: 'howdy')
   def self.build(logger = Logger.new(STDOUT), max_concurrency: DEFAULT_MAX_CONCURRENCY, **config)
     connection = Adapters.determine.connect(config)
-    consume_thread_pool = Thread.pool(max_concurrency)
 
-    new(connection, logger, consume_thread_pool)
+    new(connection, logger, max_concurrency)
   end
 
-  def initialize(connection, logger, consume_thread_pool)
+  def initialize(connection, logger, max_concurrency)
     @connection = connection
     @logger = logger
-
-    @tap_into_consumer = Consumers::TapIntoConsumer.new(consume_thread_pool, @logger)
-    @respond_to_consumer = Consumers::RespondToConsumer.new(consume_thread_pool, @logger)
+    @prefetch_buffer_size = max_concurrency
 
     @send_and_forget_producer = Producers::SendAndForgetProducer.new(
       connection.create_channel, logger
@@ -72,12 +70,17 @@ class Freddy
   def respond_to(destination, &callback)
     @logger.info "Listening for requests on #{destination}"
 
-    channel = @connection.create_channel
+    channel = @connection.create_channel(prefetch: @prefetch_buffer_size)
     producer = Producers::ReplyProducer.new(channel, @logger)
     handler_adapter_factory = MessageHandlerAdapters::Factory.new(producer)
 
-    @respond_to_consumer.consume(
-      destination, channel, handler_adapter_factory, &callback
+    Consumers::RespondToConsumer.consume(
+      logger: @logger,
+      thread_pool: Thread.pool(@prefetch_buffer_size),
+      destination: destination,
+      channel: channel,
+      handler_adapter_factory: handler_adapter_factory,
+      &callback
     )
   end
 
@@ -105,7 +108,15 @@ class Freddy
   #   end
   def tap_into(pattern, options = {}, &callback)
     @logger.debug "Tapping into messages that match #{pattern}"
-    @tap_into_consumer.consume(pattern, @connection.create_channel, options, &callback)
+
+    Consumers::TapIntoConsumer.consume(
+      logger: @logger,
+      thread_pool: Thread.pool(@prefetch_buffer_size),
+      pattern: pattern,
+      channel: @connection.create_channel(prefetch: @prefetch_buffer_size),
+      options: options,
+      &callback
+    )
   end
 
   # Sends a message to given destination

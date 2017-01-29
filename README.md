@@ -138,10 +138,7 @@ responder_handler.shutdown
 
 ## Notes about concurrency
 
-The underlying bunny implementation uses 1 responder thread by default. This means that if there is a time-consuming process or a sleep call in a responder then other responders will not receive messages concurrently.
-To resolve this problem *freddy* uses a thread pool for running concurrent responders.
-The thread pool is shared between *tap_into* and *respond_to* callbacks and the default size is 4.
-The thread pool size can be configured by passing the configuration option *max_concurrency*.
+*freddy* uses a thread pool to run concurrent responders. The thread pool is unique for each *tap_into* and *respond_to* responder. Thread pool size can be configured by passing the configuration option *max_concurrency*. Its default value is 4. e.g. If your application has 2 *respond_to* responders and 1 *tap_into* responder with *max_concurrency* set to 3 then your application may process up to 9 messages in parallel.
 
 
 Note that while it is possible to use *deliver_with_response* inside a *respond_to* block,
