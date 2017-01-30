@@ -12,7 +12,6 @@ SimpleCov.start do
 end
 
 require 'pry'
-require 'securerandom'
 require 'freddy'
 require 'logger'
 require 'hamster/experimental/mutable_set'
