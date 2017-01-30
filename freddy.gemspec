@@ -9,8 +9,8 @@ Gem::Specification.new do |spec|
     spec.name          = "freddy"
   end
   spec.version       = '0.7.1'
-  spec.authors       = ["Urmas Talimaa"]
-  spec.email         = ["urmas.talimaa@gmail.com"]
+  spec.authors       = ["Salemove TechMovers"]
+  spec.email         = ["techmovers@salemove.com"]
   spec.description   = %q{Messaging API}
   spec.summary       = %q{API for inter-application messaging supporting acknowledgements and request-response}
   spec.license       = "Private"
