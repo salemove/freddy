@@ -1,5 +1,6 @@
 require 'json'
 require 'thread/pool'
+require 'securerandom'
 
 Dir[File.dirname(__FILE__) + '/freddy/*.rb'].each(&method(:require))
 
