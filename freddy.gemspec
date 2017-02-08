@@ -8,7 +8,7 @@ Gem::Specification.new do |spec|
   else
     spec.name          = "freddy"
   end
-  spec.version       = '1.0.0'
+  spec.version       = '1.0.1'
   spec.authors       = ["Salemove TechMovers"]
   spec.email         = ["techmovers@salemove.com"]
   spec.description   = %q{Messaging API}
