@@ -22,12 +22,15 @@ class Freddy
     end
 
     class OjAdapter
+      PARSE_OPTIONS = { symbol_keys: true }
+      DUMP_OPTIONS = { mode: :compat, time_format: :xmlschema, second_precision: 6 }
+
       def self.parse(payload)
-        Oj.strict_load(payload, symbol_keys: true)
+        Oj.strict_load(payload, PARSE_OPTIONS)
       end
 
       def self.dump(payload)
-        Oj.dump(payload, mode: :compat, time_format: :xmlschema)
+        Oj.dump(payload, DUMP_OPTIONS)
       end
     end
 
