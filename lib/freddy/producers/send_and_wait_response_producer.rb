@@ -41,7 +41,11 @@ class Freddy
         properties = properties.merge(
           routing_key: destination, content_type: CONTENT_TYPE,
           correlation_id: correlation_id, reply_to: @response_queue.name,
-          mandatory: true, type: 'request'
+          mandatory: true, type: 'request',
+          headers: {
+            'x-trace-id' => Freddy.trace.id,
+            'x-span-id' => Freddy.trace.span_id
+          }
         )
         json_payload = Payload.dump(payload)
 
@@ -50,7 +54,8 @@ class Freddy
           queue: destination,
           payload: payload,
           response_queue: @response_queue.name,
-          correlation_id: correlation_id
+          correlation_id: correlation_id,
+          trace: Freddy.trace.to_h
         )
 
         # Connection adapters handle thread safety for #publish themselves. No

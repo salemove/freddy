@@ -30,6 +30,14 @@ class Freddy
     new(connection, logger, max_concurrency)
   end
 
+  def self.trace
+    Thread.current[:freddy_trace] || Traces::NO_TRACE
+  end
+
+  def self.trace=(trace)
+    Thread.current[:freddy_trace] = trace
+  end
+
   def initialize(connection, logger, max_concurrency)
     @connection = connection
     @logger = logger

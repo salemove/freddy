@@ -37,9 +37,11 @@ class Freddy
       def process_message(delivery, &block)
         @consume_thread_pool.process do
           begin
+            Freddy.trace = delivery.trace
             block.call(delivery)
           ensure
             @channel.acknowledge(delivery.tag, false)
+            Freddy.trace = nil
           end
         end
       end

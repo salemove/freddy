@@ -27,7 +27,8 @@ describe 'Logging' do
       message: 'Received message',
       queue: destination,
       payload: payload,
-      correlation_id: anything
+      correlation_id: anything,
+      trace: anything
     )
   end
 
@@ -38,7 +39,8 @@ describe 'Logging' do
       queue: destination,
       payload: payload,
       response_queue: anything,
-      correlation_id: anything
+      correlation_id: anything,
+      trace: anything
     )
   end
 end
