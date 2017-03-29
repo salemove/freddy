@@ -10,22 +10,29 @@ class Freddy
       end
 
       def produce(destination, payload, properties)
-        Producers.log_send_event(@logger, payload, destination)
+        span = OpenTracing.start_span("freddy:notify:#{destination}",
+          child_of: Freddy.trace,
+          tags: {queue: destination}
+        )
+        span.log event: 'Sending message', payload: payload
 
         properties = properties.merge(
           routing_key: destination,
-          content_type: CONTENT_TYPE,
-          headers: {
-            'x-trace-id' => Freddy.trace.id,
-            'x-span-id' => Freddy.trace.span_id
-          }
+          content_type: CONTENT_TYPE
         )
+        OpenTracing.global_tracer.inject(span.context, OpenTracing::FORMAT_TEXT_MAP, TraceCarrier.new(properties))
         json_payload = Payload.dump(payload)
 
         # Connection adapters handle thread safety for #publish themselves. No
         # need to lock these.
         @topic_exchange.publish json_payload, properties.dup
         @exchange.publish json_payload, properties.dup
+      ensure
+        # We don't know how many listeners there are and we do not know when
+        # this message gets processed. Instead we close the span immediately.
+        # Listeners should use FollowsFrom to add trace information.
+        # https://github.com/opentracing/specification/blob/master/specification.md
+        span.finish
       end
     end
   end

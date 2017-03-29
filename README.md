@@ -137,33 +137,39 @@ responder_handler.shutdown
 
 ## Request Tracing
 
-Freddy helps application developers to implement distributed tracing. Freddy provides trace ID, parent ID and span ID when receiving a request. These can be accessed through a thread-local variable `Freddy.trace`. Calling `deliver` or `deliver_with_response` will pass these IDs to the next service.
+Freddy supports [OpenTracing API|https://github.com/opentracing/opentracing-ruby]. You must set a global tracer which then freddy will use:
+```ruby
+OpenTracing.global_tracing = MyTracerImplementation.new(...)
+```
+
+For example you can use [Logasm::Tracer](https://github.com/salemove/logasm-tracer) which will log all incoming and outgoing requests with trace ID, parent ID and span ID.
+
+Current trace can be accessed through a thread-local variable `Freddy.trace`. Calling `deliver` or `deliver_with_response` will pass trace context to down-stream services.
+
+Accessing trace information when using Logasm::Tracer implementation:
 
 ```ruby
 freddy1 = Freddy.build
 freddy1.respond_do('service1') do |payload, msg_handler|
-  puts "Trace id: #{Freddy.trace.id}"
-  puts "Span id: #{Freddy.trace.span_id}"
+  puts "Trace id: #{Freddy.trace.context.trace_id}"
+  puts "Span id: #{Freddy.trace.context.span_id}"
 
   freddy1.deliver('service2', {})
 end
 
 freddy2 = Freddy.build
 freddy2.tap_into('service2') do |payload|
-  puts "Has same trace_id as the request in service1: #{Freddy.trace.id}"
-  puts "Has service1 request span id as parent id: #{Freddy.trace.parent_id}"
-  puts "Has its own generated span id: #{Freddy.trace.span_id}"
+  puts "Has same trace_id as the request in service1: #{Freddy.trace.context.trace_id}"
+  puts "Has service1 request span id as parent id: #{Freddy.trace.context.parent_id}"
+  puts "Has its own generated span id: #{Freddy.trace.context.span_id}"
 end
 ```
 
-In case you already have trace IDs (e.g. provided by REST API) then you can set them yourself:
+In case you already have an ongoing OpenTracing span (e.g. provided by REST API) then you can pass the trace information to Freddy by doing:
 ```ruby
-  Freddy.trace = Freddy::Traces::Trace.new({
-    id: 'YourTraceId',
-    parent_id: 'YourParentId', # Use nil in case this is the root of the trace
-    span_id: 'YourSpanId'
-  })
+  Freddy.trace = trace_span
 ```
+The `trace_span` must implement OpenTracing::Span interface.
 
 ## Notes about concurrency
 
