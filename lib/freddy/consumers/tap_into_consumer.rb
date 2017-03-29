@@ -44,9 +44,11 @@ class Freddy
         @consume_thread_pool.process do
           begin
             Consumers.log_receive_event(@logger, queue.name, delivery)
+            Freddy.trace = delivery.trace
             block.call delivery.payload, delivery.routing_key
           ensure
             @channel.acknowledge(delivery.tag, false)
+            Freddy.trace = nil
           end
         end
       end

@@ -5,7 +5,8 @@ class Freddy
         message: 'Received message',
         queue: queue_name,
         payload: delivery.payload,
-        correlation_id: delivery.correlation_id
+        correlation_id: delivery.correlation_id,
+        trace: Freddy.trace.to_h
       )
     end
   end

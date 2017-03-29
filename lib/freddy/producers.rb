@@ -1,7 +1,7 @@
 class Freddy
   module Producers
     def self.log_send_event(logger, payload, destination)
-      logger.debug message: 'Sending message', queue: destination, payload: payload
+      logger.debug message: 'Sending message', queue: destination, payload: payload, trace: Freddy.trace.to_h
     end
   end
 end
