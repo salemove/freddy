@@ -22,6 +22,10 @@ RSpec.configure do |config|
   config.run_all_when_everything_filtered = true
   config.filter_run :focus
   config.order = 'random'
+
+  config.before do
+    OpenTracing.global_tracer ||= OpenTracing::Tracer.new
+  end
 end
 
 def random_destination
@@ -59,5 +63,17 @@ end
 def spawn_echo_responder(freddy, queue_name)
   freddy.respond_to queue_name do |payload, msg_handler|
     msg_handler.success(payload)
+  end
+end
+
+class ArrayLogger
+  attr_accessor :calls
+
+  def initialize
+    @calls = []
+  end
+
+  def info(*args)
+    @calls << args
   end
 end

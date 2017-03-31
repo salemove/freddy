@@ -5,8 +5,7 @@ class Freddy
         new(*attrs).consume(&block)
       end
 
-      def initialize(logger:, thread_pool:, pattern:, channel:, options:)
-        @logger = logger
+      def initialize(thread_pool:, pattern:, channel:, options:)
         @consume_thread_pool = thread_pool
         @pattern = pattern
         @channel = channel
@@ -43,11 +42,20 @@ class Freddy
       def process_message(queue, delivery, &block)
         @consume_thread_pool.process do
           begin
-            Consumers.log_receive_event(@logger, queue.name, delivery)
-            Freddy.trace = delivery.trace
+            Freddy.trace = delivery.build_trace("freddy:observe:#{@pattern}",
+              tags: {queue: @pattern},
+              force_follows_from: true
+            )
+            Freddy.trace.log(
+              event: 'Received message through tap_into',
+              payload: delivery.payload,
+              correlation_id: delivery.correlation_id
+            )
+
             block.call delivery.payload, delivery.routing_key
           ensure
             @channel.acknowledge(delivery.tag, false)
+            Freddy.trace.finish
             Freddy.trace = nil
           end
         end

@@ -23,14 +23,20 @@ class Freddy
       end
 
       def produce(destination, payload, timeout_in_seconds:, delete_on_timeout:, **properties)
+        span = OpenTracing.start_span("freddy:request:#{destination}",
+          child_of: Freddy.trace,
+          tags: {queue: destination}
+        )
+
         correlation_id = SecureRandom.uuid
 
         container = SyncResponseContainer.new(
-          on_timeout(correlation_id, destination, timeout_in_seconds)
+          on_timeout(correlation_id, destination, timeout_in_seconds, span)
         )
 
         @request_manager.store(correlation_id,
           callback: container,
+          trace: span,
           destination: destination
         )
 
@@ -41,21 +47,16 @@ class Freddy
         properties = properties.merge(
           routing_key: destination, content_type: CONTENT_TYPE,
           correlation_id: correlation_id, reply_to: @response_queue.name,
-          mandatory: true, type: 'request',
-          headers: {
-            'x-trace-id' => Freddy.trace.id,
-            'x-span-id' => Freddy.trace.span_id
-          }
+          mandatory: true, type: 'request'
         )
+        OpenTracing.global_tracer.inject(span.context, OpenTracing::FORMAT_TEXT_MAP, TraceCarrier.new(properties))
         json_payload = Payload.dump(payload)
 
-        @logger.debug(
-          message: 'Publishing request',
-          queue: destination,
+        span.log(
+          event: 'Publishing request',
           payload: payload,
           response_queue: @response_queue.name,
-          correlation_id: correlation_id,
-          trace: Freddy.trace.to_h
+          correlation_id: correlation_id
         )
 
         # Connection adapters handle thread safety for #publish themselves. No
@@ -82,14 +83,17 @@ class Freddy
         @logger.debug "Got response for request to #{request[:destination]} "\
                       "with correlation_id #{delivery.correlation_id}"
         request[:callback].call(delivery.payload, delivery)
+      ensure
+        request[:trace].finish
       end
 
-      def on_timeout(correlation_id, destination, timeout_in_seconds)
+      def on_timeout(correlation_id, destination, timeout_in_seconds, trace)
         Proc.new do
           @logger.warn "Request timed out waiting response from #{destination}"\
                        ", correlation id #{correlation_id}"
 
           @request_manager.delete(correlation_id)
+          trace.finish
         end
       end
     end

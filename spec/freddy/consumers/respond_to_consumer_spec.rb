@@ -3,7 +3,6 @@ require 'spec_helper'
 describe Freddy::Consumers::RespondToConsumer do
   let(:consumer) do
     described_class.new(
-      logger: logger,
       thread_pool: thread_pool,
       destination: destination,
       channel: channel,

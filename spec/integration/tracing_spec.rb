@@ -1,6 +1,13 @@
 require 'spec_helper'
+require 'logasm/tracer'
 
 describe 'Tracing' do
+  let(:tracer) { Logasm::Tracer.new(logger) }
+  let(:logger) { spy }
+
+  before { OpenTracing.global_tracer = tracer }
+  after { OpenTracing.global_tracer = nil }
+
   context 'when receiving an untraced request' do
     let(:freddy) { Freddy.build(logger, config) }
     let(:destination) { random_destination }
@@ -8,9 +15,9 @@ describe 'Tracing' do
     before do
       freddy.respond_to(destination) do |payload, msg_handler|
         msg_handler.success({
-          trace_id: Freddy.trace.id,
-          parent_id: Freddy.trace.parent_id,
-          span_id: Freddy.trace.span_id
+          trace_id: Freddy.trace.context.trace_id,
+          parent_id: Freddy.trace.context.parent_id,
+          span_id: Freddy.trace.context.span_id
         })
       end
     end
@@ -44,9 +51,9 @@ describe 'Tracing' do
       freddy.respond_to(destination) do |payload, msg_handler|
         msg_handler.success({
           trace_initiator: {
-            trace_id: Freddy.trace.id,
-            parent_id: Freddy.trace.parent_id,
-            span_id: Freddy.trace.span_id
+            trace_id: Freddy.trace.context.trace_id,
+            parent_id: Freddy.trace.context.parent_id,
+            span_id: Freddy.trace.context.span_id
           },
           current_receiver: freddy.deliver_with_response(destination2, {})
         })
@@ -54,9 +61,9 @@ describe 'Tracing' do
 
       freddy2.respond_to(destination2) do |payload, msg_handler|
         msg_handler.success({
-          trace_id: Freddy.trace.id,
-          parent_id: Freddy.trace.parent_id,
-          span_id: Freddy.trace.span_id
+          trace_id: Freddy.trace.context.trace_id,
+          parent_id: Freddy.trace.context.parent_id,
+          span_id: Freddy.trace.context.span_id
         })
       end
     end
@@ -73,11 +80,10 @@ describe 'Tracing' do
       expect(trace_initiator.fetch(:trace_id)).to eq(current_receiver.fetch(:trace_id))
     end
 
-    it 'has request initiator span_id as parent_id' do
+    it 'has parent_id' do
       response = freddy.deliver_with_response(destination, {})
-      trace_initiator = response.fetch(:trace_initiator)
       current_receiver = response.fetch(:current_receiver)
-      expect(trace_initiator.fetch(:span_id)).to eq(current_receiver.fetch(:parent_id))
+      expect(current_receiver.fetch(:parent_id)).to_not be_nil
     end
 
     it 'has generated span_id' do
@@ -102,9 +108,9 @@ describe 'Tracing' do
       freddy.respond_to(destination) do |payload, msg_handler|
         msg_handler.success({
           trace_initiator: {
-            trace_id: Freddy.trace.id,
-            parent_id: Freddy.trace.parent_id,
-            span_id: Freddy.trace.span_id
+            trace_id: Freddy.trace.context.trace_id,
+            parent_id: Freddy.trace.context.parent_id,
+            span_id: Freddy.trace.context.span_id
           }
         }.merge(freddy.deliver_with_response(destination2, {})))
       end
@@ -112,9 +118,9 @@ describe 'Tracing' do
       freddy2.respond_to(destination2) do |payload, msg_handler|
         msg_handler.success({
           previous_receiver: {
-            trace_id: Freddy.trace.id,
-            parent_id: Freddy.trace.parent_id,
-            span_id: Freddy.trace.span_id
+            trace_id: Freddy.trace.context.trace_id,
+            parent_id: Freddy.trace.context.parent_id,
+            span_id: Freddy.trace.context.span_id
           },
           current_receiver: freddy2.deliver_with_response(destination3, {})
         })
@@ -122,9 +128,9 @@ describe 'Tracing' do
 
       freddy3.respond_to(destination3) do |payload, msg_handler|
         msg_handler.success({
-          trace_id: Freddy.trace.id,
-          parent_id: Freddy.trace.parent_id,
-          span_id: Freddy.trace.span_id
+          trace_id: Freddy.trace.context.trace_id,
+          parent_id: Freddy.trace.context.parent_id,
+          span_id: Freddy.trace.context.span_id
         })
       end
     end
@@ -142,11 +148,10 @@ describe 'Tracing' do
       expect(trace_initiator.fetch(:trace_id)).to eq(current_receiver.fetch(:trace_id))
     end
 
-    it 'has request initiator span_id as parent_id' do
+    it 'has parent_id' do
       response = freddy.deliver_with_response(destination, {})
-      previous_receiver = response.fetch(:previous_receiver)
       current_receiver = response.fetch(:current_receiver)
-      expect(previous_receiver.fetch(:span_id)).to eq(current_receiver.fetch(:parent_id))
+      expect(current_receiver.fetch(:parent_id)).to_not be_nil
     end
 
     it 'has generated span_id' do

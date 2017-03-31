@@ -8,15 +8,8 @@ class Freddy
       def consume(channel, queue, &block)
         @logger.debug "Consuming messages on #{queue.name}"
         queue.subscribe do |delivery|
-          process_message(channel, queue, delivery, &block)
+          block.call(delivery)
         end
-      end
-
-      private
-
-      def process_message(channel, queue, delivery, &block)
-        Consumers.log_receive_event(@logger, queue.name, delivery)
-        block.call(delivery)
       end
     end
   end

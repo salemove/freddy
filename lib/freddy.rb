@@ -1,6 +1,7 @@
 require 'json'
 require 'thread/pool'
 require 'securerandom'
+require 'opentracing'
 
 Dir[File.dirname(__FILE__) + '/freddy/*.rb'].each(&method(:require))
 
@@ -25,13 +26,14 @@ class Freddy
   # @example
   #   Freddy.build(Logger.new(STDOUT), user: 'thumper', pass: 'howdy')
   def self.build(logger = Logger.new(STDOUT), max_concurrency: DEFAULT_MAX_CONCURRENCY, **config)
-    connection = Adapters.determine.connect(config)
+    OpenTracing.global_tracer ||= OpenTracing::Tracer.new
 
+    connection = Adapters.determine.connect(config)
     new(connection, logger, max_concurrency)
   end
 
   def self.trace
-    Thread.current[:freddy_trace] || Traces::NO_TRACE
+    Thread.current[:freddy_trace]
   end
 
   def self.trace=(trace)
@@ -84,7 +86,6 @@ class Freddy
     handler_adapter_factory = MessageHandlerAdapters::Factory.new(producer)
 
     Consumers::RespondToConsumer.consume(
-      logger: @logger,
       thread_pool: Thread.pool(@prefetch_buffer_size),
       destination: destination,
       channel: channel,
@@ -119,7 +120,6 @@ class Freddy
     @logger.debug "Tapping into messages that match #{pattern}"
 
     Consumers::TapIntoConsumer.consume(
-      logger: @logger,
       thread_pool: Thread.pool(@prefetch_buffer_size),
       pattern: pattern,
       channel: @connection.create_channel(prefetch: @prefetch_buffer_size),
