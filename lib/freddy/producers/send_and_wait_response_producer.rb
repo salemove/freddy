@@ -25,7 +25,10 @@ class Freddy
       def produce(destination, payload, timeout_in_seconds:, delete_on_timeout:, **properties)
         span = OpenTracing.start_span("freddy:request:#{destination}",
           child_of: Freddy.trace,
-          tags: {queue: destination}
+          tags: {
+            'component': 'freddy',
+            'span.kind': 'client' # RPC
+          }
         )
 
         correlation_id = SecureRandom.uuid

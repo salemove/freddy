@@ -12,7 +12,11 @@ class Freddy
       def produce(destination, payload, properties)
         span = OpenTracing.start_span("freddy:notify:#{destination}",
           child_of: Freddy.trace,
-          tags: {queue: destination}
+          tags: {
+            'message_bus.destination': destination,
+            'component': 'freddy',
+            'span.kind': 'producer' # Message Bus
+          }
         )
         span.log event: 'Sending message', payload: payload
 

@@ -43,7 +43,11 @@ class Freddy
         @consume_thread_pool.process do
           begin
             Freddy.trace = delivery.build_trace("freddy:observe:#{@pattern}",
-              tags: {queue: @pattern},
+              tags: {
+                'message_bus.destination': @pattern,
+                'component': 'freddy',
+                'span.kind': 'consumer' # Message Bus
+              },
               force_follows_from: true
             )
             Freddy.trace.log(
