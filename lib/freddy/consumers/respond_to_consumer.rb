@@ -34,7 +34,9 @@ class Freddy
       def process_message(delivery, &block)
         @consume_thread_pool.process do
           begin
-            Freddy.trace = delivery.build_trace("freddy:respond:#{@destination}")
+            Freddy.trace = delivery.build_trace("freddy:respond:#{@destination}",
+              tags: {queue: @destination}
+            )
             Freddy.trace.log(
               event: 'Received message through respond_to',
               queue: @destination,
