@@ -35,7 +35,11 @@ class Freddy
         @consume_thread_pool.process do
           begin
             Freddy.trace = delivery.build_trace("freddy:respond:#{@destination}",
-              tags: {queue: @destination}
+              tags: {
+                'peer.address': "#{@destination}:#{delivery.payload[:type]}",
+                'component': 'freddy',
+                'span.kind': 'server' # RPC
+              }
             )
             Freddy.trace.log(
               event: 'Received message through respond_to',
