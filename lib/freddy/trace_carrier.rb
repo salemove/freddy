@@ -22,9 +22,5 @@ class Freddy
           .map {|key, value| [key.sub(/x-trace-/, ''), value]}
       ].each(&block)
     end
-
-    def has_required_fields?
-      self['trace-id'] && self['parent-id'] && self['span-id']
-    end
   end
 end

@@ -24,7 +24,7 @@ class Freddy
     def build_trace(operation_name, tags: {}, force_follows_from: false)
       carrier = TraceCarrier.new(@metadata)
       parent =
-        if carrier.has_required_fields? && expecting_response? && !force_follows_from
+        if expecting_response? && !force_follows_from
           OpenTracing.global_tracer.extract(OpenTracing::FORMAT_TEXT_MAP, carrier)
         else
           nil
