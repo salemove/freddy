@@ -14,6 +14,7 @@ describe 'Logging with Logasm::Tracer' do
 
     before do
       freddy.respond_to(destination) do |payload, msg_handler|
+        sleep 0.1 # emulate some processing
         msg_handler.success({})
       end
     end
@@ -49,6 +50,7 @@ describe 'Logging with Logasm::Tracer' do
 
     before do
       freddy.respond_to(destination) do |payload, msg_handler|
+        sleep 0.1 # emulate some processing
         msg_handler.success({
           trace_initiator: {},
           current_receiver: freddy.deliver_with_response(destination2, {})
@@ -56,6 +58,7 @@ describe 'Logging with Logasm::Tracer' do
       end
 
       freddy2.respond_to(destination2) do |payload, msg_handler|
+        sleep 0.1 # emulate some processing
         msg_handler.success({})
       end
     end
