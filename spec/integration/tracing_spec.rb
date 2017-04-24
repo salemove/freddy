@@ -8,38 +8,6 @@ describe 'Tracing' do
   before { OpenTracing.global_tracer = tracer }
   after { OpenTracing.global_tracer = nil }
 
-  context 'when receiving an untraced request' do
-    let(:freddy) { Freddy.build(logger, config) }
-    let(:destination) { random_destination }
-
-    before do
-      freddy.respond_to(destination) do |payload, msg_handler|
-        msg_handler.success({
-          trace_id: Freddy.trace.context.trace_id,
-          parent_id: Freddy.trace.context.parent_id,
-          span_id: Freddy.trace.context.span_id
-        })
-      end
-    end
-
-    after { freddy.close }
-
-    it 'has generated trace_id' do
-      response = freddy.deliver_with_response(destination, {})
-      expect(response.fetch(:trace_id)).to_not be_nil
-    end
-
-    it 'has no parent_id' do
-      response = freddy.deliver_with_response(destination, {})
-      expect(response.fetch(:parent_id)).to be_nil
-    end
-
-    it 'has generated span_id' do
-      response = freddy.deliver_with_response(destination, {})
-      expect(response.fetch(:span_id)).to_not be_nil
-    end
-  end
-
   context 'when receiving a traced request' do
     let(:freddy) { Freddy.build(logger, config) }
     let(:freddy2) { Freddy.build(logger, config) }
