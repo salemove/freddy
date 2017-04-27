@@ -27,7 +27,8 @@ class Freddy
           child_of: Freddy.trace,
           tags: {
             'component': 'freddy',
-            'span.kind': 'client' # RPC
+            'span.kind': 'client', # RPC
+            'payload.type': payload[:type]
           }
         )
 
