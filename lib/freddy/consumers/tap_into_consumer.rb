@@ -50,7 +50,7 @@ class Freddy
               },
               force_follows_from: true
             )
-            Freddy.trace.log(
+            Freddy.trace.log_kv(
               event: 'Received message through tap_into',
               payload: delivery.payload,
               correlation_id: delivery.correlation_id

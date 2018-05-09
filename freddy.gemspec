@@ -8,7 +8,7 @@ Gem::Specification.new do |spec|
   else
     spec.name          = "freddy"
   end
-  spec.version       = '1.3.2'
+  spec.version       = '1.3.3'
   spec.authors       = ["Salemove TechMovers"]
   spec.email         = ["techmovers@salemove.com"]
   spec.description   = %q{Messaging API}
@@ -32,5 +32,5 @@ Gem::Specification.new do |spec|
   end
 
   spec.add_dependency "thread", "~> 0.1"
-  spec.add_dependency "opentracing", "~> 0.3"
+  spec.add_dependency "opentracing", "~> 0.4"
 end
