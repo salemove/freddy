@@ -56,7 +56,7 @@ class Freddy
         OpenTracing.global_tracer.inject(span.context, OpenTracing::FORMAT_TEXT_MAP, TraceCarrier.new(properties))
         json_payload = Payload.dump(payload)
 
-        span.log(
+        span.log_kv(
           event: 'Publishing request',
           payload: payload,
           response_queue: @response_queue.name,

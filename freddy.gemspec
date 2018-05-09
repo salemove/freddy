@@ -32,5 +32,5 @@ Gem::Specification.new do |spec|
   end
 
   spec.add_dependency "thread", "~> 0.1"
-  spec.add_dependency "opentracing", "~> 0.3"
+  spec.add_dependency "opentracing", "~> 0.4"
 end

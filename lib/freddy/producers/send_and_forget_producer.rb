@@ -18,7 +18,7 @@ class Freddy
             'span.kind': 'producer' # Message Bus
           }
         )
-        span.log event: 'Sending message', payload: payload
+        span.log_kv event: 'Sending message', payload: payload
 
         properties = properties.merge(
           routing_key: destination,

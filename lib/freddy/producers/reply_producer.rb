@@ -9,7 +9,7 @@ class Freddy
       end
 
       def produce(destination, payload, properties)
-        Freddy.trace.log event: 'Sending response', queue: destination, payload: payload
+        Freddy.trace.log_kv event: 'Sending response', queue: destination, payload: payload
 
         properties = properties.merge(
           routing_key: destination,

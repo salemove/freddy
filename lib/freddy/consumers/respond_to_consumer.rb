@@ -41,7 +41,7 @@ class Freddy
                 'span.kind': 'server' # RPC
               }
             )
-            Freddy.trace.log(
+            Freddy.trace.log_kv(
               event: 'Received message through respond_to',
               queue: @destination,
               payload: delivery.payload,
