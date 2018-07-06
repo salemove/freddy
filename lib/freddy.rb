@@ -32,12 +32,16 @@ class Freddy
     new(connection, logger, max_concurrency)
   end
 
+  # @deprecated Use {OpenTracing.active_span} instead
   def self.trace
-    Thread.current[:freddy_trace]
+    OpenTracing.active_span
   end
 
+  # @deprecated Use OpenTracing ScopeManager instead
   def self.trace=(trace)
-    Thread.current[:freddy_trace] = trace
+    if OpenTracing.active_span != trace
+      OpenTracing.scope_manager.activate(trace)
+    end
   end
 
   def initialize(connection, logger, max_concurrency)

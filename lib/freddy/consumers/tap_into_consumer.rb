@@ -42,7 +42,7 @@ class Freddy
       def process_message(queue, delivery, &block)
         @consume_thread_pool.process do
           begin
-            Freddy.trace = delivery.build_trace("freddy:observe:#{@pattern}",
+            scope = delivery.build_trace("freddy:observe:#{@pattern}",
               tags: {
                 'message_bus.destination': @pattern,
                 'component': 'freddy',
@@ -50,7 +50,7 @@ class Freddy
               },
               force_follows_from: true
             )
-            Freddy.trace.log_kv(
+            scope.span.log_kv(
               event: 'Received message through tap_into',
               payload: delivery.payload,
               correlation_id: delivery.correlation_id
@@ -59,8 +59,7 @@ class Freddy
             block.call delivery.payload, delivery.routing_key
           ensure
             @channel.acknowledge(delivery.tag, false)
-            Freddy.trace.finish
-            Freddy.trace = nil
+            scope.close
           end
         end
       end

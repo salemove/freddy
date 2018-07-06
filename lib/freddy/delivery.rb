@@ -23,23 +23,18 @@ class Freddy
 
     def build_trace(operation_name, tags: {}, force_follows_from: false)
       carrier = TraceCarrier.new(@metadata)
-      parent =
-        if expecting_response? && !force_follows_from
-          OpenTracing.global_tracer.extract(OpenTracing::FORMAT_TEXT_MAP, carrier)
+      parent = OpenTracing.global_tracer.extract(OpenTracing::FORMAT_TEXT_MAP, carrier)
+
+      references =
+        if !parent
+          []
+        elsif force_follows_from
+          [OpenTracing::Reference.follows_from(parent)]
         else
-          nil
+          [OpenTracing::Reference.child_of(parent)]
         end
 
-      # Creating a child span when the message sender is expecting a response.
-      # Otherwise creating a new trace because the OpenTracing client does not
-      # support FollowsFrom yet.
-      OpenTracing.start_span(operation_name, child_of: parent, tags: tags)
-    end
-
-    private
-
-    def expecting_response?
-      type == 'request'
+      OpenTracing.start_active_span(operation_name, references: references, tags: tags)
     end
   end
 end
