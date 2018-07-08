@@ -1,8 +1,8 @@
 require 'spec_helper'
-require 'logasm/tracer'
+require 'opentracing_test_tracer'
 
 describe 'Tracing' do
-  let(:tracer) { Logasm::Tracer.new(logger) }
+  let(:tracer) { OpenTracingTestTracer.build(logger: logger) }
   let(:logger) { spy }
 
   before { OpenTracing.global_tracer = tracer }
@@ -19,9 +19,9 @@ describe 'Tracing' do
       freddy.respond_to(destination) do |payload, msg_handler|
         msg_handler.success({
           trace_initiator: {
-            trace_id: Freddy.trace.context.trace_id,
-            parent_id: Freddy.trace.context.parent_id,
-            span_id: Freddy.trace.context.span_id
+            trace_id: active_span.context.trace_id,
+            parent_id: active_span.context.parent_id,
+            span_id: active_span.context.span_id
           },
           current_receiver: freddy.deliver_with_response(destination2, {})
         })
@@ -29,9 +29,9 @@ describe 'Tracing' do
 
       freddy2.respond_to(destination2) do |payload, msg_handler|
         msg_handler.success({
-          trace_id: Freddy.trace.context.trace_id,
-          parent_id: Freddy.trace.context.parent_id,
-          span_id: Freddy.trace.context.span_id
+          trace_id: active_span.context.trace_id,
+          parent_id: active_span.context.parent_id,
+          span_id: active_span.context.span_id
         })
       end
     end
@@ -76,9 +76,9 @@ describe 'Tracing' do
       freddy.respond_to(destination) do |payload, msg_handler|
         msg_handler.success({
           trace_initiator: {
-            trace_id: Freddy.trace.context.trace_id,
-            parent_id: Freddy.trace.context.parent_id,
-            span_id: Freddy.trace.context.span_id
+            trace_id: active_span.context.trace_id,
+            parent_id: active_span.context.parent_id,
+            span_id: active_span.context.span_id
           }
         }.merge(freddy.deliver_with_response(destination2, {})))
       end
@@ -86,9 +86,9 @@ describe 'Tracing' do
       freddy2.respond_to(destination2) do |payload, msg_handler|
         msg_handler.success({
           previous_receiver: {
-            trace_id: Freddy.trace.context.trace_id,
-            parent_id: Freddy.trace.context.parent_id,
-            span_id: Freddy.trace.context.span_id
+            trace_id: active_span.context.trace_id,
+            parent_id: active_span.context.parent_id,
+            span_id: active_span.context.span_id
           },
           current_receiver: freddy2.deliver_with_response(destination3, {})
         })
@@ -96,9 +96,9 @@ describe 'Tracing' do
 
       freddy3.respond_to(destination3) do |payload, msg_handler|
         msg_handler.success({
-          trace_id: Freddy.trace.context.trace_id,
-          parent_id: Freddy.trace.context.parent_id,
-          span_id: Freddy.trace.context.span_id
+          trace_id: active_span.context.trace_id,
+          parent_id: active_span.context.parent_id,
+          span_id: active_span.context.span_id
         })
       end
     end
@@ -129,5 +129,9 @@ describe 'Tracing' do
       expect(current_receiver.fetch(:span_id)).to_not be_nil
       expect(current_receiver.fetch(:span_id)).to_not eq(previous_receiver.fetch(:span_id))
     end
+  end
+
+  def active_span
+    OpenTracing.active_span
   end
 end

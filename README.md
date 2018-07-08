@@ -142,34 +142,9 @@ Freddy supports [OpenTracing API|https://github.com/opentracing/opentracing-ruby
 OpenTracing.global_tracing = MyTracerImplementation.new(...)
 ```
 
-For example you can use [Logasm::Tracer](https://github.com/salemove/logasm-tracer) which will log all incoming and outgoing requests with trace ID, parent ID and span ID.
+Current trace can be accessed through a thread-local variable `OpenTracing.active_span`. Calling `deliver` or `deliver_with_response` will pass trace context to down-stream services.
 
-Current trace can be accessed through a thread-local variable `Freddy.trace`. Calling `deliver` or `deliver_with_response` will pass trace context to down-stream services.
-
-Accessing trace information when using Logasm::Tracer implementation:
-
-```ruby
-freddy1 = Freddy.build
-freddy1.respond_do('service1') do |payload, msg_handler|
-  puts "Trace id: #{Freddy.trace.context.trace_id}"
-  puts "Span id: #{Freddy.trace.context.span_id}"
-
-  freddy1.deliver('service2', {})
-end
-
-freddy2 = Freddy.build
-freddy2.tap_into('service2') do |payload|
-  puts "Has same trace_id as the request in service1: #{Freddy.trace.context.trace_id}"
-  puts "Has service1 request span id as parent id: #{Freddy.trace.context.parent_id}"
-  puts "Has its own generated span id: #{Freddy.trace.context.span_id}"
-end
-```
-
-In case you already have an ongoing OpenTracing span (e.g. provided by REST API) then you can pass the trace information to Freddy by doing:
-```ruby
-  Freddy.trace = trace_span
-```
-The `trace_span` must implement OpenTracing::Span interface.
+See [opentracing-ruby](https://github.com/opentracing/opentracing-ruby) for more information.
 
 ## Notes about concurrency
 

@@ -34,14 +34,14 @@ class Freddy
       def process_message(delivery, &block)
         @consume_thread_pool.process do
           begin
-            Freddy.trace = delivery.build_trace("freddy:respond:#{@destination}",
+            scope = delivery.build_trace("freddy:respond:#{@destination}",
               tags: {
                 'peer.address': "#{@destination}:#{delivery.payload[:type]}",
                 'component': 'freddy',
                 'span.kind': 'server' # RPC
               }
             )
-            Freddy.trace.log_kv(
+            scope.span.log_kv(
               event: 'Received message through respond_to',
               queue: @destination,
               payload: delivery.payload,
@@ -51,8 +51,7 @@ class Freddy
             block.call(delivery)
           ensure
             @channel.acknowledge(delivery.tag, false)
-            Freddy.trace.finish
-            Freddy.trace = nil
+            scope.close
           end
         end
       end

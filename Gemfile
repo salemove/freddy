@@ -4,6 +4,6 @@ gem 'rspec'
 gem 'pry'
 gem 'codeclimate-test-reporter'
 gem 'hamster', '~> 3.0'
-gem 'logasm-tracer', '0.3.0'
+gem 'opentracing_test_tracer', '~> 0.1'
 
 gemspec
