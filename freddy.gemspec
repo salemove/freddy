@@ -27,7 +27,7 @@ Gem::Specification.new do |spec|
     spec.add_dependency 'march_hare', '~> 2.12.0'
     spec.add_dependency 'symbolizer'
   else
-    spec.add_dependency "bunny", "~> 2.6"
+    spec.add_dependency "bunny", "~> 2.11"
     spec.add_dependency "oj", "~> 2.13"
   end
 
