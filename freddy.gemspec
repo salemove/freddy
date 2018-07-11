@@ -8,7 +8,7 @@ Gem::Specification.new do |spec|
   else
     spec.name          = "freddy"
   end
-  spec.version       = '1.4.0'
+  spec.version       = '1.4.1'
   spec.authors       = ["Salemove TechMovers"]
   spec.email         = ["techmovers@salemove.com"]
   spec.description   = %q{Messaging API}
@@ -27,7 +27,7 @@ Gem::Specification.new do |spec|
     spec.add_dependency 'march_hare', '~> 2.12.0'
     spec.add_dependency 'symbolizer'
   else
-    spec.add_dependency "bunny", "~> 2.6"
+    spec.add_dependency "bunny", "~> 2.11"
     spec.add_dependency "oj", "~> 2.13"
   end
 
