@@ -4,14 +4,14 @@ describe 'Reply' do
   let(:freddy) { Freddy.build(logger, config) }
 
   let(:destination) { random_destination }
-  let(:request_payload) { {req: 'load'} }
-  let(:response_payload) { {res: 'load'} }
+  let(:request_payload) { { req: 'load' } }
+  let(:response_payload) { { res: 'load' } }
 
   after { freddy.close }
 
   context 'when a synchronized request' do
     before do
-      freddy.respond_to(destination) do |payload, msg_handler|
+      freddy.respond_to(destination) do |_payload, msg_handler|
         msg_handler.success(response_payload)
       end
     end
@@ -22,7 +22,7 @@ describe 'Reply' do
     end
 
     it 'does not send the reply to the topic queue' do
-      freddy.tap_into 'amq.*' do |payload|
+      freddy.tap_into 'amq.*' do |_payload|
         @message_received = true
       end
 

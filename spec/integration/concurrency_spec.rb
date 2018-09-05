@@ -9,7 +9,7 @@ describe 'Concurrency' do
   after { [freddy1, freddy2, freddy3].each(&:close) }
 
   it 'supports multiple requests in #respond_to' do
-    freddy1.respond_to 'Concurrency1' do |payload, msg_handler|
+    freddy1.respond_to 'Concurrency1' do |_payload, msg_handler|
       begin
         freddy1.deliver_with_response 'Concurrency2', msg: 'noop'
         result2 = freddy1.deliver_with_response 'Concurrency3', msg: 'noop'
@@ -19,16 +19,16 @@ describe 'Concurrency' do
       end
     end
 
-    freddy2.respond_to 'Concurrency2' do |payload, msg_handler|
+    freddy2.respond_to 'Concurrency2' do |_payload, msg_handler|
       begin
-        msg_handler.success({from: 'Concurrency2'})
+        msg_handler.success(from: 'Concurrency2')
       rescue Freddy::InvalidRequestError => e
         msg_handler.error(e.response)
       end
     end
 
-    freddy3.respond_to 'Concurrency3' do |payload, msg_handler|
-      msg_handler.success({from: 'Concurrency3'})
+    freddy3.respond_to 'Concurrency3' do |_payload, msg_handler|
+      msg_handler.success(from: 'Concurrency3')
     end
 
     result =
@@ -51,8 +51,8 @@ describe 'Concurrency' do
       received1 = true
     end
 
-    freddy2.respond_to 'TapConcurrency' do |payload, msg_handler|
-      msg_handler.success({from: 'TapConcurrency'})
+    freddy2.respond_to 'TapConcurrency' do |_payload, msg_handler|
+      msg_handler.success(from: 'TapConcurrency')
       received2 = true
     end
 
@@ -86,9 +86,9 @@ describe 'Concurrency' do
     expect(results.count).to eq(10)
   end
 
-  context 'concurrent executions of deliver_with_response' do
+  context 'with concurrent executions of deliver_with_response' do
     let(:nr_of_threads) { 50 }
-    let(:payload) { {pay: 'load'} }
+    let(:payload) { { pay: 'load' } }
     let(:msg_counter) { Hamster::MutableSet[] }
     let(:queue_name) { random_destination }
 

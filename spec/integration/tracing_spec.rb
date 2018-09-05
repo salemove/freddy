@@ -16,23 +16,23 @@ describe 'Tracing' do
     let(:destination2) { random_destination }
 
     before do
-      freddy.respond_to(destination) do |payload, msg_handler|
-        msg_handler.success({
+      freddy.respond_to(destination) do |_payload, msg_handler|
+        msg_handler.success(
           trace_initiator: {
             trace_id: active_span.context.trace_id,
             parent_id: active_span.context.parent_id,
             span_id: active_span.context.span_id
           },
           current_receiver: freddy.deliver_with_response(destination2, {})
-        })
+        )
       end
 
-      freddy2.respond_to(destination2) do |payload, msg_handler|
-        msg_handler.success({
+      freddy2.respond_to(destination2) do |_payload, msg_handler|
+        msg_handler.success(
           trace_id: active_span.context.trace_id,
           parent_id: active_span.context.parent_id,
           span_id: active_span.context.span_id
-        })
+        )
       end
     end
 
@@ -51,15 +51,15 @@ describe 'Tracing' do
     it 'has parent_id' do
       response = freddy.deliver_with_response(destination, {})
       current_receiver = response.fetch(:current_receiver)
-      expect(current_receiver.fetch(:parent_id)).to_not be_nil
+      expect(current_receiver.fetch(:parent_id)).not_to be_nil
     end
 
     it 'has generated span_id' do
       response = freddy.deliver_with_response(destination, {})
       trace_initiator = response.fetch(:trace_initiator)
       current_receiver = response.fetch(:current_receiver)
-      expect(current_receiver.fetch(:span_id)).to_not be_nil
-      expect(current_receiver.fetch(:span_id)).to_not eq(trace_initiator.fetch(:span_id))
+      expect(current_receiver.fetch(:span_id)).not_to be_nil
+      expect(current_receiver.fetch(:span_id)).not_to eq(trace_initiator.fetch(:span_id))
     end
   end
 
@@ -73,7 +73,7 @@ describe 'Tracing' do
     let(:destination3) { random_destination }
 
     before do
-      freddy.respond_to(destination) do |payload, msg_handler|
+      freddy.respond_to(destination) do |_payload, msg_handler|
         msg_handler.success({
           trace_initiator: {
             trace_id: active_span.context.trace_id,
@@ -83,23 +83,23 @@ describe 'Tracing' do
         }.merge(freddy.deliver_with_response(destination2, {})))
       end
 
-      freddy2.respond_to(destination2) do |payload, msg_handler|
-        msg_handler.success({
+      freddy2.respond_to(destination2) do |_payload, msg_handler|
+        msg_handler.success(
           previous_receiver: {
             trace_id: active_span.context.trace_id,
             parent_id: active_span.context.parent_id,
             span_id: active_span.context.span_id
           },
           current_receiver: freddy2.deliver_with_response(destination3, {})
-        })
+        )
       end
 
-      freddy3.respond_to(destination3) do |payload, msg_handler|
-        msg_handler.success({
+      freddy3.respond_to(destination3) do |_payload, msg_handler|
+        msg_handler.success(
           trace_id: active_span.context.trace_id,
           parent_id: active_span.context.parent_id,
           span_id: active_span.context.span_id
-        })
+        )
       end
     end
 
@@ -119,15 +119,15 @@ describe 'Tracing' do
     it 'has parent_id' do
       response = freddy.deliver_with_response(destination, {})
       current_receiver = response.fetch(:current_receiver)
-      expect(current_receiver.fetch(:parent_id)).to_not be_nil
+      expect(current_receiver.fetch(:parent_id)).not_to be_nil
     end
 
     it 'has generated span_id' do
       response = freddy.deliver_with_response(destination, {})
       previous_receiver = response.fetch(:previous_receiver)
       current_receiver = response.fetch(:current_receiver)
-      expect(current_receiver.fetch(:span_id)).to_not be_nil
-      expect(current_receiver.fetch(:span_id)).to_not eq(previous_receiver.fetch(:span_id))
+      expect(current_receiver.fetch(:span_id)).not_to be_nil
+      expect(current_receiver.fetch(:span_id)).not_to eq(previous_receiver.fetch(:span_id))
     end
   end
 

@@ -1,0 +1,49 @@
+require: rubocop-rspec
+
+Metrics/AbcSize:
+  Enabled: no
+
+Metrics/BlockLength:
+  Enabled: no
+
+Metrics/LineLength:
+  Max: 120
+
+Metrics/MethodLength:
+  Enabled: no
+
+Style/Documentation:
+  Enabled: no
+
+RSpec/ExampleLength:
+  Enabled: no
+
+RSpec/MultipleExpectations:
+  Enabled: no
+
+RSpec/MessageSpies:
+  Enabled: no
+
+RSpec/VerifiedDoubles:
+  Enabled: no
+
+RSpec/InstanceVariable:
+  Enabled: no
+
+RSpec/NestedGroups:
+  Enabled: no
+
+RSpec/DescribeClass:
+  Enabled: no
+
+Style/FrozenStringLiteralComment:
+  Enabled: yes
+  EnforcedStyle: always
+  Include:
+    - 'lib/**/*'
+
+Performance/TimesMap:
+  Enabled: no
+
+Naming/FileName:
+  Enabled: no

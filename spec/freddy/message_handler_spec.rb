@@ -10,7 +10,7 @@ describe Freddy::MessageHandler do
     it 'delegates to the adapter' do
       expect(adapter).to receive(:success).with(delivery, x: 'y')
 
-      subject.success(x: 'y')
+      handler.success(x: 'y')
     end
   end
 
@@ -18,7 +18,7 @@ describe Freddy::MessageHandler do
     it 'delegates to the adapter' do
       expect(adapter).to receive(:error).with(delivery, error: 'text')
 
-      subject.error(error: 'text')
+      handler.error(error: 'text')
     end
   end
 end

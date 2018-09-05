@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'json'
 require 'thread/pool'
 require 'securerandom'
@@ -6,7 +8,7 @@ require 'opentracing'
 Dir[File.dirname(__FILE__) + '/freddy/*.rb'].each(&method(:require))
 
 class Freddy
-  FREDDY_TOPIC_EXCHANGE_NAME = 'freddy-topic'.freeze
+  FREDDY_TOPIC_EXCHANGE_NAME = 'freddy-topic'
   DEFAULT_MAX_CONCURRENCY = 4
 
   # Creates a new freddy instance
@@ -39,9 +41,7 @@ class Freddy
 
   # @deprecated Use OpenTracing ScopeManager instead
   def self.trace=(trace)
-    if OpenTracing.active_span != trace
-      OpenTracing.scope_manager.activate(trace)
-    end
+    OpenTracing.scope_manager.activate(trace) if OpenTracing.active_span != trace
   end
 
   def initialize(connection, logger, max_concurrency)
@@ -156,7 +156,7 @@ class Freddy
   def deliver(destination, payload, options = {})
     timeout = options.fetch(:timeout, 0)
     opts = {}
-    opts[:expiration] = (timeout * 1000).to_i if timeout > 0
+    opts[:expiration] = (timeout * 1000).to_i if timeout.positive?
 
     @send_and_forget_producer.produce(destination, payload, opts)
   end
@@ -194,9 +194,8 @@ class Freddy
     timeout = options.fetch(:timeout, 3)
     delete_on_timeout = options.fetch(:delete_on_timeout, true)
 
-    @send_and_wait_response_producer.produce destination, payload, {
-      timeout_in_seconds: timeout, delete_on_timeout: delete_on_timeout
-    }
+    @send_and_wait_response_producer.produce destination, payload,
+                                             timeout_in_seconds: timeout, delete_on_timeout: delete_on_timeout
   end
 
   # Closes the connection with message queue

@@ -10,4 +10,4 @@ services:
 before_script:
   - gem install bundler
   - bundle install
-script: bundle exec rspec
+script: bundle exec rake

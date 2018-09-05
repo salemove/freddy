@@ -14,8 +14,8 @@ describe 'Tapping into with group identifier' do
     msg_counter = Hamster::MutableSet[]
 
     group_id = arbitrary_id
-    responder1.tap_into(destination, group: group_id) {|msg| msg_counter << 'r1' }
-    responder2.tap_into(destination, group: group_id) {|msg| msg_counter << 'r2' }
+    responder1.tap_into(destination, group: group_id) { |_msg| msg_counter << 'r1' }
+    responder2.tap_into(destination, group: group_id) { |_msg| msg_counter << 'r2' }
     deliverer.deliver(destination, {})
 
     default_sleep

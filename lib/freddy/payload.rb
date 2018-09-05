@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 begin
   require 'oj'
 rescue LoadError
@@ -18,12 +20,12 @@ class Freddy
     end
 
     def self.json_handler
-      @_json_handler ||= defined?(Oj) ? OjAdapter : JsonAdapter
+      @json_handler ||= defined?(Oj) ? OjAdapter : JsonAdapter
     end
 
     class OjAdapter
-      PARSE_OPTIONS = { symbol_keys: true }
-      DUMP_OPTIONS = { mode: :compat, time_format: :xmlschema, second_precision: 6 }
+      PARSE_OPTIONS = { symbol_keys: true }.freeze
+      DUMP_OPTIONS = { mode: :compat, time_format: :xmlschema, second_precision: 6 }.freeze
 
       def self.parse(payload)
         Oj.strict_load(payload, PARSE_OPTIONS)

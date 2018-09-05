@@ -5,9 +5,9 @@ Bundler.setup
 require 'codeclimate-test-reporter'
 SimpleCov.start do
   formatter SimpleCov::Formatter::MultiFormatter.new([
-    SimpleCov::Formatter::HTMLFormatter,
-    CodeClimate::TestReporter::Formatter
-  ])
+                                                       SimpleCov::Formatter::HTMLFormatter,
+                                                       CodeClimate::TestReporter::Formatter
+                                                     ])
   add_filter '/spec/'
 end
 
@@ -40,9 +40,9 @@ def default_sleep
   sleep 0.05
 end
 
-def wait_for(&block)
+def wait_for
   100.times do
-    return if block.call
+    return if yield
     sleep 0.005
   end
 end
@@ -57,7 +57,7 @@ def logger
 end
 
 def config
-  {host: 'localhost', port: 5672, user: 'guest', pass: 'guest'}
+  { host: 'localhost', port: 5672, user: 'guest', pass: 'guest' }
 end
 
 def spawn_echo_responder(freddy, queue_name)

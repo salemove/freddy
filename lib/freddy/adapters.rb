@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Freddy
   module Adapters
     def self.determine
