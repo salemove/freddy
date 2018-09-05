@@ -9,11 +9,9 @@ class Freddy
       end
 
       def produce(destination, payload, properties)
-        OpenTracing.active_span.log_kv(
-          event: 'Sending response',
-          queue: destination,
-          payload: payload
-        )
+        if (span = OpenTracing.active_span)
+          span.set_tag('message_bus.destination', destination)
+        end
 
         properties = properties.merge(
           routing_key: destination,

@@ -23,15 +23,18 @@ class Freddy
       end
 
       def produce(destination, payload, timeout_in_seconds:, delete_on_timeout:, **properties)
+        correlation_id = SecureRandom.uuid
+
         span = OpenTracing.start_span("freddy:request:#{destination}",
           tags: {
-            'component': 'freddy',
-            'span.kind': 'client', # RPC
-            'payload.type': payload[:type] || 'unknown'
+            'component' => 'freddy',
+            'span.kind' => 'client', # RPC
+            'payload.type' => payload[:type] || 'unknown',
+            'message_bus.destination' => destination,
+            'message_bus.response_queue' => @response_queue.name,
+            'message_bus.correlation_id' => correlation_id
           }
         )
-
-        correlation_id = SecureRandom.uuid
 
         container = SyncResponseContainer.new(
           on_timeout(correlation_id, destination, timeout_in_seconds, span)
@@ -54,13 +57,6 @@ class Freddy
         )
         OpenTracing.global_tracer.inject(span.context, OpenTracing::FORMAT_TEXT_MAP, TraceCarrier.new(properties))
         json_payload = Payload.dump(payload)
-
-        span.log_kv(
-          event: 'Publishing request',
-          payload: payload,
-          response_queue: @response_queue.name,
-          correlation_id: correlation_id
-        )
 
         # Connection adapters handle thread safety for #publish themselves. No
         # need to lock these.

@@ -44,16 +44,12 @@ class Freddy
           begin
             scope = delivery.build_trace("freddy:observe:#{@pattern}",
               tags: {
-                'message_bus.destination': @pattern,
-                'component': 'freddy',
-                'span.kind': 'consumer' # Message Bus
+                'message_bus.destination' => @pattern,
+                'message_bus.correlation_id' => delivery.correlation_id,
+                'component' => 'freddy',
+                'span.kind' => 'consumer' # Message Bus
               },
               force_follows_from: true
-            )
-            scope.span.log_kv(
-              event: 'Received message through tap_into',
-              payload: delivery.payload,
-              correlation_id: delivery.correlation_id
             )
 
             block.call delivery.payload, delivery.routing_key

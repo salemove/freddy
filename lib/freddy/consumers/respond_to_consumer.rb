@@ -36,16 +36,12 @@ class Freddy
           begin
             scope = delivery.build_trace("freddy:respond:#{@destination}",
               tags: {
-                'peer.address': "#{@destination}:#{delivery.payload[:type]}",
-                'component': 'freddy',
-                'span.kind': 'server' # RPC
+                'peer.address' => "#{@destination}:#{delivery.payload[:type]}",
+                'component' => 'freddy',
+                'span.kind' => 'server', # RPC
+                'message_bus.destination' => @destination,
+                'message_bus.correlation_id' => delivery.correlation_id
               }
-            )
-            scope.span.log_kv(
-              event: 'Received message through respond_to',
-              queue: @destination,
-              payload: delivery.payload,
-              correlation_id: delivery.correlation_id
             )
 
             block.call(delivery)
