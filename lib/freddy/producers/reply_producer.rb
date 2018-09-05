@@ -1,7 +1,9 @@
+# frozen_string_literal: true
+
 class Freddy
   module Producers
     class ReplyProducer
-      CONTENT_TYPE = 'application/json'.freeze
+      CONTENT_TYPE = 'application/json'
 
       def initialize(channel, logger)
         @logger = logger

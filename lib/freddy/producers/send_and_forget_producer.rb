@@ -1,7 +1,9 @@
+# frozen_string_literal: true
+
 class Freddy
   module Producers
     class SendAndForgetProducer
-      CONTENT_TYPE = 'application/json'.freeze
+      CONTENT_TYPE = 'application/json'
 
       def initialize(channel, logger)
         @logger = logger
@@ -11,12 +13,11 @@ class Freddy
 
       def produce(destination, payload, properties)
         span = OpenTracing.start_span("freddy:notify:#{destination}",
-          tags: {
-            'message_bus.destination' => destination,
-            'component' => 'freddy',
-            'span.kind' => 'producer' # Message Bus
-          }
-        )
+                                      tags: {
+                                        'message_bus.destination' => destination,
+                                        'component' => 'freddy',
+                                        'span.kind' => 'producer' # Message Bus
+                                      })
 
         properties = properties.merge(
           routing_key: destination,

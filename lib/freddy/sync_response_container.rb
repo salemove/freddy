@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'timeout'
 
 class Freddy
@@ -9,9 +11,7 @@ class Freddy
     end
 
     def call(response, delivery)
-      if response.nil?
-        raise StandardError, 'unexpected nil value for response'
-      end
+      raise StandardError, 'unexpected nil value for response' if response.nil?
 
       @response = response
       @delivery = delivery
@@ -28,7 +28,7 @@ class Freddy
           message: 'Timed out waiting for response'
         )
       elsif !@delivery || @delivery.type == 'error'
-        raise InvalidRequestError.new(@response)
+        raise InvalidRequestError, @response
       else
         @response
       end

@@ -2,13 +2,13 @@ require 'spec_helper'
 
 describe Freddy::SyncResponseContainer do
   let(:container) { described_class.new(on_timeout) }
-  let(:on_timeout) { Proc.new {} }
+  let(:on_timeout) { proc {} }
 
   context 'when timeout' do
-    subject { container.wait_for_response(0.01) }
+    subject(:wait_for_response) { container.wait_for_response(0.01) }
 
     it 'raises timeout error' do
-      expect { subject }.to raise_error do |error|
+      expect { wait_for_response }.to raise_error do |error|
         expect(error).to be_a(Freddy::TimeoutError)
         expect(error.response).to eq(
           error: 'RequestTimeout',
@@ -22,15 +22,15 @@ describe Freddy::SyncResponseContainer do
     let(:delivery) { {} }
 
     it 'raises timeout error' do
-      expect {
+      expect do
         container.call(nil, delivery)
-      }.to raise_error(StandardError, 'unexpected nil value for response')
+      end.to raise_error(StandardError, 'unexpected nil value for response')
     end
   end
 
   describe '#wait_for_response' do
     let(:timeout) { 2 }
-    let(:response) { {msg: 'response'} }
+    let(:response) { { msg: 'response' } }
     let(:delivery) { OpenStruct.new(type: 'success') }
 
     context 'when called after #call' do
@@ -45,9 +45,9 @@ describe Freddy::SyncResponseContainer do
       end
 
       it 'does not wait for timeout' do
-        expect {
+        expect do
           container.wait_for_response(timeout)
-        }.to change(Time, :now).by_at_most(max_wait_time_in_seconds)
+        end.to change(Time, :now).by_at_most(max_wait_time_in_seconds)
       end
     end
   end

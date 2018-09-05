@@ -12,7 +12,7 @@ describe Freddy::Consumers::RespondToConsumer do
 
   let(:connection) { Freddy::Adapters.determine.connect(config) }
   let(:destination) { random_destination }
-  let(:payload) { {pay: 'load'} }
+  let(:payload) { { pay: 'load' } }
   let(:msg_handler_adapter_factory) { double(for: msg_handler_adapter) }
   let(:msg_handler_adapter) { Freddy::MessageHandlerAdapters::NoOpHandler.new }
   let(:prefetch_buffer_size) { 2 }

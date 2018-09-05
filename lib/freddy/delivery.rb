@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Freddy
   class Delivery
     attr_reader :routing_key, :payload, :tag

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Freddy
   class ResponderHandler
     def initialize(consumer, consume_thread_pool)

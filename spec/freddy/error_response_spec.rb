@@ -4,55 +4,55 @@ describe Freddy::ErrorResponse do
   subject(:error) { described_class.new(input) }
 
   context 'with an error type' do
-    let(:input) { {error: 'SomeError'} }
+    let(:input) { { error: 'SomeError' } }
 
     describe '#response' do
       subject { error.response }
 
-      it { should eq(input) }
+      it { is_expected.to eq(input) }
     end
 
     describe '#message' do
       subject { error.message }
 
       it 'uses error type as a message' do
-        should eq('SomeError')
+        is_expected.to eq('SomeError')
       end
     end
   end
 
   context 'with an error type and message' do
-    let(:input) { {error: 'SomeError', message: 'extra info'} }
+    let(:input) { { error: 'SomeError', message: 'extra info' } }
 
     describe '#response' do
       subject { error.response }
 
-      it { should eq(input) }
+      it { is_expected.to eq(input) }
     end
 
     describe '#message' do
       subject { error.message }
 
       it 'uses error type as a message' do
-        should eq('SomeError: extra info')
+        is_expected.to eq('SomeError: extra info')
       end
     end
   end
 
   context 'without an error type' do
-    let(:input) { {something: 'else'} }
+    let(:input) { { something: 'else' } }
 
     describe '#response' do
       subject { error.response }
 
-      it { should eq(input) }
+      it { is_expected.to eq(input) }
     end
 
     describe '#message' do
       subject { error.message }
 
       it 'uses default error message as a message' do
-        should eq('Use #response to get the error response')
+        is_expected.to eq('Use #response to get the error response')
       end
     end
   end

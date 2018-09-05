@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Freddy
   class ErrorResponse < StandardError
     DEFAULT_ERROR_MESSAGE = 'Use #response to get the error response'

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'bunny'
 
 class Freddy
@@ -38,23 +40,21 @@ class Freddy
           Queue.new(@channel.queue(*args))
         end
 
-        def on_no_route(&block)
-          default_exchange.on_return do |return_info, properties, content|
-            if return_info[:reply_code] == NO_ROUTE
-              block.call(properties[:correlation_id])
-            end
+        def on_no_route
+          default_exchange.on_return do |return_info, properties, _content|
+            yield(properties[:correlation_id]) if return_info[:reply_code] == NO_ROUTE
           end
         end
       end
 
       class Queue < Shared::Queue
-        def subscribe(manual_ack: false, &block)
+        def subscribe(manual_ack: false)
           @queue.subscribe(manual_ack: manual_ack) do |info, properties, payload|
             parsed_payload = Payload.parse(payload)
             delivery = Delivery.new(
               parsed_payload, properties, info.routing_key, info.delivery_tag
             )
-            block.call(delivery)
+            yield(delivery)
           end
         end
       end

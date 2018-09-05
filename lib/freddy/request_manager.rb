@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Freddy
   class RequestManager
     def initialize(logger)
@@ -6,10 +8,11 @@ class Freddy
     end
 
     def no_route(correlation_id)
-      if request = @requests[correlation_id]
-        delete(correlation_id)
-        request[:callback].call({error: 'Specified queue does not exist'}, nil)
-      end
+      request = @requests[correlation_id]
+      return unless request
+
+      delete(correlation_id)
+      request[:callback].call({ error: 'Specified queue does not exist' }, nil)
     end
 
     def store(correlation_id, opts)

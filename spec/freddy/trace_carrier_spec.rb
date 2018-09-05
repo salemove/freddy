@@ -4,7 +4,7 @@ describe Freddy::TraceCarrier do
   subject(:carrier) { described_class.new(properties) }
 
   context 'when adding trace information' do
-    let(:properties) { {x: 'y'} }
+    let(:properties) { { x: 'y' } }
     let(:key_name) { 'some-key' }
     let(:key_value) { 'some-key' }
 
@@ -20,7 +20,7 @@ describe Freddy::TraceCarrier do
     let(:key_value) { 'some-key' }
 
     let(:properties) do
-      double(headers: {serialized_key_name => key_value})
+      double(headers: { serialized_key_name => key_value })
     end
 
     it 'extracts a header with x-trace- prefix' do
@@ -33,9 +33,9 @@ describe Freddy::TraceCarrier do
       let(:properties) do
         double(
           headers: {
-            "x-trace-key1" => "value1",
-            "x-trace-key2" => "value2",
-            "other-key" => "value3"
+            'x-trace-key1' => 'value1',
+            'x-trace-key2' => 'value2',
+            'other-key' => 'value3'
           }
         )
       end

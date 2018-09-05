@@ -5,7 +5,7 @@ describe Freddy do
 
   let(:destination)  { random_destination }
   let(:destination2) { random_destination }
-  let(:payload)      { {pay: 'load'} }
+  let(:payload)      { { pay: 'load' } }
 
   after { freddy.close }
 
@@ -18,7 +18,7 @@ describe Freddy do
       it 'removes the message from the queue after the timeout' do
         # Assume that there already is a queue. Otherwise will get an early
         # return.
-        consumer = freddy.respond_to(destination) { }
+        consumer = freddy.respond_to(destination) {}
         consumer.shutdown
 
         freddy.deliver(destination, {}, timeout: 0.1)
@@ -36,7 +36,7 @@ describe Freddy do
       it 'keeps the message in the queue' do
         # Assume that there already is a queue. Otherwise will get an early
         # return.
-        consumer = freddy.respond_to(destination) { }
+        consumer = freddy.respond_to(destination) {}
         consumer.shutdown
 
         freddy.deliver(destination, {})
@@ -53,50 +53,50 @@ describe Freddy do
 
   context 'when making a synchronized request' do
     it 'returns response as soon as possible' do
-      respond_to { |payload, msg_handler| msg_handler.success(res: 'yey') }
-      response = freddy.deliver_with_response(destination, {a: 'b'})
+      respond_to { |_payload, msg_handler| msg_handler.success(res: 'yey') }
+      response = freddy.deliver_with_response(destination, a: 'b')
 
       expect(response).to eq(res: 'yey')
     end
 
     it 'raises an error if the message was errored' do
-      respond_to { |payload, msg_handler| msg_handler.error(error: 'not today') }
+      respond_to { |_payload, msg_handler| msg_handler.error(error: 'not today') }
 
-      expect {
+      expect do
         freddy.deliver_with_response(destination, payload)
-      }.to raise_error(Freddy::InvalidRequestError) {|error|
+      end.to raise_error(Freddy::InvalidRequestError) { |error|
         expect(error.response).to eq(error: 'not today')
       }
     end
 
     it 'responds to the correct requester' do
-      respond_to { |payload, msg_handler| msg_handler.success(res: 'yey') }
+      respond_to { |_payload, msg_handler| msg_handler.success(res: 'yey') }
 
       response = freddy.deliver_with_response(destination, payload)
       expect(response).to eq(res: 'yey')
 
-      expect {
+      expect do
         freddy.deliver_with_response(destination2, payload)
-      }.to raise_error(Freddy::InvalidRequestError)
+      end.to raise_error(Freddy::InvalidRequestError)
     end
 
     context 'when queue does not exist' do
       it 'gives a no route error' do
-        expect {
-          freddy.deliver_with_response(destination, {a: 'b'}, timeout: 1)
-        }.to raise_error(Freddy::InvalidRequestError) {|error|
+        expect do
+          freddy.deliver_with_response(destination, { a: 'b' }, timeout: 1)
+        end.to raise_error(Freddy::InvalidRequestError) { |error|
           expect(error.response).to eq(error: 'Specified queue does not exist')
         }
       end
     end
 
-    context 'on timeout' do
+    context 'when timeout' do
       it 'gives timeout error' do
-        respond_to { |payload, msg_handler| sleep 0.2 }
+        respond_to { |_payload, _msg_handler| sleep 0.2 }
 
-        expect {
-          freddy.deliver_with_response(destination, {a: 'b'}, timeout: 0.1)
-        }.to raise_error(Freddy::TimeoutError) {|error|
+        expect do
+          freddy.deliver_with_response(destination, { a: 'b' }, timeout: 0.1)
+        end.to raise_error(Freddy::TimeoutError) { |error|
           expect(error.response).to eq(error: 'RequestTimeout', message: 'Timed out waiting for response')
         }
       end
@@ -105,12 +105,12 @@ describe Freddy do
         it 'removes the message from the queue' do
           # Assume that there already is a queue. Otherwise will get an early
           # return.
-          consumer = freddy.respond_to(destination) { }
+          consumer = freddy.respond_to(destination) {}
           consumer.shutdown
 
-          expect {
+          expect do
             freddy.deliver_with_response(destination, {}, timeout: 0.1)
-          }.to raise_error(Freddy::TimeoutError)
+          end.to raise_error(Freddy::TimeoutError)
           default_sleep # to ensure everything is properly cleaned
 
           processed_after_timeout = false
@@ -125,12 +125,12 @@ describe Freddy do
         it 'removes the message from the queue' do
           # Assume that there already is a queue. Otherwise will get an early
           # return.
-          consumer = freddy.respond_to(destination) { }
+          consumer = freddy.respond_to(destination) {}
           consumer.shutdown
 
-          expect {
+          expect do
             freddy.deliver_with_response(destination, {}, timeout: 0.1, delete_on_timeout: false)
-          }.to raise_error(Freddy::TimeoutError)
+          end.to raise_error(Freddy::TimeoutError)
           default_sleep # to ensure everything is properly cleaned
 
           processed_after_timeout = false
@@ -149,7 +149,7 @@ describe Freddy do
     end
 
     it 'receives messages' do
-      tap {|msg| @tapped_message = msg }
+      tap { |msg| @tapped_message = msg }
       deliver
 
       wait_for { @tapped_message }
@@ -157,13 +157,13 @@ describe Freddy do
     end
 
     it 'has the destination' do
-      tap "somebody.*.love" do |message, destination|
+      tap 'somebody.*.love' do |_message, destination|
         @destination = destination
       end
-      deliver "somebody.to.love"
+      deliver 'somebody.to.love'
 
       wait_for { @destination }
-      expect(@destination).to eq("somebody.to.love")
+      expect(@destination).to eq('somebody.to.love')
     end
 
     it "doesn't consume the message" do
@@ -178,28 +178,28 @@ describe Freddy do
       expect(@message_received).to be(true)
     end
 
-    it "allows * wildcard" do
-      tap("somebody.*.love") { @tapped = true }
+    it 'allows * wildcard' do
+      tap('somebody.*.love') { @tapped = true }
 
-      deliver "somebody.to.love"
+      deliver 'somebody.to.love'
 
       wait_for { @tapped }
       expect(@tapped).to be(true)
     end
 
-    it "* matches only one word" do
-      tap("somebody.*.love") { @tapped = true }
+    it '* matches only one word' do
+      tap('somebody.*.love') { @tapped = true }
 
-      deliver "somebody.not.to.love"
+      deliver 'somebody.not.to.love'
 
       default_sleep
       expect(@tapped).to be_falsy
     end
 
-    it "allows # wildcard" do
-      tap("i.#.free") { @tapped = true }
+    it 'allows # wildcard' do
+      tap('i.#.free') { @tapped = true }
 
-      deliver "i.want.to.break.free"
+      deliver 'i.want.to.break.free'
 
       wait_for { @tapped }
       expect(@tapped).to be(true)

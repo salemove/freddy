@@ -4,7 +4,7 @@ describe Freddy::ResponderHandler do
   let(:freddy) { Freddy.build(logger, config) }
 
   let(:destination) { random_destination }
-  let(:payload)     { {pay: 'load'} }
+  let(:payload)     { { pay: 'load' } }
 
   after { freddy.close }
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Freddy
   module Consumers
     class TapIntoConsumer
@@ -39,20 +41,19 @@ class Freddy
         end
       end
 
-      def process_message(queue, delivery, &block)
+      def process_message(_queue, delivery)
         @consume_thread_pool.process do
           begin
             scope = delivery.build_trace("freddy:observe:#{@pattern}",
-              tags: {
-                'message_bus.destination' => @pattern,
-                'message_bus.correlation_id' => delivery.correlation_id,
-                'component' => 'freddy',
-                'span.kind' => 'consumer' # Message Bus
-              },
-              force_follows_from: true
-            )
+                                         tags: {
+                                           'message_bus.destination' => @pattern,
+                                           'message_bus.correlation_id' => delivery.correlation_id,
+                                           'component' => 'freddy',
+                                           'span.kind' => 'consumer' # Message Bus
+                                         },
+                                         force_follows_from: true)
 
-            block.call delivery.payload, delivery.routing_key
+            yield delivery.payload, delivery.routing_key
           ensure
             @channel.acknowledge(delivery.tag, false)
             scope.close
