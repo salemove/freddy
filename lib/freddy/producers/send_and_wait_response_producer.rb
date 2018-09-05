@@ -32,7 +32,8 @@ class Freddy
             'payload.type' => payload[:type] || 'unknown',
             'message_bus.destination' => destination,
             'message_bus.response_queue' => @response_queue.name,
-            'message_bus.correlation_id' => correlation_id
+            'message_bus.correlation_id' => correlation_id,
+            'freddy.timeout_in_seconds' => timeout_in_seconds
           }
         )
 
@@ -42,7 +43,7 @@ class Freddy
 
         @request_manager.store(correlation_id,
           callback: container,
-          trace: span,
+          span: span,
           destination: destination
         )
 
@@ -82,17 +83,30 @@ class Freddy
         @logger.debug "Got response for request to #{request[:destination]} "\
                       "with correlation_id #{delivery.correlation_id}"
         request[:callback].call(delivery.payload, delivery)
+      rescue InvalidRequestError => e
+        request[:span].set_tag('error', true)
+        request[:span].log_kv(
+          event: 'invalid request',
+          message: e.message,
+          'error.object': e
+        )
+        raise e
       ensure
-        request[:trace].finish
+        request[:span].finish
       end
 
-      def on_timeout(correlation_id, destination, timeout_in_seconds, trace)
+      def on_timeout(correlation_id, destination, timeout_in_seconds, span)
         Proc.new do
           @logger.warn "Request timed out waiting response from #{destination}"\
-                       ", correlation id #{correlation_id}"
+                       ", correlation id #{correlation_id}, timeout #{timeout_in_seconds}s"
 
           @request_manager.delete(correlation_id)
-          trace.finish
+          span.set_tag('error', true)
+          span.log_kv(
+            event: 'timed out',
+            message: "Timed out waiting response from #{destination}"
+          )
+          span.finish
         end
       end
     end
