@@ -25,7 +25,7 @@ class Freddy
 
     class OjAdapter
       PARSE_OPTIONS = { symbol_keys: true }.freeze
-      DUMP_OPTIONS = { mode: :compat, time_format: :xmlschema, second_precision: 6 }.freeze
+      DUMP_OPTIONS = { mode: :custom, time_format: :xmlschema, second_precision: 6 }.freeze
 
       def self.parse(payload)
         Oj.strict_load(payload, PARSE_OPTIONS)
