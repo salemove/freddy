@@ -28,7 +28,7 @@ Gem::Specification.new do |spec|
     spec.add_dependency 'symbolizer'
   else
     spec.add_dependency 'bunny', '~> 2.11'
-    spec.add_dependency 'oj', '~> 2.13'
+    spec.add_dependency 'oj', '~> 3.6'
   end
 
   spec.add_dependency 'opentracing', '~> 0.4'
