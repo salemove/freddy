@@ -55,8 +55,20 @@ class Freddy
                                          force_follows_from: true)
 
             yield delivery.payload, delivery.routing_key
+
+            @channel.acknowledge(delivery.tag)
+          rescue StandardError
+            case on_exception
+            when :reject
+              @channel.reject(delivery.tag)
+            when :requeue
+              @channel.reject(delivery.tag, true)
+            else
+              @channel.acknowledge(delivery.tag)
+            end
+
+            raise
           ensure
-            @channel.acknowledge(delivery.tag, false)
             scope.close
           end
         end
@@ -68,6 +80,10 @@ class Freddy
 
       def durable?
         @options.fetch(:durable, false)
+      end
+
+      def on_exception
+        @options.fetch(:on_exception, :ack)
       end
     end
   end
