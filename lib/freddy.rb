@@ -111,6 +111,9 @@ class Freddy
   # @option options [String] :group
   #   only one of the listeners in given group will receive a message. All
   #   listeners will receive a message if the group is not specified.
+  # @option options [Boolean] :durable
+  #   Should the consumer queue be durable? Default is `false`. This option can
+  #   be used only in combination with option `:group`.
   #
   # @yield [message] Yields received message to the block
   #
