@@ -12,6 +12,8 @@ class Freddy
         @pattern = pattern
         @channel = channel
         @options = options
+
+        raise 'Do not use durable queues without specifying a group' if durable? && !group
       end
 
       def consume(&block)
@@ -28,11 +30,10 @@ class Freddy
 
       def create_queue
         topic_exchange = @channel.topic(Freddy::FREDDY_TOPIC_EXCHANGE_NAME)
-        group = @options.fetch(:group, nil)
 
         if group
           @channel
-            .queue("groups.#{group}")
+            .queue("groups.#{group}", durable: durable?)
             .bind(topic_exchange, routing_key: @pattern)
         else
           @channel
@@ -54,11 +55,35 @@ class Freddy
                                          force_follows_from: true)
 
             yield delivery.payload, delivery.routing_key
+
+            @channel.acknowledge(delivery.tag)
+          rescue StandardError
+            case on_exception
+            when :reject
+              @channel.reject(delivery.tag)
+            when :requeue
+              @channel.reject(delivery.tag, true)
+            else
+              @channel.acknowledge(delivery.tag)
+            end
+
+            raise
           ensure
-            @channel.acknowledge(delivery.tag, false)
             scope.close
           end
         end
+      end
+
+      def group
+        @options.fetch(:group, nil)
+      end
+
+      def durable?
+        @options.fetch(:durable, false)
+      end
+
+      def on_exception
+        @options.fetch(:on_exception, :ack)
       end
     end
   end

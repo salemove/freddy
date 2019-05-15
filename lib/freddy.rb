@@ -111,6 +111,15 @@ class Freddy
   # @option options [String] :group
   #   only one of the listeners in given group will receive a message. All
   #   listeners will receive a message if the group is not specified.
+  # @option options [Boolean] :durable
+  #   Should the consumer queue be durable? Default is `false`. This option can
+  #   be used only in combination with option `:group`.
+  # @option options [Boolean] :on_exception
+  #   Defines consumer's behaviour when the callback fails to process a message
+  #   and raises an exception. Can be one of `:ack`, `:reject` or `:requeue`.
+  #   `:ack` simply acknowledges the message and re-raises the exception. `:reject`
+  #   rejects the message without requeueing it. `:requeue` rejects the message with
+  #   `requeue` flag.
   #
   # @yield [message] Yields received message to the block
   #

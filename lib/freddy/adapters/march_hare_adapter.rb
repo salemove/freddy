@@ -33,7 +33,7 @@ class Freddy
           @channel = channel
         end
 
-        def_delegators :@channel, :topic, :default_exchange, :consumers, :acknowledge
+        def_delegators :@channel, :topic, :default_exchange, :consumers, :acknowledge, :reject
 
         def queue(*args)
           Queue.new(@channel.queue(*args))
