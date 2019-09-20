@@ -121,6 +121,16 @@ freddy.tap_into "somebody.*.love"
 
 receives messages that are delivered to `somebody.to.love` but doesn't receive messages delivered to `someboy.not.to.love`
 
+It is also possible to tap using multiple patterns:
+
+```ruby
+freddy.tap_into(['user.created', 'user.deleted'], group: 'user-event') do
+  # This processes events from both user.created topic and user.deleted topic.
+  # It also groups them into one queue called 'user-event'. This ensures that
+  # only one listener within a group process a particular event.
+end
+```
+
 ## The ResponderHandler
 
 When responding to a message or tapping the ResponderHandler is returned.

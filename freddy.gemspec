@@ -8,8 +8,8 @@ Gem::Specification.new do |spec|
               else
                 'freddy'
               end
-  spec.version       = '1.6.0'
-  spec.authors       = ['Salemove TechMovers']
+  spec.version       = '1.7.0'
+  spec.authors       = ['Glia TechMovers']
   spec.email         = ['techmovers@salemove.com']
   spec.description   = 'Messaging API'
   spec.summary       = 'API for inter-application messaging supporting acknowledgements and request-response'

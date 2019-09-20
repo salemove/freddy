@@ -129,12 +129,12 @@ class Freddy
   #   freddy.tap_into 'notifications.*' do |message|
   #     puts "Notification showed #{message.inspect}"
   #   end
-  def tap_into(pattern, options = {}, &callback)
-    @logger.debug "Tapping into messages that match #{pattern}"
+  def tap_into(pattern_or_patterns, options = {}, &callback)
+    @logger.debug "Tapping into messages that match #{pattern_or_patterns}"
 
     Consumers::TapIntoConsumer.consume(
       thread_pool: Thread.pool(@prefetch_buffer_size),
-      pattern: pattern,
+      patterns: Array(pattern_or_patterns),
       channel: @connection.create_channel(prefetch: @prefetch_buffer_size),
       options: options,
       &callback

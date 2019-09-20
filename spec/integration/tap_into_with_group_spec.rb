@@ -40,4 +40,19 @@ describe 'Tapping into with group identifier' do
     wait_for { counter == 2 }
     expect(counter).to eq(2)
   end
+
+  it 'taps into multiple topics' do
+    destination2 = random_destination
+    counter = 0
+
+    responder1.tap_into([destination, destination2], group: arbitrary_id) do
+      counter += 1
+    end
+
+    deliverer.deliver(destination, {})
+    deliverer.deliver(destination2, {})
+
+    wait_for { counter == 2 }
+    expect(counter).to eq(2)
+  end
 end

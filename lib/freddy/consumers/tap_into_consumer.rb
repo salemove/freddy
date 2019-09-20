@@ -7,9 +7,9 @@ class Freddy
         new(*attrs).consume(&block)
       end
 
-      def initialize(thread_pool:, pattern:, channel:, options:)
+      def initialize(thread_pool:, patterns:, channel:, options:)
         @consume_thread_pool = thread_pool
-        @pattern = pattern
+        @patterns = patterns
         @channel = channel
         @options = options
 
@@ -31,15 +31,18 @@ class Freddy
       def create_queue
         topic_exchange = @channel.topic(Freddy::FREDDY_TOPIC_EXCHANGE_NAME)
 
-        if group
-          @channel
-            .queue("groups.#{group}", durable: durable?)
-            .bind(topic_exchange, routing_key: @pattern)
-        else
-          @channel
-            .queue('', exclusive: true)
-            .bind(topic_exchange, routing_key: @pattern)
+        queue =
+          if group
+            @channel.queue("groups.#{group}", durable: durable?)
+          else
+            @channel.queue('', exclusive: true)
+          end
+
+        @patterns.each do |pattern|
+          queue.bind(topic_exchange, routing_key: pattern)
         end
+
+        queue
       end
 
       def process_message(_queue, delivery)
