@@ -13,7 +13,8 @@ Gem::Specification.new do |spec|
   spec.email         = ['techmovers@salemove.com']
   spec.description   = 'Messaging API'
   spec.summary       = 'API for inter-application messaging supporting acknowledgements and request-response'
-  spec.license       = 'Private'
+  spec.license       = 'MIT'
+  spec.homepage      = 'https://github.com/salemove/freddy'
 
   spec.files         = `git ls-files`.split($INPUT_RECORD_SEPARATOR)
   spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
