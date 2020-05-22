@@ -2,19 +2,28 @@ require 'spec_helper'
 
 describe Freddy::Payload do
   describe '#dump' do
-    it 'serializes time objects as iso8601 format strings' do
-      expect(dump(time: Time.utc(2016, 1, 4, 20, 18)))
-        .to eq('{"time":"2016-01-04T20:18:00Z"}')
-    end
+    context 'with a given Ruby engine' do
+      let(:ts) do
+        RUBY_ENGINE == 'jruby' ? '{"time":"2016-01-04T20:18:00Z"}' : '{"time":"2016-01-04T20:18:00.000000Z"}'
+      end
+      let(:ts_array) do
+        RUBY_ENGINE == 'jruby' ? '{"time":["2016-01-04T20:18:00Z"]}' : '{"time":["2016-01-04T20:18:00.000000Z"]}'
+      end
 
-    it 'serializes time objects in an array as iso8601 format strings' do
-      expect(dump(time: [Time.utc(2016, 1, 4, 20, 18)]))
-        .to eq('{"time":["2016-01-04T20:18:00Z"]}')
-    end
+      it 'serializes time objects as iso8601 format strings' do
+        expect(dump(time: Time.utc(2016, 1, 4, 20, 18)))
+          .to eq(ts)
+      end
 
-    it 'serializes time objects in a nested hash as iso8601 format strings' do
-      expect(dump(x: { time: Time.utc(2016, 1, 4, 20, 18) }))
-        .to eq('{"x":{"time":"2016-01-04T20:18:00Z"}}')
+      it 'serializes time objects in an array as iso8601 format strings' do
+        expect(dump(time: [Time.utc(2016, 1, 4, 20, 18)]))
+          .to eq(ts_array)
+      end
+
+      it 'serializes time objects in a nested hash as iso8601 format strings' do
+        expect(dump(x: { time: Time.utc(2016, 1, 4, 20, 18) }))
+          .to eq("{\"x\":#{ts}}")
+      end
     end
 
     it 'serializes date objects as iso8601 format strings' do
