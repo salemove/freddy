@@ -3,7 +3,7 @@
 class Freddy
   class RequestManager
     def initialize(logger)
-      @requests = ConcurrentHash.new
+      @requests = {}
       @logger = logger
     end
 
@@ -21,14 +21,6 @@ class Freddy
 
     def delete(correlation_id)
       @requests.delete(correlation_id)
-    end
-
-    class ConcurrentHash < Hash
-      # CRuby hash does not need any locks. Only adding when using JRuby.
-      if RUBY_PLATFORM == 'java'
-        require 'jruby/synchronized'
-        include JRuby::Synchronized
-      end
     end
   end
 end

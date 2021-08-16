@@ -47,7 +47,24 @@ class Freddy
         end
       end
 
-      class Queue < Shared::Queue
+      class Queue
+        def initialize(queue)
+          @queue = queue
+        end
+
+        def bind(*args)
+          @queue.bind(*args)
+          self
+        end
+
+        def name
+          @queue.name
+        end
+
+        def message_count
+          @queue.message_count
+        end
+
         def subscribe(manual_ack: false)
           @queue.subscribe(manual_ack: manual_ack) do |info, properties, payload|
             parsed_payload = Payload.parse(payload)

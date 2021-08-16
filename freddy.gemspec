@@ -3,11 +3,7 @@ lib = File.expand_path('lib', __dir__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
 Gem::Specification.new do |spec|
-  spec.name = if RUBY_PLATFORM == 'java'
-                'freddy-jruby'
-              else
-                'freddy'
-              end
+  spec.name          = 'freddy'
   spec.version       = '1.7.0'
   spec.authors       = ['Glia TechMovers']
   spec.email         = ['techmovers@salemove.com']
@@ -24,14 +20,8 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'bundler'
   spec.add_development_dependency 'rake'
 
-  if RUBY_PLATFORM == 'java'
-    spec.add_dependency 'march_hare', '~> 2.12.0'
-    spec.add_dependency 'symbolizer'
-  else
-    spec.add_dependency 'bunny', '~> 2.11'
-    spec.add_dependency 'oj', '~> 3.6'
-  end
-
+  spec.add_dependency 'bunny', '~> 2.11'
+  spec.add_dependency 'oj', '~> 3.6'
   spec.add_dependency 'opentracing', '~> 0.4'
   spec.add_dependency 'thread', '~> 0.1'
 end
