@@ -13,10 +13,10 @@ describe Freddy::ErrorResponse do
     end
 
     describe '#message' do
-      subject { error.message }
+      subject(:message) { error.message }
 
       it 'uses error type as a message' do
-        is_expected.to eq('SomeError')
+        expect(message).to eq('SomeError')
       end
     end
   end
@@ -31,10 +31,10 @@ describe Freddy::ErrorResponse do
     end
 
     describe '#message' do
-      subject { error.message }
+      subject(:message) { error.message }
 
       it 'uses error type as a message' do
-        is_expected.to eq('SomeError: extra info')
+        expect(message).to eq('SomeError: extra info')
       end
     end
   end
@@ -49,10 +49,10 @@ describe Freddy::ErrorResponse do
     end
 
     describe '#message' do
-      subject { error.message }
+      subject(:message) { error.message }
 
       it 'uses default error message as a message' do
-        is_expected.to eq('Use #response to get the error response')
+        expect(message).to eq('Use #response to get the error response')
       end
     end
   end

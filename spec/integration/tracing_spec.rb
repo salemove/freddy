@@ -6,6 +6,7 @@ describe 'Tracing' do
   let(:logger) { spy }
 
   before { OpenTracing.global_tracer = tracer }
+
   after { OpenTracing.global_tracer = nil }
 
   context 'when receiving a traced request' do

@@ -43,6 +43,7 @@ end
 def wait_for
   100.times do
     return if yield
+
     sleep 0.005
   end
 end
@@ -53,7 +54,7 @@ def deliver(custom_destination = destination)
 end
 
 def logger
-  Logger.new(STDOUT).tap { |l| l.level = Logger::ERROR }
+  Logger.new($stdout).tap { |l| l.level = Logger::ERROR }
 end
 
 def config

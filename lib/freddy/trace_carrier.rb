@@ -18,11 +18,10 @@ class Freddy
     end
 
     def each(&block)
-      Hash[
-        (@properties.headers || {})
+      (@properties.headers || {})
         .select { |key, _| key =~ /^x-trace/ }
-        .map { |key, value| [key.sub(/x-trace-/, ''), value] }
-      ].each(&block)
+        .transform_keys { |key| key.sub(/x-trace-/, '') }
+        .each(&block)
     end
   end
 end

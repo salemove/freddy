@@ -10,21 +10,17 @@ describe 'Concurrency' do
 
   it 'supports multiple requests in #respond_to' do
     freddy1.respond_to 'Concurrency1' do |_payload, msg_handler|
-      begin
-        freddy1.deliver_with_response 'Concurrency2', msg: 'noop'
-        result2 = freddy1.deliver_with_response 'Concurrency3', msg: 'noop'
-        msg_handler.success(result2)
-      rescue Freddy::InvalidRequestError => e
-        msg_handler.error(e.response)
-      end
+      freddy1.deliver_with_response 'Concurrency2', msg: 'noop'
+      result2 = freddy1.deliver_with_response 'Concurrency3', msg: 'noop'
+      msg_handler.success(result2)
+    rescue Freddy::InvalidRequestError => e
+      msg_handler.error(e.response)
     end
 
     freddy2.respond_to 'Concurrency2' do |_payload, msg_handler|
-      begin
-        msg_handler.success(from: 'Concurrency2')
-      rescue Freddy::InvalidRequestError => e
-        msg_handler.error(e.response)
-      end
+      msg_handler.success(from: 'Concurrency2')
+    rescue Freddy::InvalidRequestError => e
+      msg_handler.error(e.response)
     end
 
     freddy3.respond_to 'Concurrency3' do |_payload, msg_handler|

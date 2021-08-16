@@ -5,7 +5,7 @@ require 'thread/pool'
 require 'securerandom'
 require 'opentracing'
 
-Dir[File.dirname(__FILE__) + '/freddy/*.rb'].each(&method(:require))
+Dir["#{File.dirname(__FILE__)}/freddy/*.rb"].sort.each(&method(:require))
 
 class Freddy
   FREDDY_TOPIC_EXCHANGE_NAME = 'freddy-topic'
@@ -27,7 +27,7 @@ class Freddy
   #
   # @example
   #   Freddy.build(Logger.new(STDOUT), user: 'thumper', pass: 'howdy')
-  def self.build(logger = Logger.new(STDOUT), max_concurrency: DEFAULT_MAX_CONCURRENCY, **config)
+  def self.build(logger = Logger.new($stdout), max_concurrency: DEFAULT_MAX_CONCURRENCY, **config)
     OpenTracing.global_tracer ||= OpenTracing::Tracer.new
 
     connection = Adapters.determine.connect(config)

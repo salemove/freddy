@@ -7,11 +7,9 @@ class Freddy
         @logger = logger
       end
 
-      def consume(_channel, queue)
+      def consume(_channel, queue, &block)
         @logger.debug "Consuming messages on #{queue.name}"
-        queue.subscribe do |delivery|
-          yield(delivery)
-        end
+        queue.subscribe(&block)
       end
     end
   end
