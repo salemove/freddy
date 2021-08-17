@@ -12,7 +12,6 @@ class Freddy
         @request_manager = RequestManager.new(@logger)
 
         @exchange = @channel.default_exchange
-        @topic_exchange = @channel.topic Freddy::FREDDY_TOPIC_EXCHANGE_NAME
 
         @channel.on_no_route do |correlation_id|
           @request_manager.no_route(correlation_id)
@@ -52,12 +51,9 @@ class Freddy
         )
         Tracing.inject_tracing_information_to_properties!(properties)
 
-        json_payload = Payload.dump(payload)
-
         # Connection adapters handle thread safety for #publish themselves. No
-        # need to lock these.
-        @topic_exchange.publish json_payload, properties.dup
-        @exchange.publish json_payload, properties.dup
+        # need to lock this.
+        @exchange.publish Payload.dump(payload), properties.dup
 
         container.wait_for_response(timeout_in_seconds)
       end
