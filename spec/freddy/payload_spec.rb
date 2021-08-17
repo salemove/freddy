@@ -42,17 +42,17 @@ describe Freddy::Payload do
     end
 
     it 'serializes datetime objects as iso8601 format strings' do
-      expect(dump(datetime: DateTime.new(2016, 1, 4, 20, 18))) # rubocop:disable Style/DateTime
+      expect(dump(datetime: DateTime.new(2016, 1, 4, 20, 18)))
         .to eq('{"datetime":"2016-01-04T20:18:00+00:00"}')
     end
 
     it 'serializes datetime objects in an array as iso8601 format strings' do
-      expect(dump(datetime: [DateTime.new(2016, 1, 4, 20, 18)])) # rubocop:disable Style/DateTime
+      expect(dump(datetime: [DateTime.new(2016, 1, 4, 20, 18)]))
         .to eq('{"datetime":["2016-01-04T20:18:00+00:00"]}')
     end
 
     it 'serializes datetime objects in a nested hash as iso8601 format strings' do
-      expect(dump(x: { datetime: DateTime.new(2016, 1, 4, 20, 18) })) # rubocop:disable Style/DateTime
+      expect(dump(x: { datetime: DateTime.new(2016, 1, 4, 20, 18) }))
         .to eq('{"x":{"datetime":"2016-01-04T20:18:00+00:00"}}')
     end
 

@@ -2,14 +2,9 @@ require 'rubygems'
 require 'bundler'
 Bundler.setup
 
-require 'codeclimate-test-reporter'
-SimpleCov.start do
-  formatter SimpleCov::Formatter::MultiFormatter.new([
-                                                       SimpleCov::Formatter::HTMLFormatter,
-                                                       CodeClimate::TestReporter::Formatter
-                                                     ])
-  add_filter '/spec/'
-end
+ENV['OTEL_TRACES_EXPORTER'] = 'none'
+require 'opentelemetry/sdk'
+OpenTelemetry::SDK.configure
 
 require 'pry'
 require 'freddy'
@@ -22,10 +17,6 @@ RSpec.configure do |config|
   config.run_all_when_everything_filtered = true
   config.filter_run :focus
   config.order = 'random'
-
-  config.before do
-    OpenTracing.global_tracer ||= OpenTracing::Tracer.new
-  end
 end
 
 def random_destination
@@ -43,6 +34,7 @@ end
 def wait_for
   100.times do
     return if yield
+
     sleep 0.005
   end
 end
@@ -53,7 +45,7 @@ def deliver(custom_destination = destination)
 end
 
 def logger
-  Logger.new(STDOUT).tap { |l| l.level = Logger::ERROR }
+  Logger.new($stdout).tap { |l| l.level = Logger::ERROR }
 end
 
 def config

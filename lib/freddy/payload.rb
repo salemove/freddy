@@ -1,11 +1,6 @@
 # frozen_string_literal: true
 
-begin
-  require 'oj'
-rescue LoadError
-  require 'symbolizer'
-  require 'json'
-end
+require 'oj'
 
 class Freddy
   class Payload
@@ -20,7 +15,7 @@ class Freddy
     end
 
     def self.json_handler
-      @json_handler ||= defined?(Oj) ? OjAdapter : JsonAdapter
+      @json_handler ||= OjAdapter
     end
 
     class OjAdapter
@@ -33,32 +28,6 @@ class Freddy
 
       def self.dump(payload)
         Oj.dump(payload, DUMP_OPTIONS)
-      end
-    end
-
-    class JsonAdapter
-      def self.parse(payload)
-        # MRI has :symbolize_keys, but JRuby does not. Not adding it at the
-        # moment.
-        Symbolizer.symbolize(JSON.parse(payload))
-      end
-
-      def self.dump(payload)
-        JSON.dump(serialize_time_objects(payload))
-      end
-
-      def self.serialize_time_objects(object)
-        if object.is_a?(Hash)
-          object.reduce({}) do |hash, (key, value)|
-            hash.merge(key => serialize_time_objects(value))
-          end
-        elsif object.is_a?(Array)
-          object.map(&method(:serialize_time_objects))
-        elsif object.is_a?(Time) || object.is_a?(Date)
-          object.iso8601
-        else
-          object
-        end
       end
     end
   end

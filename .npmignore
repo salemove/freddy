@@ -1,8 +1,0 @@
-.git*
-.rspec
-.ruby*
-Gemfile*
-*.gemspec
-spec/
-*.rb
-lib/messaging

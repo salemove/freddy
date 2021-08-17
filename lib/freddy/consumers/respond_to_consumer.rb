@@ -35,21 +35,11 @@ class Freddy
 
       def process_message(delivery)
         @consume_thread_pool.process do
-          begin
-            scope = delivery.build_trace("freddy:respond:#{@destination}",
-                                         tags: {
-                                           'peer.address' => "#{@destination}:#{delivery.payload[:type]}",
-                                           'component' => 'freddy',
-                                           'span.kind' => 'server', # RPC
-                                           'message_bus.destination' => @destination,
-                                           'message_bus.correlation_id' => delivery.correlation_id
-                                         })
-
+          delivery.in_span do
             yield(delivery)
-          ensure
-            @channel.acknowledge(delivery.tag, false)
-            scope.close
           end
+        ensure
+          @channel.acknowledge(delivery.tag, false)
         end
       end
     end

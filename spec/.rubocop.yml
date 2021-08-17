@@ -1,0 +1,26 @@
+require: rubocop-rspec
+inherit_from: ../.rubocop.yml
+
+RSpec/ExampleLength:
+  Enabled: no
+
+RSpec/MultipleExpectations:
+  Enabled: no
+
+RSpec/MessageSpies:
+  Enabled: no
+
+RSpec/VerifiedDoubles:
+  Enabled: no
+
+RSpec/InstanceVariable:
+  Enabled: no
+
+RSpec/NestedGroups:
+  Enabled: no
+
+RSpec/DescribeClass:
+  Enabled: no
+
+RSpec/MultipleMemoizedHelpers:
+  Enabled: no

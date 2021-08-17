@@ -10,17 +10,24 @@ class Freddy
         @exchange = channel.default_exchange
       end
 
-      def produce(destination, payload, properties)
-        if (span = OpenTracing.active_span)
-          span.set_tag('message_bus.destination', destination)
-        end
-
-        properties = properties.merge(
-          routing_key: destination,
-          content_type: CONTENT_TYPE
+      def produce(routing_key, payload, properties)
+        span = Tracing.span_for_produce(
+          @exchange,
+          routing_key,
+          payload,
+          correlation_id: properties[:correlation_id]
         )
 
+        properties = properties.merge(
+          routing_key: routing_key,
+          content_type: CONTENT_TYPE
+        )
+        Tracing.inject_tracing_information_to_properties!(properties)
+
         @exchange.publish Payload.dump(payload), properties
+      ensure
+        # We won't wait for a reply. Just finish the span immediately.
+        span.finish
       end
     end
   end
