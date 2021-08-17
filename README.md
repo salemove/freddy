@@ -1,6 +1,6 @@
 # Messaging API supporting acknowledgements and request-response
 
-[![Build Status](https://travis-ci.org/salemove/freddy.svg?branch=master)](https://travis-ci.org/salemove/freddy)
+[![Build Status](https://github.com/salemove/freddy/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/salemove/freddy/actions/workflows/ci.yml?query=branch%3Amaster)
 
 ## Setup
 
