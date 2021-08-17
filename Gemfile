@@ -1,6 +1,5 @@
 source 'https://rubygems.org'
 
-gem 'codeclimate-test-reporter'
 gem 'hamster', '~> 3.0'
 gem 'opentelemetry-sdk', '~> 1.0.0.rc3'
 gem 'pry'

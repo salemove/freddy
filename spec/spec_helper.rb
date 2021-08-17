@@ -2,15 +2,6 @@ require 'rubygems'
 require 'bundler'
 Bundler.setup
 
-require 'codeclimate-test-reporter'
-SimpleCov.start do
-  formatter SimpleCov::Formatter::MultiFormatter.new([
-                                                       SimpleCov::Formatter::HTMLFormatter,
-                                                       CodeClimate::TestReporter::Formatter
-                                                     ])
-  add_filter '/spec/'
-end
-
 ENV['OTEL_TRACES_EXPORTER'] = 'none'
 require 'opentelemetry/sdk'
 OpenTelemetry::SDK.configure
