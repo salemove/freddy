@@ -24,37 +24,34 @@ class Freddy
         @response_consumer.consume(@channel, @response_queue, &method(:handle_response))
       end
 
-      def produce(destination, payload, timeout_in_seconds:, delete_on_timeout:, **properties)
+      def produce(routing_key, payload, timeout_in_seconds:, delete_on_timeout:, **properties)
         correlation_id = SecureRandom.uuid
 
-        span = OpenTracing.start_span("freddy:request:#{destination}",
-                                      tags: {
-                                        'component' => 'freddy',
-                                        'span.kind' => 'client', # RPC
-                                        'payload.type' => payload[:type] || 'unknown',
-                                        'message_bus.destination' => destination,
-                                        'message_bus.response_queue' => @response_queue.name,
-                                        'message_bus.correlation_id' => correlation_id,
-                                        'freddy.timeout_in_seconds' => timeout_in_seconds
-                                      })
+        span = Tracing.span_for_produce(
+          @exchange,
+          routing_key,
+          payload,
+          correlation_id: correlation_id, timeout_in_seconds: timeout_in_seconds
+        )
 
         container = SyncResponseContainer.new(
-          on_timeout(correlation_id, destination, timeout_in_seconds, span)
+          on_timeout(correlation_id, routing_key, timeout_in_seconds, span)
         )
 
         @request_manager.store(correlation_id,
                                callback: container,
                                span: span,
-                               destination: destination)
+                               destination: routing_key)
 
         properties[:expiration] = (timeout_in_seconds * 1000).to_i if delete_on_timeout
 
         properties = properties.merge(
-          routing_key: destination, content_type: CONTENT_TYPE,
+          routing_key: routing_key, content_type: CONTENT_TYPE,
           correlation_id: correlation_id, reply_to: @response_queue.name,
           mandatory: true, type: 'request'
         )
-        OpenTracing.global_tracer.inject(span.context, OpenTracing::FORMAT_TEXT_MAP, TraceCarrier.new(properties))
+        Tracing.inject_tracing_information_to_properties!(properties)
+
         json_payload = Payload.dump(payload)
 
         # Connection adapters handle thread safety for #publish themselves. No
@@ -82,28 +79,21 @@ class Freddy
                       "with correlation_id #{delivery.correlation_id}"
         request[:callback].call(delivery.payload, delivery)
       rescue InvalidRequestError => e
-        request[:span].set_tag('error', true)
-        request[:span].log_kv(
-          event: 'invalid request',
-          message: e.message,
-          'error.object': e
-        )
+        request[:span].record_exception(e)
+        request[:span].status = OpenTelemetry::Trace::Status.error
         raise e
       ensure
         request[:span].finish
       end
 
-      def on_timeout(correlation_id, destination, timeout_in_seconds, span)
+      def on_timeout(correlation_id, routing_key, timeout_in_seconds, span)
         proc do
-          @logger.warn "Request timed out waiting response from #{destination}"\
+          @logger.warn "Request timed out waiting response from #{routing_key}"\
                        ", correlation id #{correlation_id}, timeout #{timeout_in_seconds}s"
 
           @request_manager.delete(correlation_id)
-          span.set_tag('error', true)
-          span.log_kv(
-            event: 'timed out',
-            message: "Timed out waiting response from #{destination}"
-          )
+          span.add_event('timeout')
+          span.status = OpenTelemetry::Trace::Status.error("Timed out waiting response from #{routing_key}")
           span.finish
         end
       end

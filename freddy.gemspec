@@ -1,9 +1,10 @@
 lib = File.expand_path('lib', __dir__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
+require 'freddy/version'
 
 Gem::Specification.new do |spec|
   spec.name          = 'freddy'
-  spec.version       = '1.7.0'
+  spec.version       = Freddy::VERSION
   spec.authors       = ['Glia TechMovers']
   spec.email         = ['techmovers@salemove.com']
   spec.description   = 'Messaging API'
@@ -22,6 +23,7 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency 'bunny', '~> 2.11'
   spec.add_dependency 'oj', '~> 3.6'
-  spec.add_dependency 'opentracing', '~> 0.4'
+  spec.add_dependency 'opentelemetry-api', '~> 1.0.0.rc3'
+  spec.add_dependency 'opentelemetry-semantic_conventions', '~> 1.0'
   spec.add_dependency 'thread', '~> 0.1'
 end

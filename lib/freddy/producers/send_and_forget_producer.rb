@@ -11,19 +11,15 @@ class Freddy
         @topic_exchange = channel.topic Freddy::FREDDY_TOPIC_EXCHANGE_NAME
       end
 
-      def produce(destination, payload, properties)
-        span = OpenTracing.start_span("freddy:notify:#{destination}",
-                                      tags: {
-                                        'message_bus.destination' => destination,
-                                        'component' => 'freddy',
-                                        'span.kind' => 'producer' # Message Bus
-                                      })
+      def produce(routing_key, payload, properties)
+        span = Tracing.span_for_produce(@topic_exchange, routing_key, payload)
 
         properties = properties.merge(
-          routing_key: destination,
+          routing_key: routing_key,
           content_type: CONTENT_TYPE
         )
-        OpenTracing.global_tracer.inject(span.context, OpenTracing::FORMAT_TEXT_MAP, TraceCarrier.new(properties))
+        Tracing.inject_tracing_information_to_properties!(properties)
+
         json_payload = Payload.dump(payload)
 
         # Connection adapters handle thread safety for #publish themselves. No
@@ -33,8 +29,6 @@ class Freddy
       ensure
         # We don't know how many listeners there are and we do not know when
         # this message gets processed. Instead we close the span immediately.
-        # Listeners should use FollowsFrom to add trace information.
-        # https://github.com/opentracing/specification/blob/master/specification.md
         span.finish
       end
     end

@@ -3,7 +3,9 @@
 require 'json'
 require 'thread/pool'
 require 'securerandom'
-require 'opentracing'
+require 'opentelemetry'
+require 'opentelemetry/semantic_conventions'
+require_relative './freddy/version'
 
 Dir["#{File.dirname(__FILE__)}/freddy/*.rb"].sort.each(&method(:require))
 
@@ -26,22 +28,15 @@ class Freddy
   # @return [Freddy]
   #
   # @example
-  #   Freddy.build(Logger.new(STDOUT), user: 'thumper', pass: 'howdy')
+  #   Freddy.build(Logger.new($stdout), user: 'thumper', pass: 'howdy')
   def self.build(logger = Logger.new($stdout), max_concurrency: DEFAULT_MAX_CONCURRENCY, **config)
-    OpenTracing.global_tracer ||= OpenTracing::Tracer.new
-
     connection = Adapters.determine.connect(config)
     new(connection, logger, max_concurrency)
   end
 
-  # @deprecated Use {OpenTracing.active_span} instead
-  def self.trace
-    OpenTracing.active_span
-  end
-
-  # @deprecated Use OpenTracing ScopeManager instead
-  def self.trace=(trace)
-    OpenTracing.scope_manager.activate(trace) if OpenTracing.active_span != trace
+  # @private
+  def self.tracer
+    @tracer ||= OpenTelemetry.tracer_provider.tracer('freddy', Freddy::VERSION)
   end
 
   def initialize(connection, logger, max_concurrency)

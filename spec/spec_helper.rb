@@ -11,6 +11,10 @@ SimpleCov.start do
   add_filter '/spec/'
 end
 
+ENV['OTEL_TRACES_EXPORTER'] = 'none'
+require 'opentelemetry/sdk'
+OpenTelemetry::SDK.configure
+
 require 'pry'
 require 'freddy'
 require 'logger'
@@ -22,10 +26,6 @@ RSpec.configure do |config|
   config.run_all_when_everything_filtered = true
   config.filter_run :focus
   config.order = 'random'
-
-  config.before do
-    OpenTracing.global_tracer ||= OpenTracing::Tracer.new
-  end
 end
 
 def random_destination

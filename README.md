@@ -147,14 +147,11 @@ responder_handler.shutdown
 
 ## Request Tracing
 
-Freddy supports [OpenTracing API|https://github.com/opentracing/opentracing-ruby]. You must set a global tracer which then freddy will use:
-```ruby
-OpenTracing.global_tracing = MyTracerImplementation.new(...)
-```
+Freddy supports [OpenTelemetry API|https://github.com/open-telemetry/opentelemetry-ruby].
+The trace information is automatically passed through `deliver`,
+`deliver_with_response`, `respond_to` and `tap_into` calls.
 
-Current trace can be accessed through a thread-local variable `OpenTracing.active_span`. Calling `deliver` or `deliver_with_response` will pass trace context to down-stream services.
-
-See [opentracing-ruby](https://github.com/opentracing/opentracing-ruby) for more information.
+This is not compatible with `opentelemetry-instrumentation-bunny` library.
 
 ## Notes about concurrency
 

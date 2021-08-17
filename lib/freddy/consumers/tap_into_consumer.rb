@@ -47,18 +47,10 @@ class Freddy
 
       def process_message(_queue, delivery)
         @consume_thread_pool.process do
-          scope = delivery.build_trace("freddy:observe:#{@pattern}",
-                                       tags: {
-                                         'message_bus.destination' => @pattern,
-                                         'message_bus.correlation_id' => delivery.correlation_id,
-                                         'component' => 'freddy',
-                                         'span.kind' => 'consumer' # Message Bus
-                                       },
-                                       force_follows_from: true)
-
-          yield delivery.payload, delivery.routing_key
-
-          @channel.acknowledge(delivery.tag)
+          delivery.in_span(force_follows_from: true) do
+            yield delivery.payload, delivery.routing_key
+            @channel.acknowledge(delivery.tag)
+          end
         rescue StandardError
           case on_exception
           when :reject
@@ -70,8 +62,6 @@ class Freddy
           end
 
           raise
-        ensure
-          scope.close
         end
       end
 
