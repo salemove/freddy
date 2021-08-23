@@ -20,7 +20,10 @@ class Freddy
         )
         Tracing.inject_tracing_information_to_properties!(properties)
 
-        json_payload = Payload.dump(payload)
+        json_payload = Freddy::Encoding.compress(
+          Payload.dump(payload),
+          properties[:content_encoding]
+        )
 
         # Connection adapters handle thread safety for #publish themselves. No
         # need to lock these.

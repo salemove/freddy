@@ -4,9 +4,10 @@ require 'oj'
 
 class Freddy
   class Payload
-    def self.parse(payload)
+    def self.parse(payload, encoding)
       return {} if payload == 'null'
 
+      payload = Freddy::Encoding.uncompress(payload, encoding)
       json_handler.parse(payload)
     end
 
