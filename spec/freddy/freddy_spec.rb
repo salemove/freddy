@@ -49,6 +49,29 @@ describe Freddy do
         expect(processed_after_timeout).to be(true)
       end
     end
+
+    context 'with compress' do
+      it 'compresses the payload' do
+        expect(Freddy::Encoding).to receive(:compress).with(anything, 'zlib').and_call_original
+
+        freddy.tap_into(destination) { |msg| @tapped_message = msg }
+        freddy.deliver(destination, payload, compress: 'zlib')
+        default_sleep
+
+        wait_for { @tapped_message }
+        expect(@tapped_message).to eq(payload)
+      end
+    end
+
+    context 'without compress' do
+      it 'does not compress the payload' do
+        freddy.tap_into(destination) { |msg| @tapped_message = msg }
+        deliver
+
+        wait_for { @tapped_message }
+        expect(@tapped_message).to eq(payload)
+      end
+    end
   end
 
   context 'when making a synchronized request' do

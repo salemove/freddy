@@ -65,7 +65,7 @@ class Freddy
   #   Received message as a ruby hash with symbolized keys
   # @yieldparam [#success, #error] handler
   #   Handler for responding to messages. Use handler#success for successful
-  #   respone and handler#error for error response.
+  #   response and handler#error for error response.
   #
   # @return [#shutdown]
   #
@@ -99,7 +99,7 @@ class Freddy
   # consuming them. It is useful for general messages that two or more clients
   # are interested.
   #
-  # @param [String] pattern
+  # @param [String] pattern_or_patterns
   #   the destination pattern. Use `#` wildcard for matching 0 or more words.
   #   Use `*` to match exactly one word.
   # @param [Hash] options
@@ -152,15 +152,18 @@ class Freddy
   # @option options [Integer] :timeout (0)
   #   discards the message after given seconds if nobody consumes it. Message
   #   won't be discarded if timeout it set to 0 (default).
-  #
+  # @option options [String] :compress (nil)
+  #   - 'zlib' - compresses the payload with zlib
   # @return [void]
   #
   # @example
   #   freddy.deliver 'Metrics', user_id: 5, metric: 'signed_in'
   def deliver(destination, payload, options = {})
     timeout = options.fetch(:timeout, 0)
+    compression_algorithm = options.fetch(:compress, nil)
     opts = {}
     opts[:expiration] = (timeout * 1000).to_i if timeout.positive?
+    opts[:content_encoding] = compression_algorithm if compression_algorithm
 
     @send_and_forget_producer.produce(destination, payload, opts)
   end
