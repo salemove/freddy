@@ -35,12 +35,11 @@ class Freddy
         links = []
         links << OpenTelemetry::Trace::Link.new(producer_span_context) if producer_span_context.valid?
 
-        # In general we should start a new trace here and just link two traces
-        # together. But Zipkin (which we currently use) doesn't support links.
-        # So even though the root trace could finish before anything here
-        # starts executing, we'll continue with the root trace here as well.
-        OpenTelemetry::Context.with_current(producer_context) do
+        root_span = Freddy.tracer.start_root_span(name, attributes: span_attributes, links: links, kind: kind)
+        OpenTelemetry::Trace.with_span(root_span) do
           Freddy.tracer.in_span(name, attributes: span_attributes, links: links, kind: kind, &block)
+        ensure
+          root_span.finish
         end
       else
         OpenTelemetry::Context.with_current(producer_context) do
