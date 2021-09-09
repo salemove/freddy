@@ -60,7 +60,7 @@ class Freddy
         OpenTelemetry::SemanticConventions::Trace::MESSAGING_DESTINATION => @exchange,
         OpenTelemetry::SemanticConventions::Trace::MESSAGING_DESTINATION_KIND => destination_kind,
         OpenTelemetry::SemanticConventions::Trace::MESSAGING_RABBITMQ_ROUTING_KEY => @routing_key,
-        OpenTelemetry::SemanticConventions::Trace::MESSAGING_OPERATION => 'receive'
+        OpenTelemetry::SemanticConventions::Trace::MESSAGING_OPERATION => 'process'
       }
 
       # There's no correlation_id when a message was sent using
