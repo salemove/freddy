@@ -25,7 +25,7 @@ class Freddy
     end
 
     def in_span(force_follows_from: false, &block)
-      name = "#{@exchange}.#{@routing_key} receive"
+      name = "#{@exchange}.#{@routing_key} process"
       kind = OpenTelemetry::Trace::SpanKind::CONSUMER
       producer_context = OpenTelemetry.propagation.extract(@metadata[:headers] || {})
 
@@ -36,8 +36,9 @@ class Freddy
         links << OpenTelemetry::Trace::Link.new(producer_span_context) if producer_span_context.valid?
 
         root_span = Freddy.tracer.start_root_span(name, attributes: span_attributes, links: links, kind: kind)
+
         OpenTelemetry::Trace.with_span(root_span) do
-          Freddy.tracer.in_span(name, attributes: span_attributes, links: links, kind: kind, &block)
+          block.call
         ensure
           root_span.finish
         end

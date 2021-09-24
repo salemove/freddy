@@ -11,6 +11,13 @@ require 'freddy'
 require 'logger'
 require 'hamster/experimental/mutable_set'
 
+SPAN_EXPORTER = OpenTelemetry::SDK::Trace::Export::InMemorySpanExporter.new
+span_processor = OpenTelemetry::SDK::Trace::Export::SimpleSpanProcessor.new(SPAN_EXPORTER)
+
+OpenTelemetry::SDK.configure do |c|
+  c.add_span_processor(span_processor)
+end
+
 Thread.abort_on_exception = true
 
 RSpec.configure do |config|

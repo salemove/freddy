@@ -1,7 +1,11 @@
 require 'spec_helper'
 
 describe 'Tracing' do
-  let(:logger) { spy }
+  let(:exporter) { SPAN_EXPORTER }
+
+  before do
+    exporter.reset
+  end
 
   context 'when receiving a traced request' do
     let(:freddy) { Freddy.build(logger, config) }
@@ -127,6 +131,13 @@ describe 'Tracing' do
         freddy.deliver(destination, {})
       end
       wait_for { @deliver_span }
+
+      expect(exporter.finished_spans.map(&:name))
+        .to match([
+                    /\.\w+ send/,
+                    'test',
+                    /freddy-topic\.\w+ process/
+                  ])
 
       expect(@deliver_span.fetch(:trace_id)).not_to eq(initiator_span.fetch(:trace_id))
 
