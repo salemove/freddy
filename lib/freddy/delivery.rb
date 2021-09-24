@@ -36,8 +36,9 @@ class Freddy
         links << OpenTelemetry::Trace::Link.new(producer_span_context) if producer_span_context.valid?
 
         root_span = Freddy.tracer.start_root_span(name, attributes: span_attributes, links: links, kind: kind)
+
         OpenTelemetry::Trace.with_span(root_span) do
-          Freddy.tracer.in_span(name, attributes: span_attributes, links: links, kind: kind, &block)
+          block.call
         ensure
           root_span.finish
         end
