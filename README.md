@@ -11,6 +11,10 @@ logger = Logger.new(STDOUT)
 freddy = Freddy.build(logger, host: 'localhost', port: 5672, user: 'guest', pass: 'guest')
 ```
 
+## Releasing a new version
+
+A new version is created when a change is merged into the master branch that changes the version number in `freddy.gemspec`. A Github Action will create a tag for the version and push the `.gem` file to [rubygems.org](https://rubygems.org)
+
 ## Supported message queues
 
 These message queues have been tested and are working with Freddy. Other queues can be added easily:
