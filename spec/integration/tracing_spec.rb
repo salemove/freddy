@@ -52,6 +52,14 @@ describe 'Tracing' do
       expect(current_receiver.fetch(:span_id)).not_to be_nil
       expect(current_receiver.fetch(:span_id)).not_to eq(trace_initiator.fetch(:span_id))
     end
+
+    it 'replaces generated queue names with (response queue)' do
+      freddy.deliver_with_response(destination, {})
+      names = exporter.finished_spans.map(&:name)
+
+      expect(names.any? { |name| name.include?('amq.gen-') }).to eq(false)
+      expect(names.any? { |name| name.include?('(response queue)') }).to eq(true)
+    end
   end
 
   context 'when receiving a nested traced request' do

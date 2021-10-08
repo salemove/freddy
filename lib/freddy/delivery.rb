@@ -25,7 +25,7 @@ class Freddy
     end
 
     def in_span(force_follows_from: false, &block)
-      name = "#{@exchange}.#{@routing_key} process"
+      name = "#{Tracing.span_destination(@exchange, @routing_key)} process"
       kind = OpenTelemetry::Trace::SpanKind::CONSUMER
       producer_context = OpenTelemetry.propagation.extract(@metadata[:headers] || {})
 

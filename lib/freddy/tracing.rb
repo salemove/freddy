@@ -2,6 +2,8 @@
 
 class Freddy
   module Tracing
+    RESPONSE_QUEUE_PREFIX = 'amq.gen-'
+
     # NOTE: Make sure you finish the span youself.
     def self.span_for_produce(exchange, routing_key, payload, correlation_id: nil, timeout_in_seconds: nil)
       destination = exchange.name
@@ -23,10 +25,18 @@ class Freddy
       end
 
       Freddy.tracer.start_span(
-        ".#{routing_key} send",
+        "#{span_destination(destination, routing_key)} send",
         kind: OpenTelemetry::Trace::SpanKind::PRODUCER,
         attributes: attributes
       )
+    end
+
+    def self.span_destination(destination, routing_key)
+      if routing_key.to_s.start_with?(RESPONSE_QUEUE_PREFIX)
+        "#{destination}.(response queue)"
+      else
+        "#{destination}.#{routing_key}"
+      end
     end
 
     def self.inject_tracing_information_to_properties!(properties)
