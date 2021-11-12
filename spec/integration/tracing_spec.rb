@@ -147,10 +147,13 @@ describe 'Tracing' do
                     /freddy-topic\.\w+ process/
                   ])
 
+      send_span = exporter.finished_spans.find { |span| span.name =~ /\.\w+ send/ }
+
       expect(@deliver_span.fetch(:trace_id)).not_to eq(initiator_span.fetch(:trace_id))
 
       link = @deliver_span.fetch(:links)[0]
       expect(link.span_context.trace_id).to eq(initiator_span.fetch(:trace_id))
+      expect(link.span_context.span_id).to eq(send_span.span_id)
     end
   end
 
