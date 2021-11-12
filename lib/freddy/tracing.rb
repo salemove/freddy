@@ -39,9 +39,10 @@ class Freddy
       end
     end
 
-    def self.inject_tracing_information_to_properties!(properties)
+    def self.inject_tracing_information_to_properties!(properties, span)
+      context = OpenTelemetry::Trace.context_with_span(span)
       properties[:headers] ||= {}
-      OpenTelemetry.propagation.inject(properties[:headers])
+      OpenTelemetry.propagation.inject(properties[:headers], context: context)
     end
   end
 end

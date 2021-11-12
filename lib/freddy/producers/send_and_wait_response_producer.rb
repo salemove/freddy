@@ -49,7 +49,7 @@ class Freddy
           correlation_id: correlation_id, reply_to: @response_queue.name,
           mandatory: true, type: 'request'
         )
-        Tracing.inject_tracing_information_to_properties!(properties)
+        Tracing.inject_tracing_information_to_properties!(properties, span)
 
         # Connection adapters handle thread safety for #publish themselves. No
         # need to lock this.
