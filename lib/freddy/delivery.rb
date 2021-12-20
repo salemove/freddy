@@ -24,28 +24,13 @@ class Freddy
       @metadata.reply_to
     end
 
-    def in_span(force_follows_from: false, &block)
+    def in_span(&block)
       name = "#{Tracing.span_destination(@exchange, @routing_key)} process"
       kind = OpenTelemetry::Trace::SpanKind::CONSUMER
       producer_context = OpenTelemetry.propagation.extract(@metadata[:headers] || {})
 
-      if force_follows_from
-        producer_span_context = OpenTelemetry::Trace.current_span(producer_context).context
-
-        links = []
-        links << OpenTelemetry::Trace::Link.new(producer_span_context) if producer_span_context.valid?
-
-        root_span = Freddy.tracer.start_root_span(name, attributes: span_attributes, links: links, kind: kind)
-
-        OpenTelemetry::Trace.with_span(root_span) do
-          block.call
-        ensure
-          root_span.finish
-        end
-      else
-        OpenTelemetry::Context.with_current(producer_context) do
-          Freddy.tracer.in_span(name, attributes: span_attributes, kind: kind, &block)
-        end
+      OpenTelemetry::Context.with_current(producer_context) do
+        Freddy.tracer.in_span(name, attributes: span_attributes, kind: kind, &block)
       end
     end
 
