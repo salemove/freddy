@@ -132,10 +132,8 @@ describe 'Tracing' do
       freddy.close
     end
 
-    it 'creates a new trace and links it with the sender' do
-      initiator_span = nil
+    it 'continues the existing trace' do
       Freddy.tracer.in_span('test') do
-        initiator_span = current_span_attributes
         freddy.deliver(destination, {})
       end
       wait_for { @deliver_span }
@@ -147,13 +145,7 @@ describe 'Tracing' do
                     /freddy-topic\.\w+ process/
                   ])
 
-      send_span = exporter.finished_spans.find { |span| span.name =~ /\.\w+ send/ }
-
-      expect(@deliver_span.fetch(:trace_id)).not_to eq(initiator_span.fetch(:trace_id))
-
-      link = @deliver_span.fetch(:links)[0]
-      expect(link.span_context.trace_id).to eq(initiator_span.fetch(:trace_id))
-      expect(link.span_context.span_id).to eq(send_span.span_id)
+      expect(exporter.finished_spans.map(&:trace_id).uniq.count).to eq(1)
     end
   end
 
