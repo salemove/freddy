@@ -6,8 +6,14 @@ require 'forwardable'
 class Freddy
   module Adapters
     class BunnyAdapter
+      DEFAULT_OPTIONS = {
+        connection_timeout: 5,
+        read_timeout: 5,
+        write_timeout: 5
+      }.freeze
+
       def self.connect(config)
-        bunny = Bunny.new(config)
+        bunny = Bunny.new(DEFAULT_OPTIONS.merge(config))
         bunny.start
         new(bunny)
       end
