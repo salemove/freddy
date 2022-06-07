@@ -57,8 +57,8 @@ describe 'Tracing' do
       freddy.deliver_with_response(destination, {})
       names = exporter.finished_spans.map(&:name)
 
-      expect(names.any? { |name| name.include?('amq.gen-') }).to eq(false)
-      expect(names.any? { |name| name.include?('(response queue)') }).to eq(true)
+      expect(names.any? { |name| name.include?('amq.gen-') }).to be(false)
+      expect(names.any? { |name| name.include?('(response queue)') }).to be(true)
     end
   end
 
