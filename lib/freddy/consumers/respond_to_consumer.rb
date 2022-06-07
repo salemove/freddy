@@ -34,7 +34,7 @@ class Freddy
       end
 
       def process_message(delivery)
-        @consume_thread_pool.process do
+        @consume_thread_pool.post do
           delivery.in_span do
             yield(delivery)
           end

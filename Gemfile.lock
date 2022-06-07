@@ -3,10 +3,10 @@ PATH
   specs:
     freddy (2.4.0)
       bunny (~> 2.11)
+      concurrent-ruby (~> 1.0)
       oj (~> 3.6)
       opentelemetry-api (~> 1.0.0.rc3)
       opentelemetry-semantic_conventions (~> 1.0)
-      thread (~> 0.1)
       zlib (~> 1.1)
 
 GEM
@@ -79,7 +79,6 @@ GEM
     sorted_set (1.0.3)
       rbtree
       set (~> 1.0)
-    thread (0.2.2)
     unicode-display_width (2.0.0)
     zlib (1.1.0)
 

@@ -46,7 +46,7 @@ class Freddy
       end
 
       def process_message(_queue, delivery)
-        @consume_thread_pool.process do
+        @consume_thread_pool.post do
           delivery.in_span do
             yield delivery.payload, delivery.routing_key
             @channel.acknowledge(delivery.tag)
