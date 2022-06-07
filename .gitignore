@@ -4,3 +4,5 @@ pkg
 .tags1
 coverage
 .idea/
+
+Gemfile.lock
