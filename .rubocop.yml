@@ -28,3 +28,6 @@ Style/FrozenStringLiteralComment:
 
 Naming/FileName:
   Enabled: no
+
+Gemspec/RequireMFA:
+  Enabled: no
