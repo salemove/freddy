@@ -18,8 +18,6 @@ OpenTelemetry::SDK.configure do |c|
   c.add_span_processor(span_processor)
 end
 
-Thread.abort_on_exception = true
-
 RSpec.configure do |config|
   config.run_all_when_everything_filtered = true
   config.filter_run :focus

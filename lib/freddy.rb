@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require 'json'
-require 'thread/pool'
+require 'concurrent'
 require 'securerandom'
 require 'opentelemetry'
 require 'opentelemetry/semantic_conventions'
@@ -85,7 +85,7 @@ class Freddy
     handler_adapter_factory = MessageHandlerAdapters::Factory.new(producer)
 
     Consumers::RespondToConsumer.consume(
-      thread_pool: Thread.pool(@prefetch_buffer_size),
+      thread_pool: Concurrent::FixedThreadPool.new(@prefetch_buffer_size),
       destination: destination,
       channel: channel,
       handler_adapter_factory: handler_adapter_factory,
@@ -128,7 +128,7 @@ class Freddy
     @logger.debug "Tapping into messages that match #{pattern_or_patterns}"
 
     Consumers::TapIntoConsumer.consume(
-      thread_pool: Thread.pool(@prefetch_buffer_size),
+      thread_pool: Concurrent::FixedThreadPool.new(@prefetch_buffer_size),
       patterns: Array(pattern_or_patterns),
       channel: @connection.create_channel(prefetch: @prefetch_buffer_size),
       options: options,

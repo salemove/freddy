@@ -16,7 +16,7 @@ describe Freddy::Consumers::RespondToConsumer do
   let(:msg_handler_adapter_factory) { double(for: msg_handler_adapter) }
   let(:msg_handler_adapter) { Freddy::MessageHandlerAdapters::NoOpHandler.new }
   let(:prefetch_buffer_size) { 2 }
-  let(:thread_pool) { Thread.pool(prefetch_buffer_size) }
+  let(:thread_pool) { Concurrent::FixedThreadPool.new(prefetch_buffer_size) }
 
   after do
     connection.close

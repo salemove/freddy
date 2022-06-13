@@ -31,12 +31,13 @@ describe Freddy::SyncResponseContainer do
   describe '#wait_for_response' do
     let(:timeout) { 2 }
     let(:response) { { msg: 'response' } }
-    let(:delivery) { OpenStruct.new(type: 'success') }
 
     context 'when called after #call' do
       let(:max_wait_time_in_seconds) { 0.5 }
 
       before do
+        delivery = instance_double(Freddy::Delivery)
+        allow(delivery).to receive(:type).and_return('success')
         container.call(response, delivery)
       end
 
