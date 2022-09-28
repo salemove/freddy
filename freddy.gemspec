@@ -23,7 +23,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'bunny', '~> 2.11'
   spec.add_dependency 'concurrent-ruby', '~> 1.0'
   spec.add_dependency 'oj', '~> 3.6'
-  spec.add_dependency 'opentelemetry-api', '~> 1.0.0.rc3'
+  spec.add_dependency 'opentelemetry-api', '~> 1.0'
   spec.add_dependency 'opentelemetry-semantic_conventions', '~> 1.0'
   spec.add_dependency 'zlib', '~> 1.1'
 end
