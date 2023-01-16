@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Freddy do
-  let(:freddy) { described_class.build(logger, config) }
+  let(:freddy) { described_class.build(logger, **config) }
 
   let(:destination)  { random_destination }
   let(:destination2) { random_destination }

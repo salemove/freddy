@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Freddy::ResponderHandler do
-  let(:freddy) { Freddy.build(logger, config) }
+  let(:freddy) { Freddy.build(logger, **config) }
 
   let(:destination) { random_destination }
   let(:payload)     { { pay: 'load' } }

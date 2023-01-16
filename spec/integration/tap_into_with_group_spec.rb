@@ -2,9 +2,9 @@ require 'spec_helper'
 require 'hamster/experimental/mutable_set'
 
 describe 'Tapping into with group identifier' do
-  let(:deliverer) { Freddy.build(logger, config) }
-  let(:responder1) { Freddy.build(logger, config) }
-  let(:responder2) { Freddy.build(logger, config) }
+  let(:deliverer) { Freddy.build(logger, **config) }
+  let(:responder1) { Freddy.build(logger, **config) }
+  let(:responder2) { Freddy.build(logger, **config) }
 
   let(:destination)  { random_destination }
 

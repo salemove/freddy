@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe 'Reply' do
-  let(:freddy) { Freddy.build(logger, config) }
+  let(:freddy) { Freddy.build(logger, **config) }
 
   let(:destination) { random_destination }
   let(:request_payload) { { req: 'load' } }
