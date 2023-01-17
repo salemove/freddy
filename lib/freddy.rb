@@ -85,10 +85,12 @@ class Freddy
     handler_adapter_factory = MessageHandlerAdapters::Factory.new(producer)
 
     Consumers::RespondToConsumer.consume(
-      thread_pool: Concurrent::FixedThreadPool.new(@prefetch_buffer_size),
-      destination: destination,
-      channel: channel,
-      handler_adapter_factory: handler_adapter_factory,
+      **{
+        thread_pool: Concurrent::FixedThreadPool.new(@prefetch_buffer_size),
+        destination: destination,
+        channel: channel,
+        handler_adapter_factory: handler_adapter_factory
+      },
       &callback
     )
   end
@@ -128,10 +130,12 @@ class Freddy
     @logger.debug "Tapping into messages that match #{pattern_or_patterns}"
 
     Consumers::TapIntoConsumer.consume(
-      thread_pool: Concurrent::FixedThreadPool.new(@prefetch_buffer_size),
-      patterns: Array(pattern_or_patterns),
-      channel: @connection.create_channel(prefetch: @prefetch_buffer_size),
-      options: options,
+      **{
+        thread_pool: Concurrent::FixedThreadPool.new(@prefetch_buffer_size),
+        patterns: Array(pattern_or_patterns),
+        channel: @connection.create_channel(prefetch: @prefetch_buffer_size),
+        options: options
+      },
       &callback
     )
   end

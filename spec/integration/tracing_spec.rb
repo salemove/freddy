@@ -8,8 +8,8 @@ describe 'Tracing' do
   end
 
   context 'when receiving a traced request' do
-    let(:freddy) { Freddy.build(logger, config) }
-    let(:freddy2) { Freddy.build(logger, config) }
+    let(:freddy) { Freddy.build(logger, **config) }
+    let(:freddy2) { Freddy.build(logger, **config) }
 
     let(:destination) { random_destination }
     let(:destination2) { random_destination }
@@ -63,9 +63,9 @@ describe 'Tracing' do
   end
 
   context 'when receiving a nested traced request' do
-    let(:freddy) { Freddy.build(logger, config) }
-    let(:freddy2) { Freddy.build(logger, config) }
-    let(:freddy3) { Freddy.build(logger, config) }
+    let(:freddy) { Freddy.build(logger, **config) }
+    let(:freddy2) { Freddy.build(logger, **config) }
+    let(:freddy3) { Freddy.build(logger, **config) }
 
     let(:destination) { random_destination }
     let(:destination2) { random_destination }
