@@ -48,7 +48,7 @@ class Freddy
       def process_message(_queue, delivery)
         @consume_thread_pool.post do
           delivery.in_span do
-            yield delivery.payload, delivery.routing_key
+            yield delivery.payload, delivery.routing_key, delivery.timestamp
             @channel.acknowledge(delivery.tag)
           end
         rescue StandardError
