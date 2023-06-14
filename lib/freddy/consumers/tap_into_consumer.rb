@@ -29,7 +29,7 @@ class Freddy
       private
 
       def create_queue
-        topic_exchange = @channel.topic(Freddy::FREDDY_TOPIC_EXCHANGE_NAME)
+        topic_exchange = @channel.topic(exchange_name)
 
         queue =
           if group
@@ -75,6 +75,10 @@ class Freddy
 
       def on_exception
         @options.fetch(:on_exception, :ack)
+      end
+
+      def exchange_name
+        @options.fetch(:exchange_name, Freddy::FREDDY_TOPIC_EXCHANGE_NAME)
       end
     end
   end

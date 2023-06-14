@@ -117,6 +117,8 @@ class Freddy
   #   `:ack` simply acknowledges the message and re-raises the exception. `:reject`
   #   rejects the message without requeueing it. `:requeue` rejects the message with
   #   `requeue` flag.
+  # @option options [String] :exchange_name
+  #   Exchange to bind to. Default is `freddy-topic`.
   #
   # @yield [message] Yields received message to the block
   #
