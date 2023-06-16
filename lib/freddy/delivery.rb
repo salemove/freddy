@@ -24,6 +24,10 @@ class Freddy
       @metadata.reply_to
     end
 
+    def timestamp
+      @metadata[:timestamp]
+    end
+
     def in_span(&block)
       name = "#{Tracing.span_destination(@exchange, @routing_key)} process"
       kind = OpenTelemetry::Trace::SpanKind::CONSUMER

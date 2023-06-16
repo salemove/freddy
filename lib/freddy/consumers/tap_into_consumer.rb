@@ -29,7 +29,7 @@ class Freddy
       private
 
       def create_queue
-        topic_exchange = @channel.topic(Freddy::FREDDY_TOPIC_EXCHANGE_NAME)
+        topic_exchange = @channel.topic(exchange_name)
 
         queue =
           if group
@@ -48,7 +48,7 @@ class Freddy
       def process_message(_queue, delivery)
         @consume_thread_pool.post do
           delivery.in_span do
-            yield delivery.payload, delivery.routing_key
+            yield delivery.payload, delivery.routing_key, delivery.timestamp
             @channel.acknowledge(delivery.tag)
           end
         rescue StandardError
@@ -75,6 +75,10 @@ class Freddy
 
       def on_exception
         @options.fetch(:on_exception, :ack)
+      end
+
+      def exchange_name
+        @options.fetch(:exchange_name, Freddy::FREDDY_TOPIC_EXCHANGE_NAME)
       end
     end
   end
