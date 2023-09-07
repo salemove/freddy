@@ -9,12 +9,13 @@ describe Freddy do
 
   before do
     @bunny = Bunny.new(config)
-    @bunny.start()
+    @bunny.start
   end
 
-  after { @bunny.close }
-
-  after { freddy.close }
+  after do
+    @bunny.close
+    freddy.close
+  end
 
   def respond_to(&block)
     freddy.respond_to(destination, &block)
@@ -81,13 +82,14 @@ describe Freddy do
     end
 
     it 'accepts custom headers' do
+      headers = nil
       queue = exclusive_subscribe do |_info, metadata, _payload|
-        @metadata = metadata
+        headers = metadata[:headers]
       end
-      freddy.deliver(queue, payload, headers: {'foo' => 'bar'})
+      freddy.deliver(queue, payload, headers: { 'foo' => 'bar' })
 
-      wait_for { @metadata }
-      expect(@metadata[:headers]).to include({'foo' => 'bar'})
+      wait_for { headers }
+      expect(headers).to include({ 'foo' => 'bar' })
     end
   end
 
