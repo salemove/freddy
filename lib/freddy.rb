@@ -166,6 +166,8 @@ class Freddy
   #   won't be discarded if timeout it set to 0 (default).
   # @option options [String] :compress (nil)
   #   - 'zlib' - compresses the payload with zlib
+  # @option options [Hash] :headers (nil)
+  #   Arbitrary headers to add as message metadata
   # @return [void]
   #
   # @example
@@ -176,6 +178,7 @@ class Freddy
     opts = {}
     opts[:expiration] = (timeout * 1000).to_i if timeout.positive?
     opts[:content_encoding] = compression_algorithm if compression_algorithm
+    opts[:headers] = options[:headers] if options[:headers]
 
     @send_and_forget_producer.produce(destination, payload, opts)
   end
