@@ -7,7 +7,15 @@ describe Freddy do
   let(:destination2) { random_destination }
   let(:payload)      { { pay: 'load' } }
 
-  after { freddy.close }
+  before do
+    @bunny = Bunny.new(config)
+    @bunny.start
+  end
+
+  after do
+    @bunny.close
+    freddy.close
+  end
 
   def respond_to(&block)
     freddy.respond_to(destination, &block)
@@ -72,6 +80,24 @@ describe Freddy do
         expect(@tapped_message).to eq(payload)
       end
     end
+
+    it 'accepts custom headers' do
+      headers = nil
+      queue = exclusive_subscribe do |_info, metadata, _payload|
+        headers = metadata[:headers]
+      end
+      freddy.deliver(queue, payload, headers: { 'foo' => 'bar' })
+
+      wait_for { headers }
+      expect(headers).to include({ 'foo' => 'bar' })
+    end
+  end
+
+  def exclusive_subscribe(&block)
+    channel = @bunny.create_channel
+    queue = channel.queue('', exclusive: true)
+    queue.subscribe(&block)
+    queue.name
   end
 
   context 'when making a synchronized request' do

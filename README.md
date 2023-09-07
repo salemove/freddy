@@ -55,6 +55,11 @@ The message heading specify the `content-encoding` indicating the compression al
 freddy.deliver(destination, message, compress: 'zlib')
 ```
 
+#### Metadata through headers
+
+Send a message with arbitrary message metadata included in the message headers
+freddy.deliver(destination, message, headers: {'my-key' => 'my-value'})
+
 ### Request delivery
 
 #### Expiring messages
