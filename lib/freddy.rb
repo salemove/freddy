@@ -74,10 +74,10 @@ class Freddy
   #     if id = register(attributes)
   #       handler.success(id: id)
   #     else
-  #       handler.error(message: 'Can not do')
+  #       handler.error(message: 'Cannot do')
   #     end
   #   end
-  def respond_to(destination, &callback)
+  def respond_to(destination, options = {}, &callback)
     @logger.info "Listening for requests on #{destination}"
 
     channel = @connection.create_channel(prefetch: @prefetch_buffer_size)
@@ -89,7 +89,9 @@ class Freddy
         thread_pool: Concurrent::FixedThreadPool.new(@prefetch_buffer_size),
         destination: destination,
         channel: channel,
-        handler_adapter_factory: handler_adapter_factory
+        handler_adapter_factory: handler_adapter_factory,
+        timeout_in_seconds: options[:timeout],
+        logger: @logger
       },
       &callback
     )

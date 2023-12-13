@@ -6,7 +6,9 @@ describe Freddy::Consumers::RespondToConsumer do
       thread_pool: thread_pool,
       destination: destination,
       channel: channel,
-      handler_adapter_factory: msg_handler_adapter_factory
+      handler_adapter_factory: msg_handler_adapter_factory,
+      timeout_in_seconds: timeout_in_seconds,
+      logger: logger
     )
   end
 
@@ -17,6 +19,7 @@ describe Freddy::Consumers::RespondToConsumer do
   let(:msg_handler_adapter) { Freddy::MessageHandlerAdapters::NoOpHandler.new }
   let(:prefetch_buffer_size) { 2 }
   let(:thread_pool) { Concurrent::FixedThreadPool.new(prefetch_buffer_size) }
+  let(:timeout_in_seconds) { nil }
 
   after do
     connection.close
@@ -32,6 +35,27 @@ describe Freddy::Consumers::RespondToConsumer do
       default_sleep
 
       expect(@message_received).to be_falsy
+    end
+  end
+
+  context 'when timeout is given' do
+    let(:timeout_in_seconds) { 1 }
+    let(:channel) { connection.create_channel(prefetch: 2) }
+
+    it 'skips the message after timeout' do
+      consumed = false
+      consumer.consume do
+        sleep 2
+        consumed = true
+      end
+
+      deliver_message
+
+      expect(consumed).to eq(false)
+    end
+
+    def deliver_message
+      channel.default_exchange.publish('{}', routing_key: destination)
     end
   end
 

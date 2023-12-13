@@ -7,11 +7,13 @@ class Freddy
         new(**attrs).consume(&block)
       end
 
-      def initialize(thread_pool:, destination:, channel:, handler_adapter_factory:)
+      def initialize(thread_pool:, destination:, channel:, handler_adapter_factory:, timeout_in_seconds:, logger:)
         @consume_thread_pool = thread_pool
         @destination = destination
         @channel = channel
         @handler_adapter_factory = handler_adapter_factory
+        @timeout_in_seconds = timeout_in_seconds
+        @logger = logger
       end
 
       def consume
@@ -35,8 +37,12 @@ class Freddy
 
       def process_message(delivery)
         @consume_thread_pool.post do
-          delivery.in_span do
-            yield(delivery)
+          Timeout.timeout(@timeout_in_seconds) do
+            delivery.in_span do
+              yield(delivery)
+            end
+          rescue Timeout::Error
+            @logger.warn "Timed out while responding to a message from destination #{@destination}"
           end
         ensure
           @channel.acknowledge(delivery.tag, false)
