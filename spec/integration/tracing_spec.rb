@@ -119,7 +119,7 @@ describe 'Tracing' do
   end
 
   context 'when receiving a broadcast' do
-    let(:freddy) { Freddy.build(logger, config) }
+    let(:freddy) { Freddy.build(logger, **config) }
     let(:destination) { random_destination }
 
     before do
