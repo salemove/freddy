@@ -14,6 +14,7 @@ GEM
   specs:
     amq-protocol (2.3.2)
     ast (2.4.2)
+    bigdecimal (3.1.9)
     bunny (2.22.0)
       amq-protocol (~> 2.3, >= 2.3.1)
       sorted_set (~> 1, >= 1.0.2)
@@ -23,7 +24,9 @@ GEM
     hamster (3.0.0)
       concurrent-ruby (~> 1.0)
     method_source (1.0.0)
-    oj (3.15.0)
+    oj (3.16.9)
+      bigdecimal (>= 3.0)
+      ostruct (>= 0.2)
     opentelemetry-api (1.1.0)
     opentelemetry-common (0.19.6)
       opentelemetry-api (~> 1.0)
@@ -36,6 +39,7 @@ GEM
       opentelemetry-semantic_conventions
     opentelemetry-semantic_conventions (1.10.0)
       opentelemetry-api (~> 1.0)
+    ostruct (0.6.1)
     parallel (1.22.1)
     parser (3.1.2.0)
       ast (~> 2.4.1)
