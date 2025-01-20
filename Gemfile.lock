@@ -7,7 +7,7 @@ PATH
       oj (~> 3.6)
       opentelemetry-api (~> 1.0)
       opentelemetry-semantic_conventions (~> 1.0)
-      zlib (~> 1.1)
+      zlib (~> 3.2)
 
 GEM
   remote: https://rubygems.org/
@@ -80,7 +80,7 @@ GEM
       rbtree
       set (~> 1.0)
     unicode-display_width (2.1.0)
-    zlib (1.1.0)
+    zlib (3.2.1)
 
 PLATFORMS
   ruby
