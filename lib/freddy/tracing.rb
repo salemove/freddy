@@ -27,7 +27,7 @@ class Freddy
       Freddy.tracer.start_span(
         "#{span_destination(destination, routing_key)} send",
         kind: OpenTelemetry::Trace::SpanKind::PRODUCER,
-        attributes: attributes
+        attributes:
       )
     end
 
@@ -42,7 +42,7 @@ class Freddy
     def self.inject_tracing_information_to_properties!(properties, span)
       context = OpenTelemetry::Trace.context_with_span(span)
       properties[:headers] ||= {}
-      OpenTelemetry.propagation.inject(properties[:headers], context: context)
+      OpenTelemetry.propagation.inject(properties[:headers], context:)
     end
   end
 end

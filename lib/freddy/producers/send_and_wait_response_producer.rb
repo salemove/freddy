@@ -30,7 +30,7 @@ class Freddy
           @exchange,
           routing_key,
           payload,
-          correlation_id: correlation_id, timeout_in_seconds: timeout_in_seconds
+          correlation_id:, timeout_in_seconds:
         )
 
         container = SyncResponseContainer.new(
@@ -39,14 +39,14 @@ class Freddy
 
         @request_manager.store(correlation_id,
                                callback: container,
-                               span: span,
+                               span:,
                                destination: routing_key)
 
         properties[:expiration] = (timeout_in_seconds * 1000).to_i if delete_on_timeout
 
         properties = properties.merge(
-          routing_key: routing_key, content_type: CONTENT_TYPE,
-          correlation_id: correlation_id, reply_to: @response_queue.name,
+          routing_key:, content_type: CONTENT_TYPE,
+          correlation_id:, reply_to: @response_queue.name,
           mandatory: true, type: 'request'
         )
         Tracing.inject_tracing_information_to_properties!(properties, span)
@@ -64,14 +64,14 @@ class Freddy
         if (request = @request_manager.delete(correlation_id))
           process_response(request, delivery)
         else
-          message = "Got rpc response for correlation_id #{correlation_id} "\
+          message = "Got rpc response for correlation_id #{correlation_id} " \
                     'but there is no requester'
           @logger.warn message
         end
       end
 
       def process_response(request, delivery)
-        @logger.debug "Got response for request to #{request[:destination]} "\
+        @logger.debug "Got response for request to #{request[:destination]} " \
                       "with correlation_id #{delivery.correlation_id}"
         request[:callback].call(delivery.payload, delivery)
       rescue InvalidRequestError => e
@@ -84,7 +84,7 @@ class Freddy
 
       def on_timeout(correlation_id, routing_key, timeout_in_seconds, span)
         proc do
-          @logger.warn "Request timed out waiting response from #{routing_key}"\
+          @logger.warn "Request timed out waiting response from #{routing_key}" \
                        ", correlation id #{correlation_id}, timeout #{timeout_in_seconds}s"
 
           @request_manager.delete(correlation_id)

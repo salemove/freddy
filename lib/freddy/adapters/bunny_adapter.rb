@@ -73,7 +73,7 @@ class Freddy
         end
 
         def subscribe(manual_ack: false)
-          @queue.subscribe(manual_ack: manual_ack) do |info, properties, payload|
+          @queue.subscribe(manual_ack:) do |info, properties, payload|
             parsed_payload = Payload.parse(payload, properties[:content_encoding])
             delivery = Delivery.new(
               parsed_payload, properties, info.routing_key, info.delivery_tag, info.exchange

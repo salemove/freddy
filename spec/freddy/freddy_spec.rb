@@ -17,8 +17,8 @@ describe Freddy do
     freddy.close
   end
 
-  def respond_to(&block)
-    freddy.respond_to(destination, &block)
+  def respond_to(&)
+    freddy.respond_to(destination, &)
   end
 
   context 'when making a send-and-forget request' do
@@ -93,10 +93,10 @@ describe Freddy do
     end
   end
 
-  def exclusive_subscribe(&block)
+  def exclusive_subscribe(&)
     channel = @bunny.create_channel
     queue = channel.queue('', exclusive: true)
-    queue.subscribe(&block)
+    queue.subscribe(&)
     queue.name
   end
 
@@ -193,8 +193,8 @@ describe Freddy do
   end
 
   describe 'when tapping' do
-    def tap(custom_destination = destination, &block)
-      freddy.tap_into(custom_destination, &block)
+    def tap(custom_destination = destination, &)
+      freddy.tap_into(custom_destination, &)
     end
 
     it 'receives messages' do

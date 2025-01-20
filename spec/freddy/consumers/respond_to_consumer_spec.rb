@@ -3,9 +3,9 @@ require 'spec_helper'
 describe Freddy::Consumers::RespondToConsumer do
   let(:consumer) do
     described_class.new(
-      thread_pool: thread_pool,
-      destination: destination,
-      channel: channel,
+      thread_pool:,
+      destination:,
+      channel:,
       handler_adapter_factory: msg_handler_adapter_factory
     )
   end

@@ -19,7 +19,7 @@ class Freddy
         )
 
         properties = properties.merge(
-          routing_key: routing_key,
+          routing_key:,
           content_type: CONTENT_TYPE
         )
         Tracing.inject_tracing_information_to_properties!(properties, span)

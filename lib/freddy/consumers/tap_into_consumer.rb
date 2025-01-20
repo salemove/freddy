@@ -3,8 +3,8 @@
 class Freddy
   module Consumers
     class TapIntoConsumer
-      def self.consume(**attrs, &block)
-        new(**attrs).consume(&block)
+      def self.consume(**attrs, &)
+        new(**attrs).consume(&)
       end
 
       def initialize(thread_pool:, patterns:, channel:, options:)
@@ -16,11 +16,11 @@ class Freddy
         raise 'Do not use durable queues without specifying a group' if durable? && !group
       end
 
-      def consume(&block)
+      def consume(&)
         queue = create_queue
 
         consumer = queue.subscribe(manual_ack: true) do |delivery|
-          process_message(queue, delivery, &block)
+          process_message(queue, delivery, &)
         end
 
         ResponderHandler.new(consumer, @consume_thread_pool)

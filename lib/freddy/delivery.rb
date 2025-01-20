@@ -28,13 +28,13 @@ class Freddy
       @metadata[:timestamp]
     end
 
-    def in_span(&block)
+    def in_span(&)
       name = "#{Tracing.span_destination(@exchange, @routing_key)} process"
       kind = OpenTelemetry::Trace::SpanKind::CONSUMER
       producer_context = OpenTelemetry.propagation.extract(@metadata[:headers] || {})
 
       OpenTelemetry::Context.with_current(producer_context) do
-        Freddy.tracer.in_span(name, attributes: span_attributes, kind: kind, &block)
+        Freddy.tracer.in_span(name, attributes: span_attributes, kind:, &)
       end
     end
 
