@@ -11,7 +11,7 @@ Gem::Specification.new do |spec|
   spec.summary       = 'API for inter-application messaging supporting acknowledgements and request-response'
   spec.license       = 'MIT'
   spec.homepage      = 'https://github.com/salemove/freddy'
-  spec.required_ruby_version = '>= 2.7'
+  spec.required_ruby_version = '>= 3.2'
 
   spec.files         = `git ls-files`.split($INPUT_RECORD_SEPARATOR)
   spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }

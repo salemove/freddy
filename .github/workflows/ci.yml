@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        ruby-version: ['2.7']
+        ruby-version: ['3.2']
     services:
       rabbitmq:
         image: public.ecr.aws/docker/library/rabbitmq:3.13.7
