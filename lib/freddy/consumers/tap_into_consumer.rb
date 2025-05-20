@@ -3,8 +3,8 @@
 class Freddy
   module Consumers
     class TapIntoConsumer
-      def self.consume(**attrs, &block)
-        new(**attrs).consume(&block)
+      def self.consume(**attrs, &)
+        new(**attrs).consume(&)
       end
 
       def initialize(thread_pool:, patterns:, channel:, options:)

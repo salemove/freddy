@@ -2,9 +2,11 @@ require 'spec_helper'
 require 'hamster/experimental/mutable_set'
 
 describe 'Concurrency' do
+  # rubocop:disable RSpec/IndexedLet
   let(:freddy1) { Freddy.build(logger, **config) }
   let(:freddy2) { Freddy.build(logger, **config) }
   let(:freddy3) { Freddy.build(logger, **config) }
+  # rubocop:enable RSpec/IndexedLet
 
   after { [freddy1, freddy2, freddy3].each(&:close) }
 

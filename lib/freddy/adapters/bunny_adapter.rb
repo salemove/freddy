@@ -43,8 +43,8 @@ class Freddy
 
         def_delegators :@channel, :topic, :default_exchange, :consumers, :acknowledge, :reject
 
-        def queue(*args)
-          Queue.new(@channel.queue(*args))
+        def queue(*)
+          Queue.new(@channel.queue(*))
         end
 
         def on_no_route
@@ -59,8 +59,8 @@ class Freddy
           @queue = queue
         end
 
-        def bind(*args)
-          @queue.bind(*args)
+        def bind(*)
+          @queue.bind(*)
           self
         end
 
