@@ -4,7 +4,7 @@ gem 'hamster', '~> 3.0'
 gem 'opentelemetry-sdk', '~> 1.0'
 gem 'pry'
 gem 'rspec'
-gem 'rubocop', '~> 1.30'
-gem 'rubocop-rspec', '~> 2.4'
+gem 'rubocop', '~> 1.61'
+gem 'rubocop-rspec', '~> 3.3'
 
 gemspec
