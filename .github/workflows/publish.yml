@@ -15,7 +15,7 @@ jobs:
 
 
       - name: Release Gem
-        uses: discourse/publish-rubygems-action@ec5415e2cc3509a5cc8c4eef9499cf3fb05f8391
+        uses: discourse/publish-rubygems-action@4bd305c65315cb691bad1e8de97a87aaf29a0a85
         env:
           RUBYGEMS_API_KEY: ${{secrets.RUBYGEMS_API_KEY}}
           RELEASE_COMMAND: rake release
