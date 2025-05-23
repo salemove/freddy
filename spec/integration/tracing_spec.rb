@@ -63,6 +63,7 @@ describe 'Tracing' do
   end
 
   context 'when receiving a nested traced request' do
+    # rubocop:disable RSpec/IndexedLet
     let(:freddy) { Freddy.build(logger, **config) }
     let(:freddy2) { Freddy.build(logger, **config) }
     let(:freddy3) { Freddy.build(logger, **config) }
@@ -70,6 +71,7 @@ describe 'Tracing' do
     let(:destination) { random_destination }
     let(:destination2) { random_destination }
     let(:destination3) { random_destination }
+    # rubocop:enable RSpec/IndexedLet
 
     before do
       freddy.respond_to(destination) do |_payload, msg_handler|
@@ -119,7 +121,7 @@ describe 'Tracing' do
   end
 
   context 'when receiving a broadcast' do
-    let(:freddy) { Freddy.build(logger, config) }
+    let(:freddy) { Freddy.build(logger, **config) }
     let(:destination) { random_destination }
 
     before do

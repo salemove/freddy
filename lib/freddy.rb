@@ -5,9 +5,9 @@ require 'concurrent'
 require 'securerandom'
 require 'opentelemetry'
 require 'opentelemetry/semantic_conventions'
-require_relative './freddy/version'
+require_relative 'freddy/version'
 
-Dir["#{File.dirname(__FILE__)}/freddy/*.rb"].sort.each(&method(:require))
+Dir["#{File.dirname(__FILE__)}/freddy/*.rb"].each(&method(:require))
 
 class Freddy
   FREDDY_TOPIC_EXCHANGE_NAME = 'freddy-topic'
@@ -77,7 +77,7 @@ class Freddy
   #       handler.error(message: 'Can not do')
   #     end
   #   end
-  def respond_to(destination, &callback)
+  def respond_to(destination, &)
     @logger.info "Listening for requests on #{destination}"
 
     channel = @connection.create_channel(prefetch: @prefetch_buffer_size)
@@ -85,13 +85,11 @@ class Freddy
     handler_adapter_factory = MessageHandlerAdapters::Factory.new(producer)
 
     Consumers::RespondToConsumer.consume(
-      **{
-        thread_pool: Concurrent::FixedThreadPool.new(@prefetch_buffer_size),
-        destination: destination,
-        channel: channel,
-        handler_adapter_factory: handler_adapter_factory
-      },
-      &callback
+      thread_pool: Concurrent::FixedThreadPool.new(@prefetch_buffer_size),
+      destination: destination,
+      channel: channel,
+      handler_adapter_factory: handler_adapter_factory,
+      &
     )
   end
 
@@ -134,17 +132,15 @@ class Freddy
   #   freddy.tap_into 'notifications.*' do |message|
   #     puts "Notification showed #{message.inspect}"
   #   end
-  def tap_into(pattern_or_patterns, options = {}, &callback)
+  def tap_into(pattern_or_patterns, options = {}, &)
     @logger.debug "Tapping into messages that match #{pattern_or_patterns}"
 
     Consumers::TapIntoConsumer.consume(
-      **{
-        thread_pool: Concurrent::FixedThreadPool.new(@prefetch_buffer_size),
-        patterns: Array(pattern_or_patterns),
-        channel: @connection.create_channel(prefetch: @prefetch_buffer_size),
-        options: options
-      },
-      &callback
+      thread_pool: Concurrent::FixedThreadPool.new(@prefetch_buffer_size),
+      patterns: Array(pattern_or_patterns),
+      channel: @connection.create_channel(prefetch: @prefetch_buffer_size),
+      options: options,
+      &
     )
   end
 

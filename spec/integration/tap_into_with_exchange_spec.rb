@@ -39,6 +39,6 @@ describe 'Tapping into with exchange identifier' do
     channel.topic(topic).publish(message_payload, { routing_key: 'pattern.random' })
     default_sleep
 
-    expect(received_timestamp).to eq(nil)
+    expect(received_timestamp).to be_nil
   end
 end

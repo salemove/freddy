@@ -3,9 +3,10 @@ require 'hamster/experimental/mutable_set'
 
 describe 'Tapping into with group identifier' do
   let(:deliverer) { Freddy.build(logger, **config) }
+  # rubocop:disable RSpec/IndexedLet
   let(:responder1) { Freddy.build(logger, **config) }
   let(:responder2) { Freddy.build(logger, **config) }
-
+  # rubocop:enable RSpec/IndexedLet
   let(:destination)  { random_destination }
 
   after { [deliverer, responder1, responder2].each(&:close) }

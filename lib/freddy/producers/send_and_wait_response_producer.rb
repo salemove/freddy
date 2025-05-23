@@ -64,14 +64,14 @@ class Freddy
         if (request = @request_manager.delete(correlation_id))
           process_response(request, delivery)
         else
-          message = "Got rpc response for correlation_id #{correlation_id} "\
+          message = "Got rpc response for correlation_id #{correlation_id} " \
                     'but there is no requester'
           @logger.warn message
         end
       end
 
       def process_response(request, delivery)
-        @logger.debug "Got response for request to #{request[:destination]} "\
+        @logger.debug "Got response for request to #{request[:destination]} " \
                       "with correlation_id #{delivery.correlation_id}"
         request[:callback].call(delivery.payload, delivery)
       rescue InvalidRequestError => e
@@ -84,7 +84,7 @@ class Freddy
 
       def on_timeout(correlation_id, routing_key, timeout_in_seconds, span)
         proc do
-          @logger.warn "Request timed out waiting response from #{routing_key}"\
+          @logger.warn "Request timed out waiting response from #{routing_key}" \
                        ", correlation id #{correlation_id}, timeout #{timeout_in_seconds}s"
 
           @request_manager.delete(correlation_id)
