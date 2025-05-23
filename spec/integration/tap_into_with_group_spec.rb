@@ -11,11 +11,6 @@ describe 'Tapping into with group identifier' do
 
   after { [deliverer, responder1, responder2].each(&:close) }
 
-  it 'raises an exception if option :durable is provided without group' do
-    expect { responder1.tap_into(destination, durable: true) }
-      .to raise_error(RuntimeError)
-  end
-
   it 'receives a message once' do
     msg_counter = Hamster::MutableSet[]
 

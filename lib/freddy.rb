@@ -107,8 +107,9 @@ class Freddy
   #   only one of the listeners in given group will receive a message. All
   #   listeners will receive a message if the group is not specified.
   # @option options [Boolean] :durable
-  #   Should the consumer queue be durable? Default is `false`. This option can
+  #   Should the consumer queue be durable? Default is `true`. This option can
   #   be used only in combination with option `:group`.
+  #   Note that queues *must be durable* with "quorum" queue types.
   # @option options [Boolean] :on_exception
   #   Defines consumer's behaviour when the callback fails to process a message
   #   and raises an exception. Can be one of `:ack`, `:reject` or `:requeue`.

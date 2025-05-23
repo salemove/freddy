@@ -12,8 +12,6 @@ class Freddy
         @patterns = patterns
         @channel = channel
         @options = options
-
-        raise 'Do not use durable queues without specifying a group' if durable? && !group
       end
 
       def consume(&block)
@@ -70,7 +68,7 @@ class Freddy
       end
 
       def durable?
-        @options.fetch(:durable, false)
+        @options.fetch(:durable, true)
       end
 
       def on_exception
